@@ -1,0 +1,13 @@
+{
+  "name": "wsm-ai",
+  "version": "1.0.0",
+  "description": "WSM Chat powered by Groq Llama 3.1 8B",
+  "main": "index.html",
+  "scripts": {
+    "dev": "echo 'Open index.html in browser'",
+    "build": "echo 'No build needed - static files only'"
+  },
+  "keywords": ["chat", "groq", "llama", "ai"],
+  "author": "WSM",
+  "license": "MIT"
+}

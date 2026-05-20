@@ -1692,38 +1692,61 @@
 
   // Chamada Real da API do Groq
   async function callGroqAPI(userPrompt) {
+    console.log('🔍 [DEBUG] Iniciando busca da chave GROQ_API_KEY...');
+    
     // 1. Tentar obter a chave de API em ordem de prioridade
     let apiKey = localStorage.getItem('GROQ_API_KEY');
+    if (apiKey) {
+      console.log('✅ [DEBUG] Chave encontrada em localStorage');
+    }
     
     // Fallback 1: Tentar carregar de variável global injetada pela Vercel (via script tag ou deploy)
     if (!apiKey && typeof window !== 'undefined' && window.GROQ_API_KEY) {
       apiKey = window.GROQ_API_KEY;
+      console.log('✅ [DEBUG] Chave encontrada em window.GROQ_API_KEY');
     }
 
     // Fallback 2: Tentar fetch de um endpoint de API que fornece a chave (método seguro para Vercel)
     if (!apiKey) {
+      console.log('🔄 [DEBUG] Tentando fetch de /api/config...');
       try {
-        const response = await fetch('/api/config', { method: 'GET' });
+        const response = await fetch('/api/config', { 
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        console.log(`📡 [DEBUG] /api/config respondeu com status: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('📦 [DEBUG] Resposta recebida:', { groqApiKey: data.groqApiKey ? '***' : 'vazia' });
           apiKey = data.groqApiKey;
+          if (apiKey) {
+            console.log('✅ [DEBUG] Chave carregada de /api/config');
+          }
+        } else {
+          const errorData = await response.json();
+          console.warn(`⚠️ [DEBUG] /api/config retornou erro:`, errorData);
         }
       } catch (err) {
-        // Endpoint não existe ou erro na requisição, continua sem chave
-        console.log("Endpoint /api/config não disponível");
+        console.error("❌ [DEBUG] Erro ao chamar /api/config:", err.message);
       }
     }
 
     if (!apiKey) {
+      console.error('❌ [DEBUG] NENHUMA chave foi encontrada em nenhuma fonte!');
       removeTypingIndicator();
-      appendMessage("Ops! A chave de API do Groq não foi encontrada. Por favor, clique em **Configurações** na barra lateral para inserir sua chave e começar a conversar. Você também pode configurá-la como variável de ambiente na Vercel (GROQ_API_KEY).", "bot");
+      appendMessage("Ops! A chave de API do Groq não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro. Tente:\n\n1. **Salvar manualmente**: Clique em ⚙️ Configurações e cole sua chave\n2. **Vercel**: Verifique se GROQ_API_KEY está nas Environment Variables\n3. **Deploy**: Faça um novo deploy após adicionar a variável", "bot");
       return;
     }
+
+    console.log('✨ [DEBUG] Chave validada! Enviando para API Groq...');
 
     // Configurar o payload do histórico de conversas para manter contexto
     chatHistory.push({ role: "user", content: userPrompt });
 
     try {
+      console.log('📤 Enviando requisição para API Groq...');
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -1741,12 +1764,16 @@
         })
       });
 
+      console.log(`📡 Resposta da Groq: Status ${response.status}`);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('❌ Erro da Groq:', errorData);
         throw new Error(errorData.error?.message || "Falha na comunicação com o Groq.");
       }
 
       const data = await response.json();
+      console.log('✅ Resposta recebida com sucesso');
       const assistantResponse = data.choices[0].message.content;
 
       // Adicionar resposta ao histórico local para continuar no contexto
@@ -1756,9 +1783,9 @@
       appendMessage(assistantResponse, 'bot');
 
     } catch (error) {
-      console.error(error);
+      console.error('❌ Erro completo:', error);
       removeTypingIndicator();
-      appendMessage(`Lamento, ocorreu um erro ao chamar o Llama 3.1: **${error.message}**. Verifique se a sua Chave de API está correta e ativa nas Configurações.`, "bot");
+      appendMessage(`Lamento, ocorreu um erro ao chamar o Llama 3.1: **${error.message}**. Verifique se a sua Chave de API está correta e ativa nas Configurações. (Abra F12 para ver o log completo)`, "bot");
     }
   }
 
