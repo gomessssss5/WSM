@@ -40,9 +40,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         api_key: tavilyApiKey,
         query: searchQuery,
-        max_results: 5,
+        max_results: 10,
         include_answer: true,
-        include_images: false
+        include_images: true,
+        num_images: 5
       })
     });
 
@@ -61,6 +62,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       results: tavilyData.results,
       answer: tavilyData.answer,
+      images: tavilyData.images || [],
       message: 'Busca realizada com sucesso'
     });
 
