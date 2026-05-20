@@ -1861,32 +1861,24 @@
       if (titleEl) titleEl.textContent = "Preparando imagens para análise...";
 
       // Converter imagens para base64
-      const imagePromises = attachedFiles.map(file => {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const base64 = e.target.result.split(',')[1];
-            resolve({
-              data: base64,
-              type: file.type
-            });
+      // Preparar imagens - já temos o src em base64
+      const images = filesToAnalyze
+        .filter(file => file.src && file.file)
+        .map(file => {
+          const base64 = file.src.split(',')[1]; // Extrair a parte base64 da data URL
+          return {
+            data: base64,
+            type: file.file.type
           };
-          reader.onerror = () => {
-            console.error('Erro ao ler arquivo:', file.name);
-            resolve(null);
-          };
-          reader.readAsDataURL(file.file);
         });
-      });
-
-      const images = (await Promise.all(imagePromises)).filter(img => img !== null);
       
       if (images.length === 0) {
         throw new Error('Nenhuma imagem válida foi selecionada');
       }
-
-      await sleep(1000);
       setStepCompleted(1, currentAgentId);
+
+      // Pequeno delay para animação
+      await sleep(800);
 
       // ===== ETAPA 2: ENVIAR PARA GROQ =====
       setStepActive(2, currentAgentId);
