@@ -1792,11 +1792,15 @@
     tertiary: 'llama-3.2-90b-vision-preview'                // Fallback 2
   };
 
-  async function appendVisionAnalysisResponse() {
+  async function appendVisionAnalysisResponse(userQuestion = '', attachedFilesData = []) {
     activeAgentsCount++;
     const currentAgentId = activeAgentsCount;
     const messagesEl = document.getElementById('messages');
-    if (!messagesEl || attachedFiles.length === 0) return;
+    
+    // Usar os arquivos passados ou os globais
+    const filesToAnalyze = attachedFilesData.length > 0 ? attachedFilesData : attachedFiles;
+    
+    if (!messagesEl || filesToAnalyze.length === 0) return;
 
     const agentContainer = document.createElement('div');
     agentContainer.className = 'agent-response-container';
@@ -2377,8 +2381,8 @@
     // Encaminha para o fluxo correto
     setTimeout(() => {
       if (currentAttachments.length > 0) {
-        // Modo Anexo: Exibe a animação do WSM Vision (conforme regra de preservação solicitado)
-        appendVisionAnalysisResponse();
+        // Modo Anexo: Exibe a animação do WSM Vision com pergunta do usuário
+        appendVisionAnalysisResponse(text, currentAttachments);
       } else if (searchMode) {
         // Modo Pesquisa: Executa Deep Research com Agente em Loop (Tavily + Groq)
         executeDeepResearch(text);
