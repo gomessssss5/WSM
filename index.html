@@ -1785,11 +1785,18 @@
   }
 
   // DISPARA ANIMAÇÃO DE ANÁLISE VISUAL DE IMAGENS (Simulação contida)
+  // Configuração de modelos
+  const VISION_MODELS = {
+    primary: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Seu modelo - funciona!
+    secondary: 'llama-3.2-11b-vision-preview',              // Fallback 1
+    tertiary: 'llama-3.2-90b-vision-preview'                // Fallback 2
+  };
+
   async function appendVisionAnalysisResponse() {
     activeAgentsCount++;
     const currentAgentId = activeAgentsCount;
     const messagesEl = document.getElementById('messages');
-    if (!messagesEl) return;
+    if (!messagesEl || attachedFiles.length === 0) return;
 
     const agentContainer = document.createElement('div');
     agentContainer.className = 'agent-response-container';
@@ -1813,11 +1820,11 @@
         <div class="thought-content">
           <div class="step" id="step1_${currentAgentId}">
             <div class="step-icon" id="icon1_${currentAgentId}">1</div>
-            <div class="step-text">Preparando imagens para processamento no modelo Llama 4 Scout 17B.</div>
+            <div class="step-text">Preparando imagens para processamento com modelo de visão.</div>
           </div>
           <div class="step" id="step2_${currentAgentId}">
             <div class="step-icon" id="icon2_${currentAgentId}">2</div>
-            <div class="step-text">Enviando para análise com visão computacional avançada.</div>
+            <div class="step-text">Enviando para análise com IA de visão computacional avançada.</div>
           </div>
           <div class="step" id="step3_${currentAgentId}">
             <div class="step-icon" id="icon3_${currentAgentId}">3</div>
@@ -1854,23 +1861,32 @@
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = (e) => {
+            const base64 = e.target.result.split(',')[1];
             resolve({
-              data: e.target.result.split(',')[1],
+              data: base64,
               type: file.type
             });
+          };
+          reader.onerror = () => {
+            console.error('Erro ao ler arquivo:', file.name);
+            resolve(null);
           };
           reader.readAsDataURL(file.file);
         });
       });
 
-      const images = await Promise.all(imagePromises);
+      const images = (await Promise.all(imagePromises)).filter(img => img !== null);
       
+      if (images.length === 0) {
+        throw new Error('Nenhuma imagem válida foi selecionada');
+      }
+
       await sleep(1000);
       setStepCompleted(1, currentAgentId);
 
       // ===== ETAPA 2: ENVIAR PARA GROQ =====
       setStepActive(2, currentAgentId);
-      if (titleEl) titleEl.textContent = "Enviando para análise com Llama 4 Scout...";
+      if (titleEl) titleEl.textContent = "Enviando para análise com IA...";
 
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
@@ -1882,14 +1898,14 @@
       }
 
       if (!groqApiKey) {
-        throw new Error('GROQ_API_KEY não encontrada');
+        throw new Error('GROQ_API_KEY não configurada. Verifique as variáveis de ambiente no Vercel.');
       }
 
       // Preparar conteúdo com imagens para Groq
       const messageContent = [
         {
           type: 'text',
-          text: 'Analise as seguintes imagens detalhadamente. Descreva o que você vê, objetos principais, cores, contexto, composição e qualquer informação relevante que possa extrair delas. Seja descritivo e detalhado.'
+          text: 'Analise as seguintes imagens detalhadamente. Descreva o que você vê, objetos principais, cores, contexto, composição, texto visível e qualquer informação relevante. Seja descritivo, detalhado e útil.'
         }
       ];
 
@@ -1903,32 +1919,52 @@
         });
       });
 
-      const visionResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqApiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-4-scout-17b-16e-instruct',
-          messages: [
-            {
-              role: 'user',
-              content: messageContent
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        })
-      });
+      // Tentar com diferentes modelos
+      let analysisResult = null;
+      let lastError = null;
+      
+      for (const [modelKey, modelName] of Object.entries(VISION_MODELS)) {
+        try {
+          console.log(`🔄 Tentando modelo: ${modelName}`);
+          
+          const visionResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${groqApiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                {
+                  role: 'user',
+                  content: messageContent
+                }
+              ],
+              temperature: 0.7,
+              max_tokens: 2000
+            })
+          });
 
-      if (!visionResponse.ok) {
-        const errorData = await visionResponse.json();
-        throw new Error(`Erro Groq: ${errorData.error?.message || 'Desconhecido'}`);
+          if (visionResponse.ok) {
+            const visionData = await visionResponse.json();
+            analysisResult = visionData.choices[0].message.content;
+            console.log(`✅ Sucesso com modelo: ${modelName}`);
+            break;
+          } else {
+            const errorData = await visionResponse.json();
+            lastError = errorData.error?.message || `Erro com ${modelName}`;
+            console.warn(`⚠️ Erro com ${modelName}: ${lastError}`);
+          }
+        } catch (err) {
+          lastError = err.message;
+          console.warn(`⚠️ Falha ao tentar ${modelName}: ${err.message}`);
+        }
       }
 
-      const visionData = await visionResponse.json();
-      const analysisResult = visionData.choices[0].message.content;
+      if (!analysisResult) {
+        throw new Error(`Nenhum modelo disponível funcionou. Último erro: ${lastError}`);
+      }
 
       await sleep(1000);
       setStepCompleted(2, currentAgentId);
@@ -1942,10 +1978,13 @@
       clearInterval(timerInterval);
 
       const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
-      if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
+      if (thoughtBoxEl) {
+        thoughtBoxEl.classList.add('completed');
+      }
 
       setTimeout(() => {
-        if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed');
+        const box = document.getElementById(`thoughtBox_${currentAgentId}`);
+        if (box) box.classList.add('collapsed');
       }, 500);
 
       setTimeout(() => {
@@ -1970,7 +2009,15 @@
       const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
       
       if (outputContent) {
-        outputContent.innerHTML = `<strong>❌ Erro na análise:</strong><br>${error.message}<br><br><em>Verifique se a GROQ_API_KEY está configurada e se o modelo llama-4-scout-17b-16e-instruct está disponível.</em>`;
+        outputContent.innerHTML = `
+          <strong>❌ Erro na análise:</strong><br>
+          ${error.message}<br><br>
+          <strong>Soluções:</strong><br>
+          1. Verifique se GROQ_API_KEY está configurada no Vercel<br>
+          2. Verifique se você tem acesso aos modelos de visão<br>
+          3. Tente um modelo diferente (llama-3.2-11b-vision-preview)<br>
+          4. Abra console (F12) para mais detalhes
+        `;
       }
       if (outputCard) {
         outputCard.offsetHeight;
