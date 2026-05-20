@@ -1005,7 +1005,7 @@
     color: var(--agent-green);
   }
 
-  /* GRID DE FONTES */
+  /* GRID DE FONTES - VERSÃO ANTIGA */
   .sources-container {
     display: none; 
     flex-direction: column;
@@ -1019,87 +1019,192 @@
     opacity: 1;
   }
 
-  .sources-label {
-    font-size: 11.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
+  /* ACCORDION DE FONTES - NOVA VERSÃO */
+  .sources-accordion {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    overflow: hidden;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    box-shadow: var(--shadow-card);
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .sources-accordion.visible {
+    display: flex;
+    opacity: 1;
+  }
+
+  .sources-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.01);
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition);
   }
 
-  .sources-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    width: 100%;
+  .sources-header:hover {
+    background: var(--pill-bg);
   }
 
-  .source-card {
+  .sources-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sources-status i {
+    font-size: 16px;
+    color: var(--agent-blue);
+  }
+
+  .sources-title {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color var(--transition);
+  }
+
+  .sources-accordion:not(.collapsed) .sources-title {
+    color: var(--text-primary);
+  }
+
+  .sources-count {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(2, 132, 199, 0.1);
+    color: var(--agent-blue);
+    font-weight: 600;
+    margin-left: 8px;
+  }
+
+  .sources-toggle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .sources-accordion.collapsed .sources-toggle {
+    transform: rotate(-90deg);
+  }
+
+  .sources-content {
+    padding: 0;
+    border-top: 0.5px solid var(--border);
+    background: rgba(0,0,0,0.005);
+    max-height: 800px;
+    transition: max-height 0.4s ease, padding 0.4s ease, border-top-color 0.4s ease;
+    overflow: hidden;
+  }
+
+  .sources-accordion.collapsed .sources-content {
+    max-height: 0;
+    padding: 0;
+    border-top-color: transparent;
+  }
+
+  .sources-list {
     display: flex;
     flex-direction: column;
-    padding: 12px 14px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg-card);
-    transition: all var(--transition);
+    gap: 0;
+    padding: 0;
+  }
+
+  .source-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+    border-bottom: 0.5px solid var(--border);
+    transition: background var(--transition), opacity var(--transition), transform var(--transition);
     opacity: 0;
     transform: translateY(10px);
   }
 
-  .source-card.pop-in {
+  .source-item:last-child {
+    border-bottom: none;
+  }
+
+  .source-item.pop-in {
     opacity: 1;
     transform: translateY(0);
   }
 
-  .source-card:hover {
-    border-color: var(--border-focus);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card);
-  }
-
-  .source-header {
+  .source-item-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: opacity var(--transition);
+    gap: 12px;
   }
 
-  .source-fav {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+  .source-item:hover .source-item-header {
+    opacity: 0.8;
+  }
+
+  .source-item-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .source-item-fav {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     background: var(--pill-bg);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--agent-blue);
+    flex-shrink: 0;
   }
 
-  .source-domain {
+  .source-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .source-item-domain {
     font-size: 11px;
-    color: var(--text-secondary);
-  }
-
-  .source-badge {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: rgba(22, 163, 74, 0.08);
-    color: var(--agent-green);
+    color: var(--text-muted);
     font-weight: 600;
-    margin-left: auto;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
-  .source-title {
-    font-size: 12.5px;
+  .source-item-title {
+    font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
     line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .source-item-icon {
+    font-size: 14px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: color var(--transition), transform var(--transition);
+  }
+
+  .source-item:hover .source-item-icon {
+    color: var(--agent-blue);
+    transform: translate(1px, -1px);
   }
 
   /* RESPOSTA SINTETIZADA DO AGENTE */
@@ -1947,11 +2052,18 @@
         </div>
       </div>
 
-      <div class="sources-container" id="sourcesContainer_${currentAgentId}">
-        <div class="sources-label">
-          <i class="ti ti-link"></i> Fontes Coletadas em Tempo Real
+      <div class="sources-accordion collapsed" id="sourcesContainer_${currentAgentId}">
+        <div class="sources-header" onclick="toggleSourcesAccordion(${currentAgentId})">
+          <div class="sources-status">
+            <i class="ti ti-link"></i>
+            <span class="sources-title">Fontes Coletadas em Tempo Real</span>
+          </div>
+          <span class="sources-count" id="sourcesCount_${currentAgentId}">0</span>
+          <i class="ti ti-chevron-down sources-toggle"></i>
         </div>
-        <div class="sources-grid" id="sourcesGrid_${currentAgentId}"></div>
+        <div class="sources-content">
+          <div class="sources-list" id="sourcesList_${currentAgentId}"></div>
+        </div>
       </div>
 
       <div class="output-card" id="outputCard_${currentAgentId}">
@@ -1973,6 +2085,8 @@
       // ========== ETAPA 1: PLANEJAMENTO COM GROQ ==========
       console.log('📋 [ETAPA 1] Gerando palavras-chave com Groq...');
       setStepActive(1, currentAgentId);
+      const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl1) titleEl1.textContent = 'Mapeando plano de investigação...';
       
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
@@ -2026,7 +2140,7 @@
       console.log('🌐 [ETAPA 2] Buscando na web com Tavily...');
       setStepActive(2, currentAgentId);
       const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl2) titleEl2.textContent = 'Varrendo canais da web em tempo real...';
+      if (titleEl2) titleEl2.textContent = 'Vasculhando a web em busca de evidências...';
 
       const searchResponse = await fetch('/api/search', {
         method: 'POST',
@@ -2049,43 +2163,52 @@
       console.log('📊 [ETAPA 3] Analisando fontes...');
       setStepActive(3, currentAgentId);
       const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl3) titleEl3.textContent = 'Analisando referências de consistência...';
+      if (titleEl3) titleEl3.textContent = 'Validando consistência das fontes encontradas...';
 
-      // Renderizar cartões de fontes
+      // Renderizar cartões de fontes no accordion
       const sourcesContainer = document.getElementById(`sourcesContainer_${currentAgentId}`);
-      const sourcesGrid = document.getElementById(`sourcesGrid_${currentAgentId}`);
+      const sourcesList = document.getElementById(`sourcesList_${currentAgentId}`);
+      const sourcesCount = document.getElementById(`sourcesCount_${currentAgentId}`);
       
-      if (sourcesContainer && sourcesGrid) {
+      if (sourcesContainer && sourcesList) {
         sourcesContainer.style.display = 'flex';
-        sourcesGrid.innerHTML = '';
+        sourcesList.innerHTML = '';
+        
+        // Atualizar contagem de fontes
+        if (sourcesCount) sourcesCount.textContent = `${searchData.results.length}`;
 
         searchData.results.forEach((result, index) => {
           const domainUrl = new URL(result.url);
           const domain = domainUrl.hostname.replace('www.', '');
           const initial = domain.charAt(0).toUpperCase();
 
-          const sourceCard = document.createElement('div');
-          sourceCard.className = 'source-card';
-          sourceCard.innerHTML = `
-            <div class="source-header">
-              <span class="source-fav">${initial}</span>
-              <span class="source-domain">${domain}</span>
-              <span class="source-badge">Ativo</span>
+          const sourceItem = document.createElement('div');
+          sourceItem.className = 'source-item';
+          sourceItem.innerHTML = `
+            <div class="source-item-header" onclick="window.open('${result.url}', '_blank')">
+              <div class="source-item-left">
+                <span class="source-item-fav">${initial}</span>
+                <div class="source-item-info">
+                  <span class="source-item-domain">${domain}</span>
+                  <span class="source-item-title">${result.title}</span>
+                </div>
+              </div>
+              <i class="ti ti-external-link source-item-icon"></i>
             </div>
-            <span class="source-title">${result.title}</span>
           `;
           
-          sourcesGrid.appendChild(sourceCard);
+          sourcesList.appendChild(sourceItem);
 
-          // Animar entrada dos cartões
+          // Animar entrada dos itens
           setTimeout(() => {
-            sourceCard.classList.add('pop-in');
+            sourceItem.classList.add('pop-in');
             scrollToBottom();
-          }, index * 200);
+          }, index * 150);
         });
 
         sourcesContainer.classList.add('visible');
       }
+
 
       await sleep(2000);
       setStepCompleted(3, currentAgentId);
@@ -2094,7 +2217,7 @@
       console.log('🧠 [ETAPA 4] Sintetizando resposta final...');
       setStepActive(4, currentAgentId);
       const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl4) titleEl4.textContent = 'Sintetizando insights finais com dados reais...';
+      if (titleEl4) titleEl4.textContent = 'Redigindo síntese factual final...';
 
       // Preparar contexto das fontes
       const sourcesContext = searchData.results
@@ -2204,6 +2327,14 @@
     const box = document.getElementById(`thoughtBox_${agentId}`);
     if (box) {
       box.classList.toggle('collapsed');
+      setTimeout(scrollToBottom, 450);
+    }
+  }
+
+  function toggleSourcesAccordion(agentId) {
+    const accordion = document.getElementById(`sourcesContainer_${agentId}`);
+    if (accordion) {
+      accordion.classList.toggle('collapsed');
       setTimeout(scrollToBottom, 450);
     }
   }
