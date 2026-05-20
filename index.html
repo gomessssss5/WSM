@@ -645,6 +645,54 @@
     to { opacity: 1; transform: scale(1); }
   }
 
+  /* Tavily images preview (mini gallery under thought-box) */
+  .tavily-images {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 6px;
+    overflow-x: auto;
+  }
+  .tavily-thumb {
+    width: 92px;
+    height: 64px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+    box-shadow: var(--shadow-card);
+    flex-shrink: 0;
+  }
+  .tavily-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Pill resumo das imagens anexadas (aparece no final da resposta) */
+  .attachment-summary-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--pill-bg);
+    border: 0.5px solid var(--border);
+    box-shadow: var(--shadow-input);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all var(--transition);
+  }
+  .attachment-summary-pill.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .attachment-summary-pill .pill-thumbs { display:flex; gap:6px; }
+  .attachment-summary-pill .pill-thumb { width:36px; height:36px; border-radius:8px; overflow:hidden; border:0.5px solid rgba(0,0,0,0.05); }
+  .attachment-summary-pill .pill-thumb img { width:100%; height:100%; object-fit:cover; }
+  .attachment-summary-pill .pill-label { font-size:13px; color:var(--text-primary); font-weight:600; }
+
   .input-field {
     width: 100%;
     background: none;
@@ -2026,7 +2074,7 @@
 
   // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
   // Implementa o fluxo de 4 etapas: Planejamento → Busca → Análise → Síntese
-  async function executeDeepResearch(userPrompt) {
+  async function executeDeepResearch(userPrompt, attachedFilesData = []) {
     console.log('🔄 [DEEP RESEARCH] Iniciando agente em loop...');
     console.log('📝 Prompt do usuário:', userPrompt);
     
@@ -2037,6 +2085,7 @@
 
     // Renderizar container do agente
     const agentContainer = document.createElement('div');
+    let imageAnalysisText = '';
     agentContainer.className = 'agent-response-container';
     agentContainer.innerHTML = `
       <div class="agent-pill">
@@ -2087,6 +2136,10 @@
         <div class="thought-content" id="sourcesContent_${currentAgentId}" style="display: flex; flex-direction: column; gap: 0; padding: 0; border: none;">
           <!-- Fontes serão inseridas aqui -->
         </div>
+      </div>
+
+      <div id="tavilyImages_${currentAgentId}" class="tavily-images" style="margin-top:12px; display:none;">
+        <!-- Imagens da Tavily (até 5) aparecerão aqui -->
       </div>
 
       <div class="output-card" id="outputCard_${currentAgentId}">
@@ -2180,6 +2233,72 @@
       await sleep(1500);
       setStepCompleted(2, currentAgentId);
 
+      // Se houver imagens anexadas, executar análise de visão em background (integração no contexto)
+      if (attachedFilesData && attachedFilesData.length > 0) {
+        try {
+          const imgsToAnalyze = attachedFilesData
+            .filter(f => f.src && f.file)
+            .map(f => ({ data: f.src.split(',')[1], type: f.file.type }));
+
+          if (imgsToAnalyze.length > 0) {
+            // Preparar conteúdo para Groq (visão)
+            const messageContentForVision = [
+              { type: 'text', text: 'Analise estas imagens detalhadamente em português. Descreva objetos, cores, texto visível, contexto e observações relevantes. Seja sucinto, objetivo e entregue um parágrafo resumo por imagem.' }
+            ];
+
+            imgsToAnalyze.forEach(img => {
+              messageContentForVision.push({
+                type: 'image_url',
+                image_url: { url: `data:${img.type};base64,${img.data}` }
+              });
+            });
+
+            let visionAnalysis = null;
+            let lastVisionErr = null;
+
+            for (const [k, modelName] of Object.entries(VISION_MODELS)) {
+              try {
+                const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    model: modelName,
+                    messages: [ { role: 'user', content: messageContentForVision } ],
+                    temperature: 0.3,
+                    max_tokens: 800
+                  })
+                });
+
+                if (resp.ok) {
+                  const j = await resp.json();
+                  visionAnalysis = j.choices[0].message.content;
+                  break;
+                } else {
+                  const er = await resp.json();
+                  lastVisionErr = er.error?.message || JSON.stringify(er);
+                }
+              } catch (err) {
+                lastVisionErr = err.message;
+              }
+            }
+
+            if (visionAnalysis) {
+              imageAnalysisText = visionAnalysis;
+              console.log('✅ Análise das imagens obtida (integrada ao contexto)');
+            } else {
+              imageAnalysisText = `Erro na análise de imagens: ${lastVisionErr || 'Nenhuma resposta'}`;
+              console.warn('⚠️', imageAnalysisText);
+            }
+          }
+        } catch (err) {
+          imageAnalysisText = `Erro ao preparar análise de imagens: ${err.message}`;
+          console.warn('⚠️', imageAnalysisText);
+        }
+      }
+
       // ========== ETAPA 3: ANÁLISE E FILTRAGEM ==========
       console.log('📊 [ETAPA 3] Analisando fontes...');
       setStepActive(3, currentAgentId);
@@ -2249,6 +2368,39 @@
         });
 
         sourcesBox.classList.add('pop-in');
+
+        // Renderizar imagens retornadas pela Tavily (até 5)
+        const tavilyBox = document.getElementById(`tavilyImages_${currentAgentId}`);
+        if (tavilyBox) {
+          // Extrair imagens do payload (tolerante a formatos)
+          const imgs = (searchData.images && Array.isArray(searchData.images) ? searchData.images : [])
+            .concat(searchData.results.map(r => r.image || r.thumbnail || null))
+            .filter(Boolean)
+            .slice(0, 5);
+
+          if (imgs.length > 0) {
+            tavilyBox.style.display = 'flex';
+            tavilyBox.style.gap = '10px';
+            tavilyBox.style.overflowX = 'auto';
+            tavilyBox.innerHTML = '';
+
+            imgs.forEach((imgUrl, i) => {
+              const imgEl = document.createElement('div');
+              imgEl.className = 'tavily-thumb';
+              imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" />`;
+              imgEl.style.opacity = '0';
+              imgEl.style.transform = 'translateY(6px)';
+              tavilyBox.appendChild(imgEl);
+
+              setTimeout(() => {
+                imgEl.style.transition = 'all var(--transition)';
+                imgEl.style.opacity = '1';
+                imgEl.style.transform = 'translateY(0)';
+              }, i * 120);
+            });
+          }
+        }
+
       }
 
       await sleep(1500);
@@ -2261,7 +2413,7 @@
       if (titleEl4) titleEl4.textContent = 'Sintetizando insights finais com dados reais...';
 
       // Preparar contexto das fontes
-      const sourcesContext = searchData.results
+      const sourcesContext = (imageAnalysisText ? `Análise das imagens anexadas:\n${imageAnalysisText}\n\n` : '') + searchData.results
         .map((r, i) => `[${i + 1}] ${r.title}\nFonte: ${r.url}\nResumo: ${r.content}`)
         .join('\n\n');
 
@@ -2320,6 +2472,21 @@
         if (outputCard && outputContent) {
           outputCard.style.display = 'block';
           outputContent.innerHTML = formatMarkdown(finalResponse);
+
+          // Se houver imagens anexadas na chamada, mostrar pill estilizado no final
+          if (attachedFilesData && attachedFilesData.length > 0) {
+            const pill = document.createElement('div');
+            pill.className = 'attachment-summary-pill';
+            pill.innerHTML = `
+              <div class="pill-thumbs">
+                ${attachedFilesData.slice(0,3).map(f => `<div class="pill-thumb"><img src="${f.src}"/></div>`).join('')}
+              </div>
+              <div class="pill-label">Imagens enviadas (${attachedFilesData.length})</div>
+            `;
+            outputCard.appendChild(pill);
+            setTimeout(() => pill.classList.add('visible'), 80);
+          }
+
           outputCard.offsetHeight;
           outputCard.classList.add('visible');
         }
@@ -2409,12 +2576,12 @@
 
     // Encaminha para o fluxo correto
     setTimeout(() => {
-      if (currentAttachments.length > 0) {
-        // Modo Anexo: Exibe a animação do WSM Vision com pergunta do usuário
+        if (searchMode) {
+        // Modo Pesquisa: Executa Deep Research e inclui anexos (se houver)
+        executeDeepResearch(text, currentAttachments);
+      } else if (currentAttachments.length > 0) {
+        // Modo Anexo (não pesquisa): Exibe a animação do WSM Vision com pergunta do usuário
         appendVisionAnalysisResponse(text, currentAttachments);
-      } else if (searchMode) {
-        // Modo Pesquisa: Executa Deep Research com Agente em Loop (Tavily + Groq)
-        executeDeepResearch(text);
       } else {
         // MODO PAI - Chat ativo de texto com a API do Groq
         showTypingIndicator();
