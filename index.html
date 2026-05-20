@@ -1341,7 +1341,7 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
-          Insira sua chave de API do Groq para conversar com o Llama 3.1 8B em tempo real. A chave é salva apenas localmente no seu navegador.
+          Insira sua chave de API do Groq para conversar com o WSM 1.0 em tempo real. A chave é salva apenas localmente no seu navegador.
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
@@ -1391,7 +1391,7 @@
         </button>
         <button class="model-selector">
           <span class="dot"></span>
-          Llama 3.1 8B
+          WSM 1.0
           <i class="ti ti-chevron-down" aria-hidden="true"></i>
         </button>
       </div>
@@ -1423,7 +1423,7 @@
 
             <textarea
               class="input-field"
-              placeholder="Pergunte qualquer coisa ao Llama 3.1..."
+              placeholder="Pergunte qualquer coisa ao WSM 1.0..."
               rows="1"
               id="inputField"
               oninput="autoResize(this)"
@@ -1462,7 +1462,7 @@
   let searchMode = false;
   let activeAgentsCount = 0;
   let attachedFiles = []; 
-  let chatHistory = []; // Mantém o histórico para o modelo Llama 3.1 reter o contexto
+  let chatHistory = []; // Mantém o histórico para o WSM reter o contexto
 
   // Carrega chave da API do LocalStorage se houver
   window.addEventListener('load', () => {
@@ -1591,7 +1591,7 @@
       searchBtn.classList.toggle('search-active', searchMode);
     }
     if (field) {
-      field.placeholder = searchMode ? 'Pesquisar na web estruturada...' : 'Pergunte qualquer coisa ao Llama 3.1...';
+      field.placeholder = searchMode ? 'Pesquisar na web estruturada...' : 'Pergunte qualquer coisa ao WSM 1.0...';
       field.focus();
     }
   }
@@ -1663,7 +1663,7 @@
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
-      <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">Llama pensando...</span>
+      <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">WSM pensando...</span>
     `;
     messages.appendChild(indicator);
     scrollToBottom();
@@ -1756,7 +1756,7 @@
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           messages: [
-            { role: "system", content: "Você é o WSM AI, um assistente inteligente premium muito prestativo e de alta fidelidade desenvolvido com o modelo Llama 3.1 da Meta. Responda em português." },
+            { role: "system", content: "Você é o WSM AI, um assistente inteligente premium de alto nível muito prestativo e de alta fidelidade desenvolvido pela WSM. Você deve se identificar estritamente como WSM 1.0 e nunca revelar detalhes técnicos internos sobre a arquitetura Llama subjacente de outros provedores. Responda em português." },
             ...chatHistory
           ],
           temperature: 0.7,
@@ -1785,7 +1785,7 @@
     } catch (error) {
       console.error('❌ Erro completo:', error);
       removeTypingIndicator();
-      appendMessage(`Lamento, ocorreu um erro ao chamar o Llama 3.1: **${error.message}**. Verifique se a sua Chave de API está correta e ativa nas Configurações. (Abra F12 para ver o log completo)`, "bot");
+      appendMessage(`Lamento, ocorreu um erro ao chamar o WSM 1.0: **${error.message}**. Verifique se a sua Chave de API está correta e ativa nas Configurações. (Abra F12 para ver o log completo)`, "bot");
     }
   }
 
@@ -1896,13 +1896,18 @@
     }, 3000);
   }
 
-  // DISPARA ANIMAÇÃO DE DEEP RESEARCH (Pesquisa Web Simulação)
-  function appendDeepResearchResponse() {
+  // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
+  // Implementa o fluxo de 4 etapas: Planejamento → Busca → Análise → Síntese
+  async function executeDeepResearch(userPrompt) {
+    console.log('🔄 [DEEP RESEARCH] Iniciando agente em loop...');
+    console.log('📝 Prompt do usuário:', userPrompt);
+    
     activeAgentsCount++;
     const currentAgentId = activeAgentsCount;
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
 
+    // Renderizar container do agente
     const agentContainer = document.createElement('div');
     agentContainer.className = 'agent-response-container';
     agentContainer.innerHTML = `
@@ -1925,80 +1930,32 @@
         <div class="thought-content">
           <div class="step" id="step1_${currentAgentId}">
             <div class="step-icon" id="icon1_${currentAgentId}">1</div>
-            <div class="step-text">Extraindo chaves semânticas e entidades do prompt de pesquisa técnica.</div>
+            <div class="step-text">Analisando prompt e gerando palavras-chave otimizadas para busca.</div>
           </div>
           <div class="step" id="step2_${currentAgentId}">
             <div class="step-icon" id="icon2_${currentAgentId}">2</div>
-            <div class="step-text">Executando varreduras de indexação em canais e portais de documentação.</div>
+            <div class="step-text">Executando varredura web em tempo real com Tavily API.</div>
           </div>
           <div class="step" id="step3_${currentAgentId}">
             <div class="step-icon" id="icon3_${currentAgentId}">3</div>
-            <div class="step-text">Cruzando dados de referências confiáveis e medindo correspondência semântica.</div>
+            <div class="step-text">Filtrando e analisando fontes confiáveis da web.</div>
           </div>
           <div class="step" id="step4_${currentAgentId}">
             <div class="step-icon" id="icon4_${currentAgentId}">4</div>
-            <div class="step-text">Sintetizando descobertas em tabela analítica e formatando insights conclusivos.</div>
+            <div class="step-text">Sintetizando resposta premium com dados em tempo real.</div>
           </div>
         </div>
       </div>
 
       <div class="sources-container" id="sourcesContainer_${currentAgentId}">
         <div class="sources-label">
-          <i class="ti ti-link"></i> Fontes Coletadas pelo Agente (Demo)
+          <i class="ti ti-link"></i> Fontes Coletadas em Tempo Real
         </div>
-        <div class="sources-grid">
-          <div class="source-card" id="card1_${currentAgentId}">
-            <div class="source-header">
-              <span class="source-fav">G</span>
-              <span class="source-domain">gartner.com</span>
-              <span class="source-badge">98% Match</span>
-            </div>
-            <span class="source-title">Previsões de Tendências Tecnológicas de Sistemas</span>
-          </div>
-          <div class="source-card" id="card2_${currentAgentId}">
-            <div class="source-header">
-              <span class="source-fav">W</span>
-              <span class="source-domain">wired.com</span>
-              <span class="source-badge">94% Match</span>
-            </div>
-            <span class="source-title">A Nova Era de Assistência de IA e Agentes</span>
-          </div>
-          <div class="source-card" id="card3_${currentAgentId}">
-            <div class="source-header">
-              <span class="source-fav">M</span>
-              <span class="source-domain">mit.edu</span>
-              <span class="source-badge">89% Match</span>
-            </div>
-            <span class="source-title">Defesas e Algoritmos Dinâmicos Avançados</span>
-          </div>
-        </div>
+        <div class="sources-grid" id="sourcesGrid_${currentAgentId}"></div>
       </div>
 
       <div class="output-card" id="outputCard_${currentAgentId}">
-        <p><strong>[Deep Research - Simulação de Demonstração Técnica]</strong></p>
-        <p>Com base nos relatórios de amostragem simulada, os resultados demonstram como as táticas de busca profunda reduzem as lacunas de dados brutos.</p>
-        <table class="results-table">
-          <thead>
-            <tr>
-              <th>Vetor Analisado</th>
-              <th>Principais Considerações</th>
-              <th>Grau de Relevância</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Processos de Decisão Dinâmica</td>
-              <td>Integração de laços de execução fechados com autoavaliação heurística.</td>
-              <td style="color: var(--agent-amber); font-weight: 600;">Alto</td>
-            </tr>
-            <tr>
-              <td>Correção Preditiva de Erros</td>
-              <td>Modelos executores que analisam suas próprias saídas e corrigem vulnerabilidades.</td>
-              <td style="color: var(--agent-green); font-weight: 600;">Máximo</td>
-            </tr>
-          </tbody>
-        </table>
-        <p>Ative o modo padrão de chat (desativando o ícone de globo/pesquisa) para interagir diretamente com a API ativa do Groq Llama 3.1 8B.</p>
+        <p id="outputContent_${currentAgentId}"></p>
       </div>
     `;
 
@@ -2009,85 +1966,225 @@
     let timerInterval = setInterval(() => {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       const timerEl = document.getElementById(`timer_${currentAgentId}`);
-      if (timerEl) {
-        timerEl.textContent = `${elapsed}s`;
-      }
+      if (timerEl) timerEl.textContent = `${elapsed}s`;
     }, 100);
 
-    setStepActive(1, currentAgentId);
-
-    setTimeout(() => {
-      setStepCompleted(1, currentAgentId);
-      setStepActive(2, currentAgentId);
-      const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl) titleEl.textContent = "Varrendo canais da web estruturada...";
-      scrollToBottom();
-    }, 1500);
-
-    setTimeout(() => {
-      setStepCompleted(2, currentAgentId);
-      setStepActive(3, currentAgentId);
-      const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl) titleEl.textContent = "Analisando referências de consistência...";
-
-      const sContainer = document.getElementById(`sourcesContainer_${currentAgentId}`);
-      if (sContainer) {
-        sContainer.style.display = 'flex';
-        sContainer.offsetHeight; 
-        sContainer.classList.add('visible');
+    try {
+      // ========== ETAPA 1: PLANEJAMENTO COM GROQ ==========
+      console.log('📋 [ETAPA 1] Gerando palavras-chave com Groq...');
+      setStepActive(1, currentAgentId);
+      
+      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
+      if (!groqApiKey) {
+        const configResponse = await fetch('/api/config');
+        if (configResponse.ok) {
+          const configData = await configResponse.json();
+          groqApiKey = configData.groqApiKey;
+        }
       }
-      scrollToBottom();
 
-      setTimeout(() => {
-        const c1 = document.getElementById(`card1_${currentAgentId}`);
-        if (c1) c1.classList.add('pop-in');
-        scrollToBottom();
-      }, 100);
-      setTimeout(() => {
-        const c2 = document.getElementById(`card2_${currentAgentId}`);
-        if (c2) c2.classList.add('pop-in');
-        scrollToBottom();
-      }, 300);
-      setTimeout(() => {
-        const c3 = document.getElementById(`card3_${currentAgentId}`);
-        if (c3) c3.classList.add('pop-in');
-        scrollToBottom();
-      }, 500);
-    }, 3200);
+      if (!groqApiKey) {
+        throw new Error('GROQ_API_KEY não encontrada');
+      }
 
-    setTimeout(() => {
+      // Chamar Groq para gerar palavras-chave otimizadas
+      const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um especialista em otimização de buscas. Analise o prompt do usuário e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula, sem explicações adicionais. Foco: serão usadas para busca web em tempo real.'
+            },
+            {
+              role: 'user',
+              content: userPrompt
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 100
+        })
+      });
+
+      if (!planResponse.ok) {
+        throw new Error('Erro ao chamar Groq para planejamento');
+      }
+
+      const planData = await planResponse.json();
+      const searchKeywords = planData.choices[0].message.content.trim();
+      console.log('✅ [ETAPA 1] Palavras-chave:', searchKeywords);
+
+      await sleep(800);
+      setStepCompleted(1, currentAgentId);
+
+      // ========== ETAPA 2: VARREDURA WEB COM TAVILY ==========
+      console.log('🌐 [ETAPA 2] Buscando na web com Tavily...');
+      setStepActive(2, currentAgentId);
+      const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl2) titleEl2.textContent = 'Varrendo canais da web em tempo real...';
+
+      const searchResponse = await fetch('/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ searchQuery: searchKeywords })
+      });
+
+      if (!searchResponse.ok) {
+        const errorData = await searchResponse.json();
+        throw new Error(errorData.error || 'Erro ao chamar Tavily API');
+      }
+
+      const searchData = await searchResponse.json();
+      console.log(`✅ [ETAPA 2] Tavily retornou ${searchData.results.length} resultados`);
+
+      await sleep(1500);
+      setStepCompleted(2, currentAgentId);
+
+      // ========== ETAPA 3: ANÁLISE E FILTRAGEM ==========
+      console.log('📊 [ETAPA 3] Analisando fontes...');
+      setStepActive(3, currentAgentId);
+      const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl3) titleEl3.textContent = 'Analisando referências de consistência...';
+
+      // Renderizar cartões de fontes
+      const sourcesContainer = document.getElementById(`sourcesContainer_${currentAgentId}`);
+      const sourcesGrid = document.getElementById(`sourcesGrid_${currentAgentId}`);
+      
+      if (sourcesContainer && sourcesGrid) {
+        sourcesContainer.style.display = 'flex';
+        sourcesGrid.innerHTML = '';
+
+        searchData.results.forEach((result, index) => {
+          const domainUrl = new URL(result.url);
+          const domain = domainUrl.hostname.replace('www.', '');
+          const initial = domain.charAt(0).toUpperCase();
+
+          const sourceCard = document.createElement('div');
+          sourceCard.className = 'source-card';
+          sourceCard.innerHTML = `
+            <div class="source-header">
+              <span class="source-fav">${initial}</span>
+              <span class="source-domain">${domain}</span>
+              <span class="source-badge">Ativo</span>
+            </div>
+            <span class="source-title">${result.title}</span>
+          `;
+          
+          sourcesGrid.appendChild(sourceCard);
+
+          // Animar entrada dos cartões
+          setTimeout(() => {
+            sourceCard.classList.add('pop-in');
+            scrollToBottom();
+          }, index * 200);
+        });
+
+        sourcesContainer.classList.add('visible');
+      }
+
+      await sleep(2000);
       setStepCompleted(3, currentAgentId);
+
+      // ========== ETAPA 4: SÍNTESE FINAL COM GROQ ==========
+      console.log('🧠 [ETAPA 4] Sintetizando resposta final...');
       setStepActive(4, currentAgentId);
-      const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl) titleEl.textContent = "Sintetizando insights finais do agente...";
-      scrollToBottom();
-    }, 5000);
+      const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl4) titleEl4.textContent = 'Sintetizando insights finais com dados reais...';
 
-    setTimeout(() => {
+      // Preparar contexto das fontes
+      const sourcesContext = searchData.results
+        .map((r, i) => `[${i + 1}] ${r.title}\nFonte: ${r.url}\nResumo: ${r.content}`)
+        .join('\n\n');
+
+      // Chamar Groq com contexto real da web
+      const synthesisResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um assistente premium de pesquisa que sintetiza informações em tempo real. Responda de forma estruturada, clara e premium. Cite as fontes quando relevante. Responda em português.'
+            },
+            {
+              role: 'user',
+              content: `Com base nestes dados REAIS coletados da internet:\n\n${sourcesContext}\n\nResponda à pergunta original do usuário de forma premium e estruturada:\n\n${userPrompt}`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1500
+        })
+      });
+
+      if (!synthesisResponse.ok) {
+        throw new Error('Erro ao sintetizar resposta final');
+      }
+
+      const synthesisData = await synthesisResponse.json();
+      const finalResponse = synthesisData.choices[0].message.content;
+      console.log('✅ [ETAPA 4] Síntese concluída');
+
+      await sleep(800);
       setStepCompleted(4, currentAgentId);
-      clearInterval(timerInterval);
 
+      // Finalizar animações
+      clearInterval(timerInterval);
       const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
-      const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
+      const titleElFinal = document.getElementById(`mainTitle_${currentAgentId}`);
       
       if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
-      if (titleEl) titleEl.textContent = "Raciocínio concluído com sucesso";
+      if (titleElFinal) titleElFinal.textContent = 'Raciocínio concluído com sucesso';
 
       setTimeout(() => {
         if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed');
       }, 600);
 
+      // Mostrar resposta final
       setTimeout(() => {
-        const oCard = document.getElementById(`outputCard_${currentAgentId}`);
-        if (oCard) {
-          oCard.style.display = 'block';
-          oCard.offsetHeight; 
-          oCard.classList.add('visible');
+        const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+        const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+        
+        if (outputCard && outputContent) {
+          outputCard.style.display = 'block';
+          outputContent.innerHTML = formatMarkdown(finalResponse);
+          outputCard.offsetHeight;
+          outputCard.classList.add('visible');
         }
         setTimeout(scrollToBottom, 50);
       }, 1100);
 
-    }, 6800);
+      console.log('✨ [DEEP RESEARCH] Fluxo completo concluído!');
+
+    } catch (error) {
+      console.error('❌ [DEEP RESEARCH] Erro:', error);
+      clearInterval(timerInterval);
+      
+      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+      
+      if (outputCard && outputContent) {
+        outputCard.style.display = 'block';
+        outputContent.innerHTML = `❌ <strong>Erro no Deep Research:</strong> ${error.message}<br><br>Verifique se as chaves de API (GROQ_API_KEY e TAVILY_API_KEY) estão configuradas na Vercel.`;
+        outputCard.offsetHeight;
+        outputCard.classList.add('visible');
+      }
+      
+      scrollToBottom();
+    }
+  }
+
+  // Helper: sleep
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // Helpers das etapas
@@ -2151,10 +2248,10 @@
         // Modo Anexo: Exibe a animação do WSM Vision (conforme regra de preservação solicitado)
         appendVisionAnalysisResponse();
       } else if (searchMode) {
-        // Modo Pesquisa: Exibe a animação do Deep Research simulada
-        appendDeepResearchResponse();
+        // Modo Pesquisa: Executa Deep Research com Agente em Loop (Tavily + Groq)
+        executeDeepResearch(text);
       } else {
-        // MODO PAI - Chat ativo de texto com a API do Groq (Llama 3.1 8b)
+        // MODO PAI - Chat ativo de texto com a API do Groq
         showTypingIndicator();
         callGroqAPI(text);
       }
@@ -2180,7 +2277,7 @@
     const sidebar = document.getElementById('sidebar');
 
     attachedFiles = [];
-    chatHistory = []; // Limpa histórico do Llama
+    chatHistory = []; // Limpa histórico
     renderAttachmentPreviews();
 
     if (messagesEl) messagesEl.innerHTML = '';
@@ -2203,7 +2300,7 @@
 
     if (field) {
       field.value = '';
-      field.placeholder = 'Pergunte qualquer coisa ao Llama 3.1...';
+      field.placeholder = 'Pergunte qualquer coisa ao WSM 1.0...';
       autoResize(field);
       field.focus();
     }
