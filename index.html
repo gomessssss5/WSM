@@ -1344,8 +1344,8 @@
           Insira sua chave de API do Groq para conversar com o Llama 3.1 8B em tempo real. A chave é salva apenas localmente no seu navegador.
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
-        <p style="font-size: 11px; color: var(--text-muted);">
-          Nota: Se você já configurou a variável de ambiente <code style="font-weight: 600;">GROQ_API_KEY</code> em sua hospedagem (Vercel), ela será lida automaticamente.
+        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">GROQ_API_KEY</code> nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{groqApiKey: "..."}</code>.
         </p>
       </div>
       <div class="modal-footer">
@@ -1692,17 +1692,31 @@
 
   // Chamada Real da API do Groq
   async function callGroqAPI(userPrompt) {
-    // 1. Definir a chave de API (Localstorage -> Var global do processo/Vercel)
+    // 1. Tentar obter a chave de API em ordem de prioridade
     let apiKey = localStorage.getItem('GROQ_API_KEY');
     
-    // Fallback: se não estiver salva localmente, tenta carregar de uma variável de ambiente injetada (Vercel)
+    // Fallback 1: Tentar carregar de variável global injetada pela Vercel (via script tag ou deploy)
+    if (!apiKey && typeof window !== 'undefined' && window.GROQ_API_KEY) {
+      apiKey = window.GROQ_API_KEY;
+    }
+
+    // Fallback 2: Tentar fetch de um endpoint de API que fornece a chave (método seguro para Vercel)
     if (!apiKey) {
-      apiKey = typeof process !== 'undefined' && process.env ? process.env.GROQ_API_KEY : '';
+      try {
+        const response = await fetch('/api/config', { method: 'GET' });
+        if (response.ok) {
+          const data = await response.json();
+          apiKey = data.groqApiKey;
+        }
+      } catch (err) {
+        // Endpoint não existe ou erro na requisição, continua sem chave
+        console.log("Endpoint /api/config não disponível");
+      }
     }
 
     if (!apiKey) {
       removeTypingIndicator();
-      appendMessage("Ops! A chave de API do Groq não foi encontrada. Por favor, clique em **Configurações** na barra lateral para inserir sua chave e começar a conversar.", "bot");
+      appendMessage("Ops! A chave de API do Groq não foi encontrada. Por favor, clique em **Configurações** na barra lateral para inserir sua chave e começar a conversar. Você também pode configurá-la como variável de ambiente na Vercel (GROQ_API_KEY).", "bot");
       return;
     }
 
