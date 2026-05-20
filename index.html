@@ -693,6 +693,22 @@
   .attachment-summary-pill .pill-thumb img { width:100%; height:100%; object-fit:cover; }
   .attachment-summary-pill .pill-label { font-size:13px; color:var(--text-primary); font-weight:600; }
 
+  /* Card com resumo da análise das imagens (aparece abaixo do resultado) */
+  .image-analysis-card {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--bg-muted);
+    border: 0.5px solid var(--border);
+    box-shadow: var(--shadow-card);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all var(--transition);
+  }
+  .image-analysis-card.visible { opacity: 1; transform: translateY(0); }
+  .image-analysis-card .analysis-title { font-weight:700; font-size:13px; margin-bottom:6px; }
+  .image-analysis-card .analysis-content { font-size:13px; color:var(--text-primary); line-height:1.5; }
+
   .input-field {
     width: 100%;
     background: none;
@@ -2485,6 +2501,18 @@
             `;
             outputCard.appendChild(pill);
             setTimeout(() => pill.classList.add('visible'), 80);
+          }
+
+          // Mostrar resumo da análise das imagens (se obtivemos algo)
+          if (imageAnalysisText) {
+            const analysisDiv = document.createElement('div');
+            analysisDiv.className = 'image-analysis-card';
+            analysisDiv.innerHTML = `
+              <div class="analysis-title">Análise das imagens</div>
+              <div class="analysis-content">${formatMarkdown(imageAnalysisText)}</div>
+            `;
+            outputCard.appendChild(analysisDiv);
+            setTimeout(() => analysisDiv.classList.add('visible'), 90);
           }
 
           outputCard.offsetHeight;
