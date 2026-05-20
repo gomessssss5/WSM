@@ -2058,28 +2058,35 @@
         <div class="thought-content">
           <div class="step" id="step1_${currentAgentId}">
             <div class="step-icon" id="icon1_${currentAgentId}">1</div>
-            <div class="step-text">Analisando prompt e gerando palavras-chave otimizadas para busca.</div>
+            <div class="step-text">Mapeando plano de investigação...</div>
           </div>
           <div class="step" id="step2_${currentAgentId}">
             <div class="step-icon" id="icon2_${currentAgentId}">2</div>
-            <div class="step-text">Executando varredura web em tempo real com Tavily API.</div>
+            <div class="step-text">Vasculhando a web em busca de evidências...</div>
           </div>
           <div class="step" id="step3_${currentAgentId}">
             <div class="step-icon" id="icon3_${currentAgentId}">3</div>
-            <div class="step-text">Filtrando e analisando fontes confiáveis da web.</div>
+            <div class="step-text">Validando consistência das fontes encontradas...</div>
           </div>
           <div class="step" id="step4_${currentAgentId}">
             <div class="step-icon" id="icon4_${currentAgentId}">4</div>
-            <div class="step-text">Sintetizando resposta premium com dados em tempo real.</div>
+            <div class="step-text">Redigindo síntese factual final...</div>
           </div>
         </div>
       </div>
 
-      <div class="sources-container" id="sourcesContainer_${currentAgentId}">
-        <div class="sources-label">
-          <i class="ti ti-link"></i> Fontes Coletadas em Tempo Real
+      <div class="thought-box" id="sourcesBox_${currentAgentId}" style="margin-top: 16px;">
+        <div class="thought-header" onclick="toggleAgentThoughtBox(${currentAgentId}, 'sourcesBox')">
+          <div class="thought-status">
+            <i class="ti ti-link"></i>
+            <span class="thought-title">Fontes Consultadas (10)</span>
+          </div>
+          <i class="ti ti-chevron-down thought-toggle"></i>
         </div>
-        <div class="sources-grid" id="sourcesGrid_${currentAgentId}"></div>
+
+        <div class="thought-content" id="sourcesContent_${currentAgentId}" style="display: flex; flex-direction: column; gap: 0; padding: 0; border: none;">
+          <!-- Fontes serão inseridas aqui -->
+        </div>
       </div>
 
       <div class="output-card" id="outputCard_${currentAgentId}">
@@ -2179,43 +2186,72 @@
       const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl3) titleEl3.textContent = 'Analisando referências de consistência...';
 
-      // Renderizar cartões de fontes
-      const sourcesContainer = document.getElementById(`sourcesContainer_${currentAgentId}`);
-      const sourcesGrid = document.getElementById(`sourcesGrid_${currentAgentId}`);
+      // Renderizar fontes em thought-box expansível
+      const sourcesBox = document.getElementById(`sourcesBox_${currentAgentId}`);
+      const sourcesContent = document.getElementById(`sourcesContent_${currentAgentId}`);
       
-      if (sourcesContainer && sourcesGrid) {
-        sourcesContainer.style.display = 'flex';
-        sourcesGrid.innerHTML = '';
+      if (sourcesBox && sourcesContent) {
+        sourcesBox.style.display = 'block';
+        sourcesContent.innerHTML = '';
 
         searchData.results.forEach((result, index) => {
           const domainUrl = new URL(result.url);
           const domain = domainUrl.hostname.replace('www.', '');
           const initial = domain.charAt(0).toUpperCase();
 
-          const sourceCard = document.createElement('div');
-          sourceCard.className = 'source-card';
-          sourceCard.innerHTML = `
-            <div class="source-header">
-              <span class="source-fav">${initial}</span>
-              <span class="source-domain">${domain}</span>
-              <span class="source-badge">Ativo</span>
+          const sourceItem = document.createElement('div');
+          sourceItem.className = 'source-item';
+          sourceItem.style.cssText = `
+            padding: 14px 18px;
+            border-bottom: 0.5px solid var(--border);
+            cursor: pointer;
+            transition: background var(--transition);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+          `;
+          sourceItem.onmouseover = function() {
+            this.style.background = 'var(--pill-bg)';
+          };
+          sourceItem.onmouseout = function() {
+            this.style.background = 'transparent';
+          };
+          sourceItem.onclick = function() {
+            window.open(result.url, '_blank');
+          };
+
+          sourceItem.innerHTML = `
+            <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--pill-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); flex-shrink: 0;">
+              ${initial}
+            </span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">
+                ${domain}
+              </div>
+              <div style="font-size: 13.5px; font-weight: 500; color: var(--text-primary); line-height: 1.4;">
+                ${result.title}
+              </div>
             </div>
-            <span class="source-title">${result.title}</span>
+            <i class="ti ti-external-link" style="color: var(--text-muted); font-size: 14px; flex-shrink: 0;"></i>
           `;
           
-          sourcesGrid.appendChild(sourceCard);
+          sourcesContent.appendChild(sourceItem);
 
-          // Animar entrada dos cartões
+          // Animar entrada
           setTimeout(() => {
-            sourceCard.classList.add('pop-in');
-            scrollToBottom();
-          }, index * 200);
+            sourceItem.style.opacity = '0';
+            sourceItem.style.transform = 'translateX(-10px)';
+            sourceItem.offsetHeight;
+            sourceItem.style.opacity = '1';
+            sourceItem.style.transform = 'translateX(0)';
+            sourceItem.style.transition = 'all var(--transition)';
+          }, index * 100);
         });
 
-        sourcesContainer.classList.add('visible');
+        sourcesBox.classList.add('pop-in');
       }
 
-      await sleep(2000);
+      await sleep(1500);
       setStepCompleted(3, currentAgentId);
 
       // ========== ETAPA 4: SÍNTESE FINAL COM GROQ ==========
@@ -2328,8 +2364,9 @@
     if (icon) icon.innerHTML = '<i class="ti ti-check"></i>';
   }
 
-  function toggleAgentThoughtBox(agentId) {
-    const box = document.getElementById(`thoughtBox_${agentId}`);
+  function toggleAgentThoughtBox(agentId, boxType = 'thoughtBox') {
+    const boxId = `${boxType}_${agentId}`;
+    const box = document.getElementById(boxId);
     if (box) {
       box.classList.toggle('collapsed');
       setTimeout(scrollToBottom, 450);
