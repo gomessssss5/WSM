@@ -19,7 +19,7 @@
       processEnvironments: true
     },
     chtml: {
-      scale: 1.2 // Aumenta as equações em 20%
+      scale: 1.3 // Aumenta as equações em 30% (mais visíveis)
     },
     options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
   };
@@ -1846,9 +1846,17 @@
 
   function formatMarkdown(text) {
     if (!text) return "";
-    // Renderiza o markdown usando a biblioteca e envolve tabelas em um container de scroll
-    let rendered = md.render(text);
-    return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table>').replace(/<\/table>/g, '</table></div>');
+    
+    // Pré-processamento: garante que tabelas e títulos tenham uma linha em branco antes.
+    // Isso corrige o problema da tabela aparecer como texto puro.
+    const preparedText = text
+      .replace(/([^\n])\n\|/g, '$1\n\n|')  // Garante linha em branco antes de tabelas
+      .replace(/([^\n])\n#/g, '$1\n\n#');   // Garante linha em branco antes de títulos
+
+    let rendered = md.render(preparedText);
+    
+    // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design
+    return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table class="results-table">').replace(/<\/table>/g, '</table></div>');
   }
 
   // Insere uma mensagem no DOM
@@ -1983,7 +1991,7 @@
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           messages: [
-            { role: "system", content: "Você é o WSM AI, um assistente inteligente premium (WSM 1.0). REGRAS OBRIGATÓRIAS: 1) Use tabelas Markdown para dados estruturados. 2) SEMPRE use notação LaTeX para matemática, equações e variáveis, envolvendo-as em '$' para inline (ex: $x^2$) ou '$$' para blocos destacados. Nunca escreva fórmulas como texto simples. Responda em português." },
+            { role: "system", content: "Você é o WSM AI (WSM 1.0). REGRAS DE FORMATAÇÃO: 1) Use tabelas Markdown para dados estruturados (SEMPRE pule uma linha antes da tabela). 2) Use LaTeX ($...$ ou $$...$$) para matemática e fórmulas. Nunca use texto simples para contas. 3) Use títulos (###) para organizar. Responda em português de forma premium." },
             ...chatHistory
           ],
           temperature: 0.7,
