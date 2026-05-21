@@ -750,7 +750,34 @@
     text-transform: none;
     letter-spacing: 0.02em;
   }
-  .sources-list {
+
+  /* SIDEBAR DE FONTES (DIREITA) */
+  .sources-sidebar {
+    position: fixed;
+    right: -420px;
+    top: 0;
+    height: 100vh;
+    width: 420px;
+    max-width: 92%;
+    background: var(--bg-card);
+    border-left: 0.5px solid var(--border);
+    box-shadow: -20px 0 40px rgba(0,0,0,0.06);
+    z-index: 1200;
+    transition: right 0.36s cubic-bezier(0.2,0.9,0.2,1);
+    display: flex;
+    flex-direction: column;
+  }
+  .sources-sidebar[aria-hidden="false"] { right: 0; }
+  .sources-sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:0.5px solid var(--border); }
+  .sources-title { font-weight:700; color:var(--text-primary); }
+  .sources-close { background:transparent; border:none; font-size:20px; cursor:pointer; color:var(--text-muted); }
+  .sources-sidebar-body { padding: 12px 14px; overflow:auto; display:flex; flex-direction:column; gap:10px; }
+  .sources-list-item { padding:12px; border-radius:10px; background:var(--bg); border:0.5px solid var(--border); box-shadow:var(--shadow-card); }
+  .sources-list-item .meta { font-size:12px; color:var(--text-muted); margin-bottom:6px; }
+  .sources-list-item .title { font-weight:700; color:var(--text-primary); margin-bottom:6px; }
+  .sources-list-item a { font-size:13px; color:var(--agent-blue); text-decoration:none; }
+  .sources-sidebar-close-overlay { position:fixed; right:420px; top:0; bottom:0; left:0; display:none; }
+*** End Patch  .sources-list {
     display: none;
     flex-direction: column;
     gap: 6px;
@@ -1549,6 +1576,17 @@
 
     <div class="sidebar-footer">
       <div class="footer-item" onclick="toggleSettingsModal()"><i class="ti ti-settings" aria-hidden="true"></i> Configurações</div>
+    </div>
+  </aside>
+
+  <!-- SIDEBAR DE FONTES (DIREITA) -->
+  <aside class="sources-sidebar" id="sourcesSidebar" aria-hidden="true">
+    <div class="sources-sidebar-header">
+      <div class="sources-title">Fontes Consultadas</div>
+      <button class="sources-close" id="sourcesCloseBtn" title="Fechar">×</button>
+    </div>
+    <div class="sources-sidebar-body" id="sourcesSidebarBody">
+      <!-- Fontes serão inseridas aqui -->
     </div>
   </aside>
 
@@ -2459,16 +2497,9 @@
           list.appendChild(sourceItem);
         });
 
-        pill.onclick = () => {
-          const open = list.style.display === 'block';
-          list.style.display = open ? 'none' : 'block';
-          pill.classList.toggle('expanded', !open);
-          list.style.maxHeight = open ? '0' : `${list.scrollHeight}px`;
-          setTimeout(scrollToBottom, 120);
-        };
+        pill.onclick = () => openSourcesSidebar(currentAgentId, searchData.results);
 
         sourcesFooter.appendChild(pill);
-        sourcesFooter.appendChild(list);
       }
 
         // Renderizar imagens retornadas pela Tavily (até 5)
@@ -2662,6 +2693,58 @@
       box.classList.toggle('collapsed');
       setTimeout(scrollToBottom, 450);
     }
+  }
+
+  // Abre a sidebar direita com a lista completa de fontes
+  function openSourcesSidebar(agentId, results = []) {
+    const sidebar = document.getElementById('sourcesSidebar');
+    const body = document.getElementById('sourcesSidebarBody');
+    if (!sidebar || !body) return;
+
+    body.innerHTML = '';
+    results.forEach((r, i) => {
+      const item = document.createElement('div');
+      item.className = 'sources-list-item';
+      const domain = (() => { try { return new URL(r.url).hostname.replace('www.', ''); } catch(e){ return r.url; }})();
+      item.innerHTML = `
+        <div class="meta">[${i+1}] ${domain}</div>
+        <div class="title">${escapeHtml(r.title || domain)}</div>
+        <a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir fonte</a>
+      `;
+      body.appendChild(item);
+    });
+
+    sidebar.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('sources-sidebar-open');
+
+    const closeBtn = document.getElementById('sourcesCloseBtn');
+    if (closeBtn) closeBtn.onclick = () => closeSourcesSidebar();
+
+    // fechar ao clicar fora
+    setTimeout(() => {
+      document.addEventListener('click', outsideClickHandler);
+    }, 60);
+
+    function outsideClickHandler(e) {
+      const s = document.getElementById('sourcesSidebar');
+      const clickedPill = e.target.closest && e.target.closest('.sources-pill');
+      if (s && !s.contains(e.target) && !clickedPill) {
+        closeSourcesSidebar();
+      }
+    }
+
+    function closeSourcesSidebar() {
+      const s = document.getElementById('sourcesSidebar');
+      if (s) s.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('sources-sidebar-open');
+      document.removeEventListener('click', outsideClickHandler);
+    }
+  }
+
+  // Escapar HTML simples
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>\"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
   }
 
   // ENVIAR MENSAGEM (Interação Principal)
