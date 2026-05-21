@@ -1348,6 +1348,25 @@
     margin-bottom: 12px;
   }
 
+  /* Ajuste de espaçamento para listas dentro de cards/mensagens
+     (evita que os marcadores/números fiquem colados ou cortados pela borda) */
+  .output-card ol,
+  .output-card ul,
+  .message.bot ol,
+  .message.bot ul,
+  .thought-content ol,
+  .thought-content ul {
+    padding-left: 28px;
+    margin: 0 0 12px 0;
+    list-style-position: outside;
+  }
+
+  .output-card li,
+  .message.bot li,
+  .thought-content li {
+    margin-bottom: 6px;
+  }
+
   .results-table {
     width: 100%;
     border-collapse: collapse;
