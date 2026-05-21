@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<!-- Markdown-it para renderização completa de Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 <script>
   window.MathJax = {
     tex: {
@@ -15,6 +17,9 @@
       displayMath: [['$$', '$$'], ['\\[', '\\]']],
       processEscapes: true,
       processEnvironments: true
+    },
+    chtml: {
+      scale: 1.2 // Aumenta as equações em 20%
     },
     options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
   };
@@ -1831,77 +1836,19 @@
     }
   }
 
-  // Formata o texto retornado pela API de forma simples (suporta negritos e blocos de código)
+  // Inicializa o Markdown-it com suporte a HTML e quebras de linha
+  const md = window.markdownit({
+    html: true,
+    linkify: true,
+    typographer: true,
+    breaks: true
+  });
+
   function formatMarkdown(text) {
-    let html = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-
-    // 1. Preservar blocos de código para não processar markdown dentro deles
-    const codeBlocks = [];
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
-      const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-      codeBlocks.push(`<pre><code class="language-${lang}">${code.trim()}</code></pre>`);
-      return placeholder;
-    });
-
-    // 2. Tabelas Markdown (Melhorado para ser mais robusto)
-    html = html.replace(/(?:^|\n)([ ]{0,3}\|?.*\|.*\|?.*\n[ ]{0,3}\|?[ ]?[-: ]+[-| :]*\n(?:[ ]{0,3}\|?.*\|.*\|?.*(?:\n|$))+)/g, function(match, tableBlock) {
-      const lines = tableBlock.trim().split('\n');
-      if (lines.length < 3) return match;
-
-      const parseRow = (row) => {
-        let cells = row.trim().split('|');
-        if (cells[0] === '') cells.shift();
-        if (cells[cells.length - 1] === '') cells.pop();
-        return cells.map(c => c.trim());
-      };
-
-      const headers = parseRow(lines[0]);
-      const bodyLines = lines.slice(2);
-      
-      let tableHtml = '<div style="overflow-x: auto; margin: 14px 0;"><table class="results-table"><thead><tr>';
-      headers.forEach(h => { tableHtml += `<th>${h}</th>`; });
-      tableHtml += '</tr></thead><tbody>';
-      
-      bodyLines.forEach(line => {
-        const cells = parseRow(line);
-        if (cells.length > 0) {
-          tableHtml += '<tr>';
-          for(let i=0; i<headers.length; i++) {
-            tableHtml += `<td>${cells[i] || ''}</td>`;
-          }
-          tableHtml += '</tr>';
-        }
-      });
-      tableHtml += '</tbody></table>';
-      return tableHtml;
-    });
-
-    // 3. Formatação inline
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-    // 4. Listas (Bullets e Numeradas)
-    html = html.replace(/^[ ]{0,3}[-*+][ ]+(.*)$/gm, '<li>$1</li>');
-    html = html.replace(/(<li>.*<\/li>(\n<li>.*<\/li>)*)/g, '<ul>$1</ul>');
-    
-    html = html.replace(/^[ ]{0,3}\d+\.[ ]+(.*)$/gm, '<li data-list="ordered">$1</li>');
-    html = html.replace(/(<li data-list="ordered">.*<\/li>(\n<li data-list="ordered">.*<\/li>)*)/g, '<ol>$1</ol>');
-
-    // 5. Quebras de linha e restauração de blocos de código
-    html = html.replace(/\n/g, '<br>');
-    
-    codeBlocks.forEach((block, i) => {
-      html = html.replace(`__CODE_BLOCK_${i}__`, block);
-    });
-
-    // 6. Limpeza final de <br> em tags de bloco para evitar espaços fantasmas
-    html = html.replace(/<br>(<\/?(ul|ol|li|table|thead|tbody|tr|th|td|pre|div))/g, '$1');
-    html = html.replace(/(<\/(ul|ol|li|table|thead|tbody|tr|th|td|pre|div))><br>/g, '$1');
-
-    return html;
+    if (!text) return "";
+    // Renderiza o markdown usando a biblioteca e envolve tabelas em um container de scroll
+    let rendered = md.render(text);
+    return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table>').replace(/<\/table>/g, '</table></div>');
   }
 
   // Insere uma mensagem no DOM
