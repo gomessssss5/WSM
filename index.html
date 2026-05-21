@@ -1334,19 +1334,28 @@
   .results-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 16px 0;
+    margin: 14px 0;
     font-size: 13px;
-  }
-
-  .results-table th, .results-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 0.5px solid var(--border);
   }
 
   .results-table th {
     background: var(--pill-bg);
     font-weight: 600;
+    color: var(--text-primary);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .results-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--border);
+    line-height: 1.4;
+  }
+
+  .results-table tr:last-child td {
+    border-bottom: none;
   }
 
   /* MODAL DE CONFIGURAÇÕES PARA API KEY */
@@ -1818,19 +1827,49 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
 
-    // Formatar código multilinha: ```javascript [codigo] ```
+    // 1. Código multilinha
     html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
       return `<pre><code class="language-${lang}">${code.trim()}</code></pre>`;
     });
 
-    // Formatar código em linha: `codigo`
+    // 2. Tabelas Markdown
+    html = html.replace(/(?:^|\n)\|(.+)\|\n\|(?:[-: ]+)\|\n((?:\|.+\|(?:\n|$))+)/g, function(match, headerLine, bodyLines) {
+      const headers = headerLine.split('|').map(x => x.trim()).filter(x => x !== '');
+      const rows = bodyLines.trim().split('\n').map(row => row.split('|').map(x => x.trim()).filter(x => x !== ''));
+      let tableHtml = '<table class="results-table"><thead><tr>';
+      headers.forEach(h => { tableHtml += `<th>${h}</th>`; });
+      tableHtml += '</tr></thead><tbody>';
+      rows.forEach(row => {
+        if (row.length > 0) {
+          tableHtml += '<tr>';
+          row.forEach(cell => { tableHtml += `<td>${cell}</td>`; });
+          tableHtml += '</tr>';
+        }
+      });
+      tableHtml += '</tbody></table>';
+      return '\n' + tableHtml + '\n';
+    });
+
+    // 3. Formatação inline e listas
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
     // Negritos: **texto**
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
+    // Listas com marcadores (bullets): - ou *
+    html = html.replace(/^\s*[-*]\s+(.*)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+    // Listas numeradas: 1. texto
+    html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>');
+    html = html.replace(/(<\/ul>\n?<li>)/g, '<li>'); // Limpeza simples para não duplicar containers
+
     // Quebras de linha
     html = html.replace(/\n/g, '<br>');
+
+    // Limpeza de <br> em volta de tags de bloco para evitar espaçamento excessivo
+    html = html.replace(/<br>(<\/?(ul|li|table|thead|tbody|tr|th|td|pre|code))/g, '$1');
+    html = html.replace(/(<\/(ul|li|table|thead|tbody|tr|th|td|pre|code))><br>/g, '$1');
 
     return html;
   }
@@ -1962,7 +2001,7 @@
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           messages: [
-            { role: "system", content: "Você é o WSM AI, um assistente inteligente premium de alto nível muito prestativo e de alta fidelidade desenvolvido pela WSM. Você deve se identificar estritamente como WSM 1.0 e nunca revelar detalhes técnicos internos sobre a arquitetura Llama subjacente de outros provedores. Responda em português." },
+            { role: "system", content: "Você é o WSM AI, um assistente inteligente premium desenvolvido pela WSM. Identifique-se como WSM 1.0. Use tabelas Markdown para comparar dados ou listar informações estruturadas sempre que for útil para a clareza. Responda em português." },
             ...chatHistory
           ],
           temperature: 0.7,
@@ -2556,7 +2595,7 @@
           messages: [
             {
               role: 'system',
-                content: 'Você é um assistente premium de pesquisa que sintetiza informações em tempo real. Responda de forma estruturada, clara e premium. NÃO inclua uma seção de "Fontes" nem liste URLs ou referências na resposta — as fontes serão exibidas separadamente no painel de fontes. Responda em português.'
+                content: 'Você é um assistente premium de pesquisa que sintetiza informações em tempo real. Responda de forma estruturada, clara e premium. Use tabelas Markdown para organizar dados técnicos ou comparativos. NÃO inclua uma seção de "Fontes" nem liste URLs ou referências na resposta. Responda em português.'
             },
             {
               role: 'user',
