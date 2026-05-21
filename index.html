@@ -648,15 +648,15 @@
   /* Tavily images preview (mini gallery under thought-box) */
   .tavily-images {
     display: flex;
-    gap: 10px;
+    gap: 14px;
     align-items: center;
-    padding: 8px 6px;
+    padding: 10px 8px;
     overflow-x: auto;
   }
   .tavily-thumb {
-    width: 92px;
-    height: 64px;
-    border-radius: 10px;
+    width: 160px;
+    height: 110px;
+    border-radius: 16px;
     overflow: hidden;
     border: 0.5px solid var(--border);
     background: var(--bg);
@@ -1642,10 +1642,6 @@
             
             <div class="input-actions">
               <div class="input-tools">
-                <!-- Inputs de arquivos invisíveis gerenciados por JS -->
-                <input type="file" id="mediaFileInput" accept="image/*" multiple style="display: none;" onchange="handleFileSelection(event)">
-                
-                <button class="tool-btn" id="attachBtn" type="button" onclick="triggerFileUpload()"><i class="ti ti-paperclip" aria-hidden="true"></i> Anexar</button>
                 <button class="tool-btn" id="searchBtn" type="button"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
               </div>
               <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
