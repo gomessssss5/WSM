@@ -1871,17 +1871,74 @@
     breaks: true
   });
 
+  function escapeHtml(text) {
+    return md.utils.escapeHtml(text);
+  }
+
+  function tableRowsFromLine(line) {
+    return line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
+  }
+
+  function convertMarkdownTableBlock(block) {
+    const lines = block.split('\n');
+    const header = tableRowsFromLine(lines[0]);
+    const body = lines.slice(1).map(tableRowsFromLine).filter(row => row.some(cell => cell.length > 0));
+
+    let html = '<table>';
+    html += '<thead><tr>' + header.map(cell => `<th>${escapeHtml(cell)}</th>`).join('') + '</tr></thead>';
+    if (body.length) {
+      html += '<tbody>' + body.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('') + '</tbody>';
+    }
+    html += '</table>';
+    return html;
+  }
+
+  function normalizeTableSeparators(text) {
+    return text.replace(/^\s*\|[\s\S]*?\|\s*$/gm, line =>
+      line.replace(/[–—]/g, '-')
+    );
+  }
+
+  function convertMarkdownTables(text) {
+    const lines = text.split('\n');
+    let output = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const nextLine = lines[i + 1] || '';
+      const isTableHeader = /^\s*\|.*\|?\s*$/.test(line);
+      const isSeparator = /^\s*\|[\s-:|–—]+\|?\s*$/.test(nextLine);
+
+      if (isTableHeader && isSeparator) {
+        const tableLines = [line];
+        i += 2;
+        while (i < lines.length && /^\s*\|.*\|?\s*$/.test(lines[i])) {
+          tableLines.push(lines[i]);
+          i++;
+        }
+        output.push(convertMarkdownTableBlock(tableLines.join('\n')));
+        continue;
+      }
+
+      output.push(line);
+      i++;
+    }
+
+    return output.join('\n');
+  }
+
   function formatMarkdown(text) {
     if (!text) return "";
-    
+
     // Pré-processamento: garante que tabelas e títulos tenham uma linha em branco antes.
-    // Isso corrige o problema da tabela aparecer como texto puro.
-    const preparedText = text
+    const preparedText = normalizeTableSeparators(text)
       .replace(/([^\n])\n\|/g, '$1\n\n|')  // Garante linha em branco antes de tabelas
       .replace(/([^\n])\n#/g, '$1\n\n#');   // Garante linha em branco antes de títulos
 
-    let rendered = md.render(preparedText);
-    
+    const convertedText = convertMarkdownTables(preparedText);
+    let rendered = md.render(convertedText);
+
     // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design
     return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table class="results-table">').replace(/<\/table>/g, '</table></div>');
   }
