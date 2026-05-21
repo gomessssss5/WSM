@@ -709,44 +709,46 @@
   .sources-pill {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: 999px;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
     background: var(--pill-bg);
     border: 0.5px solid var(--border);
-    box-shadow: var(--shadow-input);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
     width: fit-content;
   }
   .sources-pill:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
   }
   .sources-pill.expanded {
-    background: rgba(255,255,255,0.96);
+    background: rgba(255,255,255,0.98);
   }
   .sources-pill-icon {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: var(--bg);
     border: 0.5px solid var(--border);
-    color: var(--text-primary);
+    color: var(--agent-blue);
     font-size: 14px;
   }
   .sources-pill-label {
     font-size: 13px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--text-secondary);
   }
   .sources-pill-meta {
     font-size: 12px;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    text-transform: none;
+    letter-spacing: 0.02em;
   }
   .sources-list {
     display: none;
@@ -2527,7 +2529,7 @@
           messages: [
             {
               role: 'system',
-              content: 'Você é um assistente premium de pesquisa que sintetiza informações em tempo real. Responda de forma estruturada, clara e premium. Cite as fontes quando relevante. Responda em português.'
+                content: 'Você é um assistente premium de pesquisa que sintetiza informações em tempo real. Responda de forma estruturada, clara e premium. NÃO inclua uma seção de "Fontes" nem liste URLs ou referências na resposta — as fontes serão exibidas separadamente no painel de fontes. Responda em português.'
             },
             {
               role: 'user',
