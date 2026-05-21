@@ -1367,14 +1367,18 @@
     margin-bottom: 6px;
   }
 
-  .results-table {
+  .results-table,
+  .message.bot table,
+  .output-card table {
     width: 100%;
     border-collapse: collapse;
     margin: 14px 0;
     font-size: 13px;
   }
 
-  .results-table th {
+  .results-table th,
+  .message.bot table th,
+  .output-card table th {
     background: var(--pill-bg);
     font-weight: 600;
     color: var(--text-primary);
@@ -1383,14 +1387,18 @@
     border-bottom: 1px solid var(--border);
   }
 
-  .results-table td {
+  .results-table td,
+  .message.bot table td,
+  .output-card table td {
     padding: 10px 12px;
     text-align: left;
     border-bottom: 0.5px solid var(--border);
     line-height: 1.4;
   }
 
-  .results-table tr:last-child td {
+  .results-table tr:last-child td,
+  .message.bot table tr:last-child td,
+  .output-card table tr:last-child td {
     border-bottom: none;
   }
 
