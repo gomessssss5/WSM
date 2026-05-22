@@ -793,8 +793,27 @@
   .sources-list-item .meta { font-size:12px; color:var(--text-muted); margin-bottom:6px; }
   .sources-list-item .title { font-weight:700; color:var(--text-primary); margin-bottom:6px; }
   .sources-list-item a { font-size:13px; color:var(--agent-blue); text-decoration:none; }
-  .sources-sidebar-close-overlay { position:fixed; right:420px; top:0; bottom:0; left:0; display:none; }
-*** End Patch  .sources-list {
+  
+  /* Estilização das citações no texto [1] */
+  .citation {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--pill-bg);
+    color: var(--agent-blue);
+    border-radius: 4px;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    font-weight: 700;
+    margin: 0 2px;
+    cursor: pointer;
+    vertical-align: super;
+    text-decoration: none;
+    border: 0.5px solid var(--border);
+  }
+
+  .sources-list {
     display: none;
     flex-direction: column;
     gap: 6px;
@@ -1936,7 +1955,10 @@
       .replace(/([^\n])\n\|/g, '$1\n\n|')  // Garante linha em branco antes de tabelas
       .replace(/([^\n])\n#/g, '$1\n\n#');   // Garante linha em branco antes de títulos
 
-    const convertedText = convertMarkdownTables(preparedText);
+    // Converter citações no formato [n] para um span estilizado
+    const textWithCitations = preparedText.replace(/\[(\d+)\]/g, '<span class="citation" onclick="openSourcesSidebarFromText($1)">$1</span>');
+
+    const convertedText = convertMarkdownTables(textWithCitations);
     let rendered = md.render(convertedText);
 
     // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design
@@ -2676,7 +2698,7 @@
           messages: [
             {
               role: 'system',
-                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use tabelas Markdown para dados. 2) Use LaTeX com delimitadores ($...$ ou $$...$$) para TODAS as expressões matemáticas, fórmulas e variáveis. 3) Não liste fontes no texto. Responda em português.'
+                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use tabelas Markdown para dados. 2) Use LaTeX ($...$) para matemática. 3) SEMPRE cite as fontes ao longo do texto usando o formato [n] (ex: [1], [2]) correspondente ao índice da fonte fornecida. 4) Seja extremamente detalhado e técnico. Responda em português.'
             },
             {
               role: 'user',
@@ -2860,6 +2882,12 @@
       document.removeEventListener('click', outsideClickHandler);
     }
   }
+
+  // Atalho para abrir a sidebar de fontes a partir de uma citação [n]
+  window.openSourcesSidebarFromText = function(index) {
+    const pill = document.querySelector('.sources-pill');
+    if (pill) pill.click();
+  };
 
   // Escapar HTML simples
   function escapeHtml(str) {
