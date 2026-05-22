@@ -1997,86 +1997,86 @@
   }
 
   // Insere uma mensagem no DOM
-+  function generateFollowUps(rawHtml) {
-+    // gera 3 sugestões de acompanhamento baseadas no texto da resposta (retorna strings prontas para o usuário)
-+    try {
-+      const tmp = document.createElement('div');
-+      tmp.innerHTML = rawHtml || '';
-+      const plain = (tmp.textContent || tmp.innerText || '').trim();
-+
-+      // tentar extrair um tópico sensato: título (###) ou primeira frase
-+      let topic = '';
-+      const hMatch = plain.match(/###\s*(.+)/);
-+      if (hMatch && hMatch[1]) topic = hMatch[1].split(/[\n\.\?\!]/)[0].trim();
-+      if (!topic) {
-+        const firstSentence = plain.split(/[\.\?\!\n]/)[0] || '';
-+        const words = firstSentence.split(/\s+/).filter(Boolean);
-+        topic = words.slice(0, 6).join(' ');
-+      }
-+      topic = (topic && topic.length > 0) ? topic : 'isso';
-+
-+      const s1 = `Pode explicar mais sobre ${topic}?`;
-+      const s2 = `Quais são as causas e consequências de ${topic}?`;
-+      const s3 = `Onde posso ler mais sobre ${topic}?`;
-+
-+      return [s1, s2, s3];
-+    } catch (err) {
-+      return ['Como isso aconteceu?', 'Quais são as implicações?', 'Onde encontro fontes sobre isso?'];
-+    }
-+  }
-+
-+  function appendMessage(text, sender, mediaFiles = []) {
-+    const messages = document.getElementById('messages');
-+    if (!messages) return;
-+    const el = document.createElement('div');
-+    el.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
-+    
-+    let mediaHTML = '';
-+    if (mediaFiles && mediaFiles.length > 0) {
-+      mediaHTML = `<div class="msg-media-grid">`;
-+      mediaFiles.forEach(fileData => {
-+        mediaHTML += `<img src="${fileData.src}" class="msg-media-img" alt="Anexo do usuário">`;
-+      });
-+      mediaHTML += `</div>`;
-+    }
-+
-+    const formattedText = sender === 'bot' ? formatMarkdown(text) : text;
-+    el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
-+    messages.appendChild(el);
-+    
-+    if (window.MathJax && MathJax.typesetPromise) {
-+      MathJax.typesetPromise([el]).catch((err) => console.warn('MathJax error:', err));
-+    }
-+
-+    // Se a mensagem é do bot, gerar e renderizar 3 sugestões (Flow-up)
-+    if (sender !== 'user') {
-+      const suggestions = generateFollowUps(formattedText);
-+      if (suggestions && suggestions.length) {
-+        const followupsEl = document.createElement('div');
-+        followupsEl.className = 'followups';
-+
-+        suggestions.slice(0,3).forEach(s => {
-+          const btn = document.createElement('button');
-+          btn.type = 'button';
-+          btn.className = 'followup-pill';
-+          btn.textContent = s;
-+          btn.onclick = () => {
-+            const f = document.getElementById('inputField');
-+            if (f) {
-+              f.value = s;
-+              autoResize(f);
-+              f.focus();
-+            }
-+          };
-+          followupsEl.appendChild(btn);
-+        });
-+
-+        el.appendChild(followupsEl);
-+      }
-+    }
-+
-+    scrollToBottom();
-+  }
+  function generateFollowUps(rawHtml) {
+    // gera 3 sugestões de acompanhamento baseadas no texto da resposta (retorna strings prontas para o usuário)
+    try {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = rawHtml || '';
+      const plain = (tmp.textContent || tmp.innerText || '').trim();
+
+      // tentar extrair um tópico sensato: título (###) ou primeira frase
+      let topic = '';
+      const hMatch = plain.match(/###\s*(.+)/);
+      if (hMatch && hMatch[1]) topic = hMatch[1].split(/[\n\.\?\!]/)[0].trim();
+      if (!topic) {
+        const firstSentence = plain.split(/[\.\?\!\n]/)[0] || '';
+        const words = firstSentence.split(/\s+/).filter(Boolean);
+        topic = words.slice(0, 6).join(' ');
+      }
+      topic = (topic && topic.length > 0) ? topic : 'isso';
+
+      const s1 = `Pode explicar mais sobre ${topic}?`;
+      const s2 = `Quais são as causas e consequências de ${topic}?`;
+      const s3 = `Onde posso ler mais sobre ${topic}?`;
+
+      return [s1, s2, s3];
+    } catch (err) {
+      return ['Como isso aconteceu?', 'Quais são as implicações?', 'Onde encontro fontes sobre isso?'];
+    }
+  }
+
+  function appendMessage(text, sender, mediaFiles = []) {
+    const messages = document.getElementById('messages');
+    if (!messages) return;
+    const el = document.createElement('div');
+    el.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+    
+    let mediaHTML = '';
+    if (mediaFiles && mediaFiles.length > 0) {
+      mediaHTML = `<div class="msg-media-grid">`;
+      mediaFiles.forEach(fileData => {
+        mediaHTML += `<img src="${fileData.src}" class="msg-media-img" alt="Anexo do usuário">`;
+      });
+      mediaHTML += `</div>`;
+    }
+
+    const formattedText = sender === 'bot' ? formatMarkdown(text) : text;
+    el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
+    messages.appendChild(el);
+    
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise([el]).catch((err) => console.warn('MathJax error:', err));
+    }
+
+    // Se a mensagem é do bot, gerar e renderizar 3 sugestões (Flow-up)
+    if (sender !== 'user') {
+      const suggestions = generateFollowUps(formattedText);
+      if (suggestions && suggestions.length) {
+        const followupsEl = document.createElement('div');
+        followupsEl.className = 'followups';
+
+        suggestions.slice(0,3).forEach(s => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'followup-pill';
+          btn.textContent = s;
+          btn.onclick = () => {
+            const f = document.getElementById('inputField');
+            if (f) {
+              f.value = s;
+              autoResize(f);
+              f.focus();
+            }
+          };
+          followupsEl.appendChild(btn);
+        });
+
+        el.appendChild(followupsEl);
+      }
+    }
+
+    scrollToBottom();
+  }
 
   // Mostra indicador visual de carregamento da API
   function showTypingIndicator() {
