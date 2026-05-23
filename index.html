@@ -11,6 +11,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <!-- Markdown-it para renderização completa de Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+<!-- Highlight.js para colorir o código na prévia lateral -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
 <script>
   window.MathJax = {
     tex: {
@@ -216,16 +220,12 @@
   .main {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 56px 24px 24px;
     position: relative;
     overflow: hidden;
     height: 100%;
     width: 100%;
   }
 
-  /* Efeito de iluminação premium no topo */
   .main::before {
     content: '';
     position: absolute;
@@ -236,6 +236,7 @@
     height: 700px;
     background: radial-gradient(circle, rgba(0,0,0,0.022) 0%, transparent 70%);
     pointer-events: none;
+    z-index: 0;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -341,17 +342,29 @@
 
   .icon-btn i { font-size: 16px; }
 
+  /* MAIN CONTENT (FLEX WRAPPER FOR CHAT E ARTIFACT) */
+  .main-content {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    padding-top: 56px; /* Offset da topbar */
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative;
+    z-index: 10;
+  }
+
   /* CHAT PANEL */
   .chat-panel {
     width: 100%;
-    max-width: 680px;
+    max-width: 720px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    height: calc(100% - 20px);
+    height: 100%;
     position: relative;
+    padding: 0 24px 24px;
     justify-content: flex-end;
-    transition: justify-content var(--transition);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   /* Painel Centrado - ESTADO INICIAL */
@@ -432,7 +445,7 @@
     background: rgba(0, 0, 0, 0.05);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: monospace; /* Preserva formatação monospace para códigos */
+    font-family: 'Fira Code', monospace; /* Preserva formatação monospace para códigos inline */
     font-size: 13px;
   }
 
@@ -442,25 +455,179 @@
     }
   }
 
+  /* Ocultar <pre> caso tenham blocos normais inline que n foram virados cards, senao renderiza bonito */
   .message.bot pre {
-    background: rgba(0, 0, 0, 0.03);
-    padding: 12px;
-    border-radius: 8px;
+    background: #111110;
+    padding: 14px;
+    border-radius: 10px;
     overflow-x: auto;
-    margin: 8px 0;
+    margin: 12px 0;
     border: 0.5px solid var(--border);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .message.bot pre {
-      background: rgba(0, 0, 0, 0.2);
-    }
   }
 
   .message.bot pre code {
     background: none;
     padding: 0;
+    color: #e0e0e0;
     font-size: 12.5px;
+  }
+
+  /* ======= TABELAS MARAVILHOSAS ======= */
+  .table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin: 16px 0;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    background: var(--bg-card);
+  }
+  
+  .results-table,
+  .message.bot table,
+  .output-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    text-align: left;
+  }
+
+  .results-table th,
+  .message.bot table th,
+  .output-card table th {
+    background: var(--pill-bg);
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .results-table td,
+  .message.bot table td,
+  .output-card table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  .results-table tr:last-child td,
+  .message.bot table tr:last-child td,
+  .output-card table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .results-table tr:hover td,
+  .message.bot table tr:hover td {
+    background: rgba(0,0,0,0.02);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .results-table tr:hover td, .message.bot table tr:hover td { background: rgba(255,255,255,0.03); }
+  }
+
+
+  /* ======= ARTIFACT TRIGGER CARD (Botão de Código) ======= */
+  .artifact-trigger-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 0.5px solid var(--border);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+    margin: 14px 0;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: 'Inter', sans-serif;
+  }
+  .artifact-trigger-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+  .artifact-card-icon {
+    width: 40px; height: 40px; border-radius: 8px; background: var(--pill-bg); display: grid; place-items: center; color: var(--text-secondary); font-size: 20px;
+  }
+  .artifact-card-info { flex: 1; display: flex; flex-direction: column; }
+  .artifact-card-info .title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .artifact-card-info .meta { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;}
+  .artifact-card-btn {
+    padding: 8px 14px; border-radius: 8px; border: 0.5px solid var(--border); background: var(--bg); color: var(--text-primary); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .artifact-trigger-card:hover .artifact-card-btn { background: var(--text-primary); color: var(--bg); border-color: var(--text-primary); }
+
+
+  /* ======= ARTIFACT SIDE PANEL ======= */
+  .artifact-panel {
+    width: 0;
+    opacity: 0;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    background: #0d1117; /* GitHub Dark bg */
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: 16px 0 0 16px;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    margin: 16px 0 16px 0;
+  }
+
+  /* ESTADOS QUANDO O ARTIFACT ABRE */
+  .main-content.artifact-open .chat-panel {
+    max-width: 50%;
+    margin: 0; 
+  }
+  
+  .main-content.artifact-open .artifact-panel {
+    flex: 1;
+    width: 50%;
+    max-width: 50%;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .artifact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #161b22;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: #c9d1d9;
+    font-family: 'Inter', sans-serif;
+  }
+  .artifact-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .artifact-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .artifact-btn {
+    width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: #8b949e; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+  }
+  .artifact-btn:hover {
+    background: rgba(255,255,255,0.1); color: #fff;
+  }
+  .artifact-body {
+    flex: 1;
+    overflow: auto;
+    padding: 24px;
+  }
+  .artifact-body pre {
+    margin: 0; background: transparent; padding: 0; border: none;
+  }
+  .artifact-body code {
+    font-family: 'Fira Code', monospace; font-size: 13.5px; line-height: 1.6; color: #c9d1d9;
   }
 
   /* LOADING INDICATOR */
@@ -564,6 +731,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
+    font-family: 'Inter', sans-serif;
   }
 
   .greeting-title strong {
@@ -664,7 +832,7 @@
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* Tavily images preview (mini gallery under thought-box) */
+  /* Tavily images preview */
   .tavily-images {
     display: flex;
     gap: 14px;
@@ -688,7 +856,7 @@
     object-fit: cover;
   }
 
-  /* Pill resumo das imagens anexadas (aparece no final da resposta) */
+  /* Pill resumo das imagens anexadas */
   .attachment-summary-pill {
     display: flex;
     align-items: center;
@@ -710,7 +878,7 @@
   .attachment-summary-pill .pill-thumbs { display:flex; gap:6px; }
   .attachment-summary-pill .pill-thumb { width:36px; height:36px; border-radius:8px; overflow:hidden; border:0.5px solid rgba(0,0,0,0.05); }
   .attachment-summary-pill .pill-thumb img { width:100%; height:100%; object-fit:cover; }
-  .attachment-summary-pill .pill-label { font-size:13px; color:var(--text-primary); font-weight:600; }
+  .attachment-summary-pill .pill-label { font-size:13px; color:var(--text-primary); font-weight:600; font-family: 'Inter', sans-serif;}
 
   .sources-footer {
     display: flex;
@@ -739,6 +907,7 @@
     cursor: pointer;
     transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
     width: fit-content;
+    font-family: 'Inter', sans-serif;
   }
   .sources-pill:hover {
     transform: translateY(-1px);
@@ -785,6 +954,7 @@
     transition: right 0.36s cubic-bezier(0.2,0.9,0.2,1);
     display: flex;
     flex-direction: column;
+    font-family: 'Inter', sans-serif;
   }
   .sources-sidebar[aria-hidden="false"] { right: 0; }
   .sources-sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:0.5px solid var(--border); }
@@ -813,6 +983,7 @@
     vertical-align: super;
     text-decoration: none;
     border: 0.5px solid var(--border);
+    font-family: 'Inter', sans-serif;
   }
 
   .sources-list {
@@ -871,7 +1042,7 @@
     margin-top: 4px;
   }
 
-  /* Card com resumo da análise das imagens (aparece abaixo do resultado) */
+  /* Card com resumo da análise das imagens */
   .image-analysis-card {
     margin-top: 12px;
     padding: 12px 14px;
@@ -882,10 +1053,11 @@
     opacity: 0;
     transform: translateY(6px);
     transition: all var(--transition);
+    font-family: 'Inter', sans-serif;
   }
   .image-analysis-card.visible { opacity: 1; transform: translateY(0); }
   .image-analysis-card .analysis-title { font-weight:700; font-size:13px; margin-bottom:6px; }
-  .image-analysis-card .analysis-content { font-size:13px; color:var(--text-primary); line-height:1.5; }
+  .image-analysis-card .analysis-content { font-size:13px; color:var(--text-primary); line-height:1.5; font-family: 'Lora', serif; }
 
   .input-field {
     width: 100%;
@@ -1047,7 +1219,7 @@
 
   .suggestion-pill i { font-size: 14px; opacity: 0.85; }
 
-  /* FOLLOW-UPS (Flow-up) -- sugestões geradas automaticamente após resposta do bot */
+  /* FOLLOW-UPS (Flow-up) */
   .followups {
     display: flex;
     gap: 8px;
@@ -1066,7 +1238,7 @@
     border: 0.5px solid var(--border);
     background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
     color: var(--text-secondary);
-    font-family: 'Inter', sans-serif; /* Garante que os botões voltem para a Inter */
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -1121,7 +1293,7 @@
     transition: border-color var(--transition), box-shadow var(--transition);
     box-shadow: var(--shadow-card);
     width: 100%;
-    font-family: 'Inter', sans-serif; /* Mantém as caixas de pensamento na Inter */
+    font-family: 'Inter', sans-serif;
   }
 
   .thought-header {
@@ -1281,184 +1453,6 @@
     color: var(--agent-green);
   }
 
-  /* GRID DE FONTES */
-  .sources-container {
-    display: none; 
-    flex-direction: column;
-    gap: 10px;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    width: 100%;
-  }
-
-  .sources-container.visible {
-    opacity: 1;
-  }
-
-  .sources-label {
-    font-size: 11.5px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .sources-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    width: 100%;
-  }
-
-  .source-card {
-    display: flex;
-    flex-direction: column;
-    padding: 12px 14px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg-card);
-    transition: all var(--transition);
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  .source-card.pop-in {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .source-card:hover {
-    border-color: var(--border-focus);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card);
-  }
-
-  .source-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .source-fav {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    background: var(--pill-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--agent-blue);
-  }
-
-  .source-domain {
-    font-size: 11px;
-    color: var(--text-secondary);
-  }
-
-  .source-badge {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: rgba(22, 163, 74, 0.08);
-    color: var(--agent-green);
-    font-weight: 600;
-    margin-left: auto;
-  }
-
-  .source-title {
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--text-primary);
-    line-height: 1.4;
-  }
-
-  /* RESPOSTA SINTETIZADA DO AGENTE */
-  .output-card {
-    display: none; 
-    background: var(--bg-card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 22px;
-    font-size: 14.5px;
-    font-family: 'Lora', serif; /* Mantém a formatação textual condizente */
-    line-height: 1.6;
-    box-shadow: var(--shadow-card);
-    opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-    width: 100%;
-  }
-
-  .output-card.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .output-card p {
-    margin-bottom: 12px;
-  }
-
-  /* Ajuste de espaçamento para listas dentro de cards/mensagens
-     (evita que os marcadores/números fiquem colados ou cortados pela borda) */
-  .output-card ol,
-  .output-card ul,
-  .message.bot ol,
-  .message.bot ul,
-  .thought-content ol,
-  .thought-content ul {
-    padding-left: 28px;
-    margin: 0 0 12px 0;
-    list-style-position: outside;
-  }
-
-  .output-card li,
-  .message.bot li,
-  .thought-content li {
-    margin-bottom: 6px;
-  }
-
-  .results-table,
-  .message.bot table,
-  .output-card table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 14px 0;
-    font-family: 'Inter', sans-serif; /* Deixa as tabelas mais limpas na fonte padrão */
-    font-size: 13px;
-  }
-
-  .results-table th,
-  .message.bot table th,
-  .output-card table th {
-    background: var(--pill-bg);
-    font-weight: 600;
-    color: var(--text-primary);
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .results-table td,
-  .message.bot table td,
-  .output-card table td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 0.5px solid var(--border);
-    line-height: 1.4;
-  }
-
-  .results-table tr:last-child td,
-  .message.bot table tr:last-child td,
-  .output-card table tr:last-child td {
-    border-bottom: none;
-  }
-
   /* MODAL DE CONFIGURAÇÕES PARA API KEY */
   .modal-overlay {
     position: fixed;
@@ -1488,6 +1482,7 @@
     flex-direction: column;
     gap: 16px;
     animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-family: 'Inter', sans-serif;
   }
 
   .modal-header {
@@ -1580,6 +1575,7 @@
     align-items: center;
     gap: 8px;
     pointer-events: none;
+    font-family: 'Inter', sans-serif;
   }
 
   .toast.active {
@@ -1618,6 +1614,22 @@
 
     .menu-toggle-btn {
       display: flex;
+    }
+
+    .main-content.artifact-open {
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .main-content.artifact-open .chat-panel {
+      display: none; /* Oculta chat no mobile quando artifact ta aberto */
+    }
+
+    .main-content.artifact-open .artifact-panel {
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--radius-md);
+      margin: 0;
     }
   }
 
@@ -1700,7 +1712,7 @@
     </div>
   </aside>
 
-  <!-- MAIN AREA (Espaço de Chat) -->
+  <!-- MAIN AREA (Espaço de Chat + Painel de Código) -->
   <main class="main">
 
     <!-- Topbar integrada -->
@@ -1721,57 +1733,78 @@
       </div>
     </div>
 
-    <!-- Container centralizador/alinhador do chat -->
-    <div class="chat-panel centered" id="chatPanel">
+    <!-- WRAPPER FLEXÍVEL (CHAT À ESQUERDA, CÓDIGO À DIREITA QUANDO ATIVO) -->
+    <div class="main-content" id="mainContent">
       
-      <!-- Listagem de Mensagens (Oculto no estado inicial) -->
-      <div class="messages" id="messages" aria-live="polite"></div>
-
-      <!-- Compositor de Entrada -->
-      <div class="composer" id="composer">
+      <!-- Container centralizador/alinhador do chat -->
+      <div class="chat-panel centered" id="chatPanel">
         
-        <!-- Título que desaparece com suavidade -->
-        <div class="composer-title" id="composerTitle">
-          <h1 class="greeting-title">Como posso <strong>ajudar</strong>?</h1>
-        </div>
+        <!-- Listagem de Mensagens (Oculto no estado inicial) -->
+        <div class="messages" id="messages" aria-live="polite"></div>
 
-        <div class="input-wrapper">
-          <div class="input-box">
-            
-            <!-- LISTA DE PRÉ-VISUALIZAÇÃO DE IMAGENS ANEXADAS -->
-            <div class="attachment-preview-container" id="attachmentPreview"></div>
+        <!-- Compositor de Entrada -->
+        <div class="composer" id="composer">
+          
+          <!-- Título que desaparece com suavidade -->
+          <div class="composer-title" id="composerTitle">
+            <h1 class="greeting-title">Como posso <strong>ajudar</strong>?</h1>
+          </div>
 
-            <textarea
-              class="input-field"
-              placeholder="Pergunte qualquer coisa ao WSM 1.0..."
-              rows="1"
-              id="inputField"
-              oninput="autoResize(this)"
-              onkeydown="handleKey(event)"
-            ></textarea>
-            
-            <div class="input-actions">
-              <div class="input-tools">
-                <button class="tool-btn" id="searchBtn" type="button"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
-                <button class="tool-btn" id="attachBtn" type="button" onclick="triggerFileUpload()"><i class="ti ti-paperclip" aria-hidden="true"></i> Anexar</button>
+          <div class="input-wrapper">
+            <div class="input-box">
+              
+              <!-- LISTA DE PRÉ-VISUALIZAÇÃO DE IMAGENS ANEXADAS -->
+              <div class="attachment-preview-container" id="attachmentPreview"></div>
+
+              <textarea
+                class="input-field"
+                placeholder="Pergunte qualquer coisa ao WSM 1.0..."
+                rows="1"
+                id="inputField"
+                oninput="autoResize(this)"
+                onkeydown="handleKey(event)"
+              ></textarea>
+              
+              <div class="input-actions">
+                <div class="input-tools">
+                  <button class="tool-btn" id="searchBtn" type="button"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="attachBtn" type="button" onclick="triggerFileUpload()"><i class="ti ti-paperclip" aria-hidden="true"></i> Anexar</button>
+                </div>
+                <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
               </div>
-              <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
             </div>
           </div>
-        </div>
 
-        <!-- Pílulas de Sugestões -->
-        <div class="suggestions" id="suggestions">
-          <button class="suggestion-pill"><i class="ti ti-code" aria-hidden="true"></i> Escrever código</button>
-          <button class="suggestion-pill"><i class="ti ti-chart-bar" aria-hidden="true"></i> Analisar dados</button>
-          <button class="suggestion-pill"><i class="ti ti-file-text" aria-hidden="true"></i> Resumir texto</button>
-          <button class="suggestion-pill"><i class="ti ti-bulb" aria-hidden="true"></i> Brainstorm</button>
-          <button class="suggestion-pill"><i class="ti ti-language" aria-hidden="true"></i> Traduzir</button>
-        </div>
+          <!-- Pílulas de Sugestões -->
+          <div class="suggestions" id="suggestions">
+            <button class="suggestion-pill"><i class="ti ti-code" aria-hidden="true"></i> Escrever código</button>
+            <button class="suggestion-pill"><i class="ti ti-chart-bar" aria-hidden="true"></i> Analisar dados</button>
+            <button class="suggestion-pill"><i class="ti ti-file-text" aria-hidden="true"></i> Resumir texto</button>
+            <button class="suggestion-pill"><i class="ti ti-bulb" aria-hidden="true"></i> Brainstorm</button>
+            <button class="suggestion-pill"><i class="ti ti-language" aria-hidden="true"></i> Traduzir</button>
+          </div>
 
+        </div>
       </div>
-    </div>
+      
+      <!-- ARTIFACT PANEL (PRÉVIA LATERAL DO CÓDIGO) -->
+      <div class="artifact-panel" id="artifactPanel">
+        <div class="artifact-header">
+          <div class="artifact-title">
+            <i class="ti ti-code"></i>
+            <span id="artifactTitle">Código Gerado</span>
+          </div>
+          <div class="artifact-actions">
+            <button class="artifact-btn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
+            <button class="artifact-btn" onclick="closeArtifact()" title="Fechar Prévia"><i class="ti ti-x"></i></button>
+          </div>
+        </div>
+        <div class="artifact-body">
+          <pre><code id="artifactCodeContent" class="hljs"></code></pre>
+        </div>
+      </div>
 
+    </div>
   </main>
   <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none" onchange="handleFileSelection(event)">
 </div>
@@ -1923,6 +1956,36 @@
     }
   }
 
+  // Funções do Artifact (Painel de Código Lateral)
+  function openArtifact(code, lang) {
+    const mainContent = document.getElementById('mainContent');
+    const codeElement = document.getElementById('artifactCodeContent');
+    const titleElement = document.getElementById('artifactTitle');
+    
+    // Inserir os dados
+    codeElement.textContent = code;
+    codeElement.className = lang ? `language-${lang}` : '';
+    titleElement.textContent = `Código ${lang.toUpperCase()}`;
+    
+    // Aplicar cor (Highlight.js)
+    hljs.highlightElement(codeElement);
+    
+    // Mostrar animação
+    mainContent.classList.add('artifact-open');
+  }
+
+  function closeArtifact() {
+    const mainContent = document.getElementById('mainContent');
+    mainContent.classList.remove('artifact-open');
+  }
+
+  function copyArtifact() {
+    const code = document.getElementById('artifactCodeContent').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        showToast("Código copiado!", "info");
+    });
+  }
+
   // Inicializa o Markdown-it com suporte a HTML e quebras de linha
   const md = window.markdownit({
     html: true,
@@ -1935,23 +1998,33 @@
     return md.utils.escapeHtml(text);
   }
 
-  // FUNÇÃO REFEITA: Usa o próprio markdown-it para as tabelas de forma robusta e sem quebrar
+  // FUNÇÃO REFEITA: Pré-processamento bruto e robusto para forçar tabelas bonitas
   function formatMarkdown(text) {
     if (!text) return "";
 
-    // Pré-processamento: garante que tabelas e títulos tenham uma linha em branco antes para não falhar a compilação nativa.
-    const preparedText = text
-      .replace(/([^\n])\n\|/g, '$1\n\n|')  // Garante linha em branco antes de tabelas
-      .replace(/([^\n])\n#/g, '$1\n\n#');   // Garante linha em branco antes de títulos
+    let preparedText = text
+      // Garante uma linha em branco antes do início de uma tabela
+      .replace(/([^\n])\n(\s*\|)/g, '$1\n\n$2')
+      
+      // MÁGICA DA TABELA: O LLM costuma gerar separadores feios como | - | - |. 
+      // Isso conserta a linha divisória da tabela para o Markdown aceitá-la como Válida.
+      .replace(/\n\s*\|([-|\s]+)\|\s*\n/g, (match, inner) => {
+          const fixedInner = inner.split('|').map(c => {
+             return c.trim().match(/^-+$/) ? '---' : c; // se for só hífens, padroniza pra 3 hífens
+          }).join('|');
+          return `\n|${fixedInner}|\n`;
+      });
 
     // Converter citações no formato [n] para um span estilizado
     const textWithCitations = preparedText.replace(/\[(\d+)\]/g, '<span class="citation" onclick="openSourcesSidebarFromText($1)">$1</span>');
 
-    // md.render processa nativamente todas as tabelas perfeitamente!
+    // Processar nativamente
     let rendered = md.render(textWithCitations);
 
-    // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design premium
-    return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table class="results-table">').replace(/<\/table>/g, '</table></div>');
+    // Envolve as tabelas com a nova div bonita customizada
+    return rendered
+        .replace(/<table>/g, '<div class="table-container"><table class="results-table">')
+        .replace(/<\/table>/g, '</table></div>');
   }
 
   function appendMessage(text, sender, mediaFiles = []) {
@@ -1985,9 +2058,59 @@
       mediaHTML += `</div>`;
     }
 
-    // Aplica o Markdown à versão extraída (sem a tag [SUGESTOES] aparecendo)
+    // Aplica o Markdown
     const formattedText = sender === 'bot' ? formatMarkdown(displayChatText) : escapeHtml(displayChatText);
-    el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
+    
+    // MÁGICA DO ARTIFACT: Converter grandes blocos de código em Botões "Card"
+    if (sender === 'bot') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = formattedText;
+        
+        // Acha todas as tags de código nativas geradas pelo markdown-it
+        const codeBlocks = tempDiv.querySelectorAll('pre code');
+        
+        codeBlocks.forEach((codeNode) => {
+            const rawCode = codeNode.textContent;
+            const lines = rawCode.split('\n').length;
+            const lang = codeNode.className.replace('language-', '') || 'texto';
+
+            // Se for um bloco considerável (mais de 5 linhas), substitui pelo Botão Bonito
+            if (lines > 5 || rawCode.length > 250) {
+                const preNode = codeNode.parentNode;
+                
+                const card = document.createElement('div');
+                card.className = 'artifact-trigger-card';
+                card.innerHTML = `
+                    <div class="artifact-card-icon"><i class="ti ti-braces"></i></div>
+                    <div class="artifact-card-info">
+                        <span class="title">Visualizar Código</span>
+                        <span class="meta">${lang.toUpperCase()} • ${lines} linhas</span>
+                    </div>
+                    <button class="artifact-card-btn">Abrir Prévia</button>
+                `;
+                
+                // Anexa o evento de click passando o código cru (sem estragar strings)
+                card.addEventListener('click', () => {
+                    openArtifact(rawCode, lang);
+                });
+                
+                // Insere o card antes do código original, e remove o bloco antigo de código na tela do chat
+                preNode.parentNode.insertBefore(card, preNode);
+                preNode.remove();
+            } else {
+                // Se for um código pequeno, apenas colorir inline
+                hljs.highlightElement(codeNode);
+            }
+        });
+
+        // Grava no DOM Real (Isso mantém os eventListeners vivos, ao invés de usar innerHTML puro na string)
+        el.innerHTML = mediaHTML;
+        el.appendChild(tempDiv);
+
+    } else {
+        el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
+    }
+
     messages.appendChild(el);
     
     if (window.MathJax && MathJax.typesetPromise) {
@@ -2010,13 +2133,12 @@
             f.value = s;
             autoResize(f);
             f.focus();
-            // Se preferir que o chat já envie a pergunta após clicar, descomente a linha de baixo:
-            // sendMessage(); 
           }
         };
         followupsEl.appendChild(btn);
       });
 
+      // Se o Artifact engoliu o conteúdo, pegamos o tempDiv dentro. Senão, colocamos direto no el.
       el.appendChild(followupsEl);
     }
 
@@ -2178,11 +2300,10 @@
   }
 
   // DISPARA ANIMAÇÃO DE ANÁLISE VISUAL DE IMAGENS (Simulação contida)
-  // Configuração de modelos
   const VISION_MODELS = {
-    primary: 'meta-llama/llama-4-scout-17b-16e-instruct',  // Seu modelo - funciona!
-    secondary: 'llama-3.2-11b-vision-preview',              // Fallback 1
-    tertiary: 'llama-3.2-90b-vision-preview'                // Fallback 2
+    primary: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    secondary: 'llama-3.2-11b-vision-preview',
+    tertiary: 'llama-3.2-90b-vision-preview'
   };
 
   async function appendVisionAnalysisResponse(userQuestion = '', attachedFilesData = []) {
@@ -2253,12 +2374,10 @@
       const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl) titleEl.textContent = "Preparando imagens para análise...";
 
-      // Converter imagens para base64
-      // Preparar imagens - já temos o src em base64
       const images = filesToAnalyze
         .filter(file => file.src && file.file)
         .map(file => {
-          const base64 = file.src.split(',')[1]; // Extrair a parte base64 da data URL
+          const base64 = file.src.split(',')[1];
           return {
             data: base64,
             type: file.file.type
@@ -2269,8 +2388,6 @@
         throw new Error('Nenhuma imagem válida foi selecionada');
       }
       setStepCompleted(1, currentAgentId);
-
-      // Pequeno delay para animação
       await sleep(800);
 
       // ===== ETAPA 2: ENVIAR PARA GROQ =====
@@ -2290,7 +2407,6 @@
         throw new Error('GROQ_API_KEY não configurada. Verifique as variáveis de ambiente no Vercel.');
       }
 
-      // Preparar conteúdo com imagens para Groq
       const messageContent = [
         {
           type: 'text',
@@ -2298,7 +2414,6 @@
         }
       ];
 
-      // Adicionar imagens ao conteúdo
       images.forEach(img => {
         messageContent.push({
           type: 'image_url',
@@ -2308,7 +2423,6 @@
         });
       });
 
-      // Tentar com diferentes modelos
       let analysisResult = null;
       let lastError = null;
       
@@ -2325,13 +2439,8 @@
             body: JSON.stringify({
               model: modelName,
               messages: [
-                {
-                  role: 'system', content: 'Você é um especialista em visão computacional. Use LaTeX ($...$) para quaisquer medidas ou fórmulas matemáticas identificadas.'
-                },
-                {
-                  role: 'user',
-                  content: messageContent
-                }
+                { role: 'system', content: 'Você é um especialista em visão computacional. Use LaTeX ($...$) para quaisquer medidas ou fórmulas matemáticas identificadas.' },
+                { role: 'user', content: messageContent }
               ],
               temperature: 0.7,
               max_tokens: 2000
@@ -2425,7 +2534,6 @@
   }
 
   // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
-  // Implementa o fluxo de 4 etapas: Planejamento → Busca → Análise → Síntese
   async function executeDeepResearch(userPrompt, attachedFilesData = []) {
     console.log('🔄 [DEEP RESEARCH] Iniciando agente em loop...');
     console.log('📝 Prompt do usuário:', userPrompt);
@@ -2435,7 +2543,6 @@
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
 
-    // Renderizar container do agente
     const agentContainer = document.createElement('div');
     let imageAnalysisText = '';
     agentContainer.className = 'agent-response-container';
@@ -2476,9 +2583,7 @@
         </div>
       </div>
 
-      <div id="tavilyImages_${currentAgentId}" class="tavily-images" style="margin-top:12px; display:none;">
-        <!-- Imagens da Tavily (até 5) aparecerão aqui -->
-      </div>
+      <div id="tavilyImages_${currentAgentId}" class="tavily-images" style="margin-top:12px; display:none;"></div>
 
       <div class="output-card" id="outputCard_${currentAgentId}">
         <p id="outputContent_${currentAgentId}"></p>
@@ -2499,10 +2604,8 @@
     }, 100);
 
     try {
-      // ========== ETAPA 1: PLANEJAMENTO COM GROQ ==========
-      console.log('📋 [ETAPA 1] Gerando palavras-chave com Groq...');
+      // ETAPA 1
       setStepActive(1, currentAgentId);
-      
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
         const configResponse = await fetch('/api/config');
@@ -2511,48 +2614,28 @@
           groqApiKey = configData.groqApiKey;
         }
       }
+      if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
 
-      if (!groqApiKey) {
-        throw new Error('GROQ_API_KEY não encontrada');
-      }
-
-      // Chamar Groq para gerar palavras-chave otimizadas
       const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqApiKey}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
           messages: [
-            {
-              role: 'system',
-              content: 'Você é um especialista em otimização de buscas. Analise o prompt do usuário e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula, sem explicações adicionais. Foco: serão usadas para busca web em tempo real.'
-            },
-            {
-              role: 'user',
-              content: userPrompt
-            }
+            { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
+            { role: 'user', content: userPrompt }
           ],
-          temperature: 0.3,
-          max_tokens: 100
+          temperature: 0.3, max_tokens: 100
         })
       });
 
-      if (!planResponse.ok) {
-        throw new Error('Erro ao chamar Groq para planejamento');
-      }
-
+      if (!planResponse.ok) throw new Error('Erro ao chamar Groq para planejamento');
       const planData = await planResponse.json();
       const searchKeywords = planData.choices[0].message.content.trim();
-      console.log('✅ [ETAPA 1] Palavras-chave:', searchKeywords);
-
       await sleep(800);
       setStepCompleted(1, currentAgentId);
 
-      // ========== ETAPA 2: VARREDURA WEB COM TAVILY ==========
-      console.log('🌐 [ETAPA 2] Buscando na web com Tavily...');
+      // ETAPA 2
       setStepActive(2, currentAgentId);
       const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl2) titleEl2.textContent = 'Varrendo canais da web em tempo real...';
@@ -2569,12 +2652,9 @@
       }
 
       const searchData = await searchResponse.json();
-      console.log(`✅ [ETAPA 2] Tavily retornou ${searchData.results.length} resultados`);
-
       await sleep(1500);
       setStepCompleted(2, currentAgentId);
 
-      // Se houver imagens anexadas, executar análise de visão em background (integração no contexto)
       if (attachedFilesData && attachedFilesData.length > 0) {
         try {
           const imgsToAnalyze = attachedFilesData
@@ -2582,16 +2662,12 @@
             .map(f => ({ data: f.src.split(',')[1], type: f.file.type }));
 
           if (imgsToAnalyze.length > 0) {
-            // Preparar conteúdo para Groq (visão)
             const messageContentForVision = [
-              { type: 'text', text: 'Analise estas imagens detalhadamente em português. Descreva objetos, cores, texto visível, contexto e observações relevantes. Seja sucinto, objetivo e entregue um parágrafo resumo por imagem.' }
+              { type: 'text', text: 'Analise estas imagens detalhadamente em português. Descreva objetos, cores, texto visível, contexto e observações relevantes.' }
             ];
 
             imgsToAnalyze.forEach(img => {
-              messageContentForVision.push({
-                type: 'image_url',
-                image_url: { url: `data:${img.type};base64,${img.data}` }
-              });
+              messageContentForVision.push({ type: 'image_url', image_url: { url: `data:${img.type};base64,${img.data}` } });
             });
 
             let visionAnalysis = null;
@@ -2601,15 +2677,11 @@
               try {
                 const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                   method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${groqApiKey}`,
-                    'Content-Type': 'application/json'
-                  },
+                  headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     model: modelName,
                     messages: [ { role: 'user', content: messageContentForVision } ],
-                    temperature: 0.3,
-                    max_tokens: 800
+                    temperature: 0.3, max_tokens: 800
                   })
                 });
 
@@ -2628,29 +2700,23 @@
 
             if (visionAnalysis) {
               imageAnalysisText = visionAnalysis;
-              console.log('✅ Análise das imagens obtida (integrada ao contexto)');
             } else {
               imageAnalysisText = `Erro na análise de imagens: ${lastVisionErr || 'Nenhuma resposta'}`;
-              console.warn('⚠️', imageAnalysisText);
             }
           }
         } catch (err) {
           imageAnalysisText = `Erro ao preparar análise de imagens: ${err.message}`;
-          console.warn('⚠️', imageAnalysisText);
         }
       }
 
-      // ========== ETAPA 3: ANÁLISE E FILTRAGEM ==========
-      console.log('📊 [ETAPA 3] Analisando fontes...');
+      // ETAPA 3
       setStepActive(3, currentAgentId);
       const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl3) titleEl3.textContent = 'Analisando referências de consistência...';
 
-      // Preparar fontes para aparecer ao final da resposta
       const sourcesFooter = document.getElementById(`sourcesFooter_${currentAgentId}`);
       if (sourcesFooter && searchData.results.length > 0) {
         sourcesFooter.innerHTML = '';
-
         const pill = document.createElement('div');
         pill.className = 'sources-pill';
         pill.innerHTML = `
@@ -2682,65 +2748,54 @@
           sourceItem.onclick = () => window.open(result.url, '_blank');
           list.appendChild(sourceItem);
         });
-
         pill.onclick = () => openSourcesSidebar(currentAgentId, searchData.results);
-
         sourcesFooter.appendChild(pill);
       }
 
-        // Renderizar imagens retornadas pela Tavily (até 5)
-        const tavilyBox = document.getElementById(`tavilyImages_${currentAgentId}`);
-        if (tavilyBox) {
-          // Extrair imagens do payload (tolerante a formatos)
-          const imgs = (searchData.images && Array.isArray(searchData.images) ? searchData.images : [])
-            .concat(searchData.results.map(r => r.image || r.thumbnail || null))
-            .filter(Boolean)
-            .slice(0, 5);
+      const tavilyBox = document.getElementById(`tavilyImages_${currentAgentId}`);
+      if (tavilyBox) {
+        const imgs = (searchData.images && Array.isArray(searchData.images) ? searchData.images : [])
+          .concat(searchData.results.map(r => r.image || r.thumbnail || null))
+          .filter(Boolean).slice(0, 5);
 
-          if (imgs.length > 0) {
-            tavilyBox.style.display = 'flex';
-            tavilyBox.style.gap = '10px';
-            tavilyBox.style.overflowX = 'auto';
-            tavilyBox.innerHTML = '';
+        if (imgs.length > 0) {
+          tavilyBox.style.display = 'flex';
+          tavilyBox.style.gap = '10px';
+          tavilyBox.style.overflowX = 'auto';
+          tavilyBox.innerHTML = '';
 
-            imgs.forEach((imgUrl, i) => {
-              const imgEl = document.createElement('div');
-              imgEl.className = 'tavily-thumb';
-              imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" />`;
-              imgEl.style.opacity = '0';
-              imgEl.style.transform = 'translateY(6px)';
-              tavilyBox.appendChild(imgEl);
+          imgs.forEach((imgUrl, i) => {
+            const imgEl = document.createElement('div');
+            imgEl.className = 'tavily-thumb';
+            imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" />`;
+            imgEl.style.opacity = '0';
+            imgEl.style.transform = 'translateY(6px)';
+            tavilyBox.appendChild(imgEl);
 
-              setTimeout(() => {
-                imgEl.style.transition = 'all var(--transition)';
-                imgEl.style.opacity = '1';
-                imgEl.style.transform = 'translateY(0)';
-              }, i * 120);
-            });
-          }
+            setTimeout(() => {
+              imgEl.style.transition = 'all var(--transition)';
+              imgEl.style.opacity = '1';
+              imgEl.style.transform = 'translateY(0)';
+            }, i * 120);
+          });
         }
+      }
 
       await sleep(1500);
       setStepCompleted(3, currentAgentId);
 
-      // ========== ETAPA 4: SÍNTESE FINAL COM GROQ ==========
-      console.log('🧠 [ETAPA 4] Sintetizando resposta final...');
+      // ETAPA 4
       setStepActive(4, currentAgentId);
       const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl4) titleEl4.textContent = 'Sintetizando insights finais com dados reais...';
 
-      // Preparar contexto das fontes
       const sourcesContext = (imageAnalysisText ? `Análise das imagens anexadas:\n${imageAnalysisText}\n\n` : '') + searchData.results
         .map((r, i) => `[${i + 1}] ${r.title}\nFonte: ${r.url}\nResumo: ${r.content}`)
         .join('\n\n');
 
-      // Chamar Groq com contexto real da web
       const synthesisResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${groqApiKey}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
           messages: [
@@ -2753,23 +2808,17 @@
               content: `Com base nestes dados REAIS coletados da internet:\n\n${sourcesContext}\n\nResponda à pergunta original do usuário de forma premium e estruturada:\n\n${userPrompt}`
             }
           ],
-          temperature: 0.7,
-          max_tokens: 1500
+          temperature: 0.7, max_tokens: 1500
         })
       });
 
-      if (!synthesisResponse.ok) {
-        throw new Error('Erro ao sintetizar resposta final');
-      }
+      if (!synthesisResponse.ok) throw new Error('Erro ao sintetizar resposta final');
 
       const synthesisData = await synthesisResponse.json();
       const finalResponse = synthesisData.choices[0].message.content;
-      console.log('✅ [ETAPA 4] Síntese concluída');
-
       await sleep(800);
       setStepCompleted(4, currentAgentId);
 
-      // Finalizar animações
       clearInterval(timerInterval);
       const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
       const titleElFinal = document.getElementById(`mainTitle_${currentAgentId}`);
@@ -2777,11 +2826,8 @@
       if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
       if (titleElFinal) titleElFinal.textContent = 'Raciocínio concluído com sucesso';
 
-      setTimeout(() => {
-        if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed');
-      }, 600);
+      setTimeout(() => { if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed'); }, 600);
 
-      // Mostrar resposta final
       setTimeout(() => {
         const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
         const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
@@ -2803,11 +2849,8 @@
 
           outputContent.innerHTML = formatMarkdown(researchDisplay);
 
-          if (window.MathJax) {
-            MathJax.typesetPromise([outputContent]);
-          }
+          if (window.MathJax) MathJax.typesetPromise([outputContent]);
 
-          // Renderizar sugestões no Deep Research também
           if (researchFollowups && researchSuggestions.length > 0) {
             researchSuggestions.forEach(s => {
               const btn = document.createElement('button');
@@ -2821,7 +2864,6 @@
             });
           }
 
-          // Se houver imagens anexadas na chamada, mostrar pill estilizado no final
           if (attachedFilesData && attachedFilesData.length > 0) {
             const pill = document.createElement('div');
             pill.className = 'attachment-summary-pill';
@@ -2835,7 +2877,6 @@
             setTimeout(() => pill.classList.add('visible'), 80);
           }
 
-          // Mostrar resumo da análise das imagens (se obtivemos algo)
           if (imageAnalysisText) {
             const analysisDiv = document.createElement('div');
             analysisDiv.className = 'image-analysis-card';
@@ -2864,12 +2905,8 @@
         setTimeout(scrollToBottom, 50);
       }, 1100);
 
-      console.log('✨ [DEEP RESEARCH] Fluxo completo concluído!');
-
     } catch (error) {
-      console.error('❌ [DEEP RESEARCH] Erro:', error);
       clearInterval(timerInterval);
-      
       const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
       const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
       
@@ -2879,39 +2916,15 @@
         outputCard.offsetHeight;
         outputCard.classList.add('visible');
       }
-      
       scrollToBottom();
     }
   }
 
-  // Helper: sleep
-  function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+  function setStepActive(num, agentId) { const step = document.getElementById(`step${num}_${agentId}`); if (step) step.className = "step active"; }
+  function setStepCompleted(num, agentId) { const step = document.getElementById(`step${num}_${agentId}`); const icon = document.getElementById(`icon${num}_${agentId}`); if (step) step.className = "step completed"; if (icon) icon.innerHTML = '<i class="ti ti-check"></i>'; }
+  function toggleAgentThoughtBox(agentId, boxType = 'thoughtBox') { const boxId = `${boxType}_${agentId}`; const box = document.getElementById(boxId); if (box) { box.classList.toggle('collapsed'); setTimeout(scrollToBottom, 450); } }
 
-  // Helpers das etapas
-  function setStepActive(num, agentId) {
-    const step = document.getElementById(`step${num}_${agentId}`);
-    if (step) step.className = "step active";
-  }
-
-  function setStepCompleted(num, agentId) {
-    const step = document.getElementById(`step${num}_${agentId}`);
-    const icon = document.getElementById(`icon${num}_${agentId}`);
-    if (step) step.className = "step completed";
-    if (icon) icon.innerHTML = '<i class="ti ti-check"></i>';
-  }
-
-  function toggleAgentThoughtBox(agentId, boxType = 'thoughtBox') {
-    const boxId = `${boxType}_${agentId}`;
-    const box = document.getElementById(boxId);
-    if (box) {
-      box.classList.toggle('collapsed');
-      setTimeout(scrollToBottom, 450);
-    }
-  }
-
-  // Abre a sidebar direita com a lista completa de fontes
   function openSourcesSidebar(agentId, results = []) {
     const sidebar = document.getElementById('sourcesSidebar');
     const body = document.getElementById('sourcesSidebarBody');
@@ -2936,17 +2949,12 @@
     const closeBtn = document.getElementById('sourcesCloseBtn');
     if (closeBtn) closeBtn.onclick = () => closeSourcesSidebar();
 
-    // fechar ao clicar fora
-    setTimeout(() => {
-      document.addEventListener('click', outsideClickHandler);
-    }, 60);
+    setTimeout(() => { document.addEventListener('click', outsideClickHandler); }, 60);
 
     function outsideClickHandler(e) {
       const s = document.getElementById('sourcesSidebar');
       const clickedPill = e.target.closest && e.target.closest('.sources-pill');
-      if (s && !s.contains(e.target) && !clickedPill) {
-        closeSourcesSidebar();
-      }
+      if (s && !s.contains(e.target) && !clickedPill) { closeSourcesSidebar(); }
     }
 
     function closeSourcesSidebar() {
@@ -2957,19 +2965,11 @@
     }
   }
 
-  // Atalho para abrir a sidebar de fontes a partir de uma citação [n]
   window.openSourcesSidebarFromText = function(index) {
     const pill = document.querySelector('.sources-pill');
     if (pill) pill.click();
   };
 
-  // Escapar HTML simples
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>\"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
-  }
-
-  // ENVIAR MENSAGEM (Interação Principal)
   function sendMessage() {
     const field = document.getElementById('inputField');
     const messagesEl = document.getElementById('messages');
@@ -2979,23 +2979,18 @@
 
     if (!field || !messagesEl) return;
     const text = field.value.trim();
-    
     if (!text && attachedFiles.length === 0) return;
 
     const isFirstMessage = !chatPanel.classList.contains('active-chat');
 
-    // Transição visual do layout inicial
     if (isFirstMessage) {
       if (suggestions) suggestions.classList.add('hidden');
       if (composerTitle) composerTitle.classList.add('hidden');
-      
       chatPanel.classList.remove('centered');
       chatPanel.classList.add('active-chat');
     }
 
     const currentAttachments = [...attachedFiles];
-
-    // Adiciona o balão do usuário imediatamente
     appendMessage(text || "Imagens enviadas para análise visual", 'user', currentAttachments);
     
     attachedFiles = [];
@@ -3003,20 +2998,16 @@
     field.value = '';
     autoResize(field);
 
-    // Encaminha para o fluxo correto
     setTimeout(() => {
         if (searchMode) {
-          // Modo Pesquisa: Executa Deep Research
           executeDeepResearch(text, currentAttachments);
         } else {
-          // Chat Principal (Automaticamente detecta se é normal ou visão)
           showTypingIndicator();
           callGroqAPI(text, currentAttachments);
         }
     }, 450);
   }
 
-  // Ativa envio por tecla Enter
   function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -3024,7 +3015,6 @@
     }
   }
 
-  // LIMPA / RESTAURA O CHAT
   function resetChat() {
     const messagesEl = document.getElementById('messages');
     const chatPanel = document.getElementById('chatPanel');
@@ -3035,8 +3025,8 @@
     const sidebar = document.getElementById('sidebar');
 
     attachedFiles = [];
-    chatHistory = []; // Limpa histórico
-    chatHasImages = false; // Reseta flag de visão
+    chatHistory = []; 
+    chatHasImages = false; 
     renderAttachmentPreviews();
 
     if (messagesEl) messagesEl.innerHTML = '';
@@ -3051,11 +3041,13 @@
     if (chatPanel) {
       chatPanel.classList.add('centered');
       chatPanel.classList.remove('active-chat');
+      
+      // Fecha painel Artifact caso aberto
+      const mainContent = document.getElementById('mainContent');
+      if (mainContent) mainContent.classList.remove('artifact-open');
     }
 
-    if (sidebar) {
-      sidebar.classList.remove('active');
-    }
+    if (sidebar) sidebar.classList.remove('active');
 
     if (field) {
       field.value = '';
@@ -3065,7 +3057,6 @@
     }
   }
 
-  // Eventos para pílulas de sugestão
   document.querySelectorAll('.suggestion-pill').forEach(pill => {
     pill.addEventListener('click', () => {
       const field = document.getElementById('inputField');
