@@ -6,7 +6,8 @@
 <title>WSM Chat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Fonte Lora adicionada para as mensagens e Inter mantida para a UI -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <!-- Markdown-it para renderização completa de Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
@@ -399,6 +400,7 @@
     border-radius: 16px;
     box-shadow: var(--shadow-card);
     font-size: 14.5px;
+    font-family: 'Lora', serif; /* NOVO: Fonte Lora adicionada às mensagens */
     line-height: 1.6;
     word-break: break-word;
     animation: fadeUp 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
@@ -430,7 +432,7 @@
     background: rgba(0, 0, 0, 0.05);
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: monospace;
+    font-family: monospace; /* Preserva formatação monospace para códigos */
     font-size: 13px;
   }
 
@@ -1064,6 +1066,7 @@
     border: 0.5px solid var(--border);
     background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.4));
     color: var(--text-secondary);
+    font-family: 'Inter', sans-serif; /* Garante que os botões voltem para a Inter */
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -1095,6 +1098,7 @@
     background: var(--pill-bg);
     border: 0.5px solid var(--border);
     font-size: 12px;
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     color: var(--text-secondary);
     width: fit-content;
@@ -1117,6 +1121,7 @@
     transition: border-color var(--transition), box-shadow var(--transition);
     box-shadow: var(--shadow-card);
     width: 100%;
+    font-family: 'Inter', sans-serif; /* Mantém as caixas de pensamento na Inter */
   }
 
   .thought-header {
@@ -1381,6 +1386,7 @@
     border-radius: var(--radius-md);
     padding: 20px 22px;
     font-size: 14.5px;
+    font-family: 'Lora', serif; /* Mantém a formatação textual condizente */
     line-height: 1.6;
     box-shadow: var(--shadow-card);
     opacity: 0;
@@ -1423,6 +1429,7 @@
     width: 100%;
     border-collapse: collapse;
     margin: 14px 0;
+    font-family: 'Inter', sans-serif; /* Deixa as tabelas mais limpas na fonte padrão */
     font-size: 13px;
   }
 
@@ -1928,74 +1935,22 @@
     return md.utils.escapeHtml(text);
   }
 
-  function tableRowsFromLine(line) {
-    return line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
-  }
-
-  function convertMarkdownTableBlock(block) {
-    const lines = block.split('\n');
-    const header = tableRowsFromLine(lines[0]);
-    const body = lines.slice(1).map(tableRowsFromLine).filter(row => row.some(cell => cell.length > 0));
-
-    let html = '<table>';
-    html += '<thead><tr>' + header.map(cell => `<th>${escapeHtml(cell)}</th>`).join('') + '</tr></thead>';
-    if (body.length) {
-      html += '<tbody>' + body.map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('') + '</tbody>';
-    }
-    html += '</table>';
-    return html;
-  }
-
-  function normalizeTableSeparators(text) {
-    return text.replace(/^\s*\|[\s\S]*?\|\s*$/gm, line =>
-      line.replace(/[–—]/g, '-')
-    );
-  }
-
-  function convertMarkdownTables(text) {
-    const lines = text.split('\n');
-    let output = [];
-    let i = 0;
-
-    while (i < lines.length) {
-      const line = lines[i];
-      const nextLine = lines[i + 1] || '';
-      const isTableHeader = /^\s*\|.*\|?\s*$/.test(line);
-      const isSeparator = /^\s*\|[\s-:|–—]+\|?\s*$/.test(nextLine);
-
-      if (isTableHeader && isSeparator) {
-        const tableLines = [line];
-        i += 2;
-        while (i < lines.length && /^\s*\|.*\|?\s*$/.test(lines[i])) {
-          tableLines.push(lines[i]);
-          i++;
-        }
-        output.push(convertMarkdownTableBlock(tableLines.join('\n')));
-        continue;
-      }
-
-      output.push(line);
-      i++;
-    }
-
-    return output.join('\n');
-  }
-
+  // FUNÇÃO REFEITA: Usa o próprio markdown-it para as tabelas de forma robusta e sem quebrar
   function formatMarkdown(text) {
     if (!text) return "";
 
-    // Pré-processamento: garante que tabelas e títulos tenham uma linha em branco antes.
-    const preparedText = normalizeTableSeparators(text)
+    // Pré-processamento: garante que tabelas e títulos tenham uma linha em branco antes para não falhar a compilação nativa.
+    const preparedText = text
       .replace(/([^\n])\n\|/g, '$1\n\n|')  // Garante linha em branco antes de tabelas
       .replace(/([^\n])\n#/g, '$1\n\n#');   // Garante linha em branco antes de títulos
 
     // Converter citações no formato [n] para um span estilizado
     const textWithCitations = preparedText.replace(/\[(\d+)\]/g, '<span class="citation" onclick="openSourcesSidebarFromText($1)">$1</span>');
 
-    const convertedText = convertMarkdownTables(textWithCitations);
-    let rendered = md.render(convertedText);
+    // md.render processa nativamente todas as tabelas perfeitamente!
+    let rendered = md.render(textWithCitations);
 
-    // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design
+    // Envolve as tabelas em um container de scroll e aplica a classe .results-table para o seu design premium
     return rendered.replace(/<table>/g, '<div style="overflow-x: auto; margin: 14px 0;"><table class="results-table">').replace(/<\/table>/g, '</table></div>');
   }
 
@@ -2030,7 +1985,8 @@
       mediaHTML += `</div>`;
     }
 
-    const formattedText = sender === 'bot' ? formatMarkdown(text) : text;
+    // Aplica o Markdown à versão extraída (sem a tag [SUGESTOES] aparecendo)
+    const formattedText = sender === 'bot' ? formatMarkdown(displayChatText) : escapeHtml(displayChatText);
     el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
     messages.appendChild(el);
     
@@ -2038,31 +1994,30 @@
       MathJax.typesetPromise([el]).catch((err) => console.warn('MathJax error:', err));
     }
 
-    // Se a mensagem é do bot, gerar e renderizar 3 sugestões (Flow-up)
-    if (sender !== 'user') {
-      const suggestions = generateFollowUps(formattedText);
-      if (suggestions && suggestions.length) {
-        const followupsEl = document.createElement('div');
-        followupsEl.className = 'followups';
+    // Se a mensagem é do bot e temos sugestões geradas no mesmo payload, renderiza os botões (Flow-ups)!
+    if (sender === 'bot' && aiSuggestions && aiSuggestions.length > 0) {
+      const followupsEl = document.createElement('div');
+      followupsEl.className = 'followups';
 
-        suggestions.slice(0,3).forEach(s => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'followup-pill';
-          btn.textContent = s;
-          btn.onclick = () => {
-            const f = document.getElementById('inputField');
-            if (f) {
-              f.value = s;
-              autoResize(f);
-              f.focus();
-            }
-          };
-          followupsEl.appendChild(btn);
-        });
+      aiSuggestions.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'followup-pill';
+        btn.textContent = s;
+        btn.onclick = () => {
+          const f = document.getElementById('inputField');
+          if (f) {
+            f.value = s;
+            autoResize(f);
+            f.focus();
+            // Se preferir que o chat já envie a pergunta após clicar, descomente a linha de baixo:
+            // sendMessage(); 
+          }
+        };
+        followupsEl.appendChild(btn);
+      });
 
-        el.appendChild(followupsEl);
-      }
+      el.appendChild(followupsEl);
     }
 
     scrollToBottom();
