@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WSM Chat</title>
+<title>WSE AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Fonte Lora adicionada para as mensagens e Inter mantida para a UI -->
@@ -124,22 +124,6 @@
     letter-spacing: -0.02em;
   }
 
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    background: var(--text-primary);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .logo-mark svg {
-    width: 16px;
-    height: 16px;
-    fill: var(--bg);
-  }
-
   .logo-name {
     font-size: 16px;
     font-weight: 600;
@@ -201,21 +185,6 @@
 
   .footer-item i { font-size: 16px; }
 
-  .avatar-sm {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--pill-bg);
-    border: 0.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    flex-shrink: 0;
-  }
-
   /* MAIN WORKSPACE */
   .main {
     display: flex;
@@ -224,7 +193,7 @@
     overflow: hidden;
     height: 100%;
     width: 100%;
-    padding: 0; /* Limpo, o espaçamento vai no main-content */
+    padding: 0; 
   }
 
   .main::before {
@@ -667,6 +636,51 @@
     font-family: 'Fira Code', monospace; font-size: 13.5px; line-height: 1.6; color: #c9d1d9;
   }
 
+  /* FULLSCREEN MODAL (TELA CHEIA) */
+  .fullscreen-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .fullscreen-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+  .fullscreen-modal img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    object-fit: contain;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .fullscreen-modal.active img {
+    transform: scale(1);
+  }
+  .fullscreen-close {
+    position: absolute;
+    top: 24px; right: 24px;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    background: rgba(0,0,0,0.5);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: none;
+    transition: background 0.2s;
+  }
+  .fullscreen-close:hover { background: rgba(0,0,0,0.8); }
+
   /* LOADING INDICATOR */
   .typing-indicator {
     display: flex;
@@ -715,7 +729,10 @@
     object-fit: cover;
     border-radius: 8px;
     border: 0.5px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+    transition: opacity 0.2s;
   }
+  .msg-media-img:hover { opacity: 0.85; }
 
   /* COMPOSER (Input + Sugestões) */
   .composer {
@@ -878,14 +895,19 @@
     overflow-x: auto;
   }
   .tavily-thumb {
-    width: 160px;
-    height: 110px;
-    border-radius: 16px;
+    width: 200px; /* Aumentado a pedido do usuario */
+    height: 140px; /* Aumentado a pedido do usuario */
+    border-radius: 12px;
     overflow: hidden;
     border: 0.5px solid var(--border);
     background: var(--bg);
     box-shadow: var(--shadow-card);
     flex-shrink: 0;
+    cursor: pointer; /* Feedback visual pra clicar */
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .tavily-thumb:hover {
+    opacity: 0.85; transform: scale(1.02);
   }
   .tavily-thumb img {
     width: 100%;
@@ -914,7 +936,7 @@
   }
   .attachment-summary-pill .pill-thumbs { display:flex; gap:6px; }
   .attachment-summary-pill .pill-thumb { width:36px; height:36px; border-radius:8px; overflow:hidden; border:0.5px solid rgba(0,0,0,0.05); }
-  .attachment-summary-pill .pill-thumb img { width:100%; height:100%; object-fit:cover; }
+  .attachment-summary-pill .pill-thumb img { width:100%; height:100%; object-fit:cover; cursor:pointer; }
   .attachment-summary-pill .pill-label { font-size:13px; color:var(--text-primary); font-weight:600; font-family: 'Inter', sans-serif;}
 
   .sources-footer {
@@ -1704,7 +1726,7 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
-          Insira sua chave de API do Groq para conversar com o WSM 1.0 em tempo real. A chave é salva apenas localmente no seu navegador.
+          Insira sua chave de API do Groq para conversar com o WSE AI em tempo real. A chave é salva apenas localmente no seu navegador.
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
@@ -1721,11 +1743,8 @@
   <!-- SIDEBAR (Barra Lateral) -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
-      <div class="logo-mark">
-        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7 1.5C7 1.5 9.5 4 9.5 7C9.5 10 7 12.5 7 12.5C7 12.5 4.5 10 4.5 7C4.5 4 7 1.5 7 1.5Z"/>
-        </svg>
-      </div>
+      <img src="logo.png" alt="WSE AI Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" style="width: 28px; height: 28px; border-radius: 6px; object-fit: cover;">
+      <div class="logo-name">WSE AI</div>
     </div>
 
     <button class="new-chat-btn" onclick="resetChat()">
@@ -1760,7 +1779,7 @@
         </button>
         <button class="model-selector">
           <span class="dot"></span>
-          WSM 1.0
+          WSE AI
           <i class="ti ti-chevron-down" aria-hidden="true"></i>
         </button>
       </div>
@@ -1795,7 +1814,7 @@
 
               <textarea
                 class="input-field"
-                placeholder="Pergunte qualquer coisa ao WSM 1.0..."
+                placeholder="Pergunte qualquer coisa ao WSE AI..."
                 rows="1"
                 id="inputField"
                 oninput="autoResize(this)"
@@ -1844,16 +1863,23 @@
     </div>
   </main>
   <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none" onchange="handleFileSelection(event)">
+
+  <!-- FULLSCREEN IMAGE MODAL -->
+  <div class="fullscreen-modal" id="fullscreenModal" onclick="closeFullscreen()">
+    <button class="fullscreen-close" onclick="closeFullscreen()"><i class="ti ti-x"></i></button>
+    <img id="fullscreenImg" src="" alt="Visualização em tela cheia" onclick="event.stopPropagation()">
+  </div>
+
 </div>
 
 <script>
   let searchMode = false;
   let activeAgentsCount = 0;
   let attachedFiles = []; 
-  let chatHistory = []; // Mantém o histórico para o WSM reter o contexto
+  let chatHistory = []; // Mantém o histórico para o WSE reter o contexto
   let chatHasImages = false; // Flag para rastrear se a conversa já teve imagens
 
-  // Carrega chave da API do LocalStorage se houver
+  // Carrega chave da API do LocalStorage e o Histórico se houver
   window.addEventListener('load', () => {
     const savedKey = localStorage.getItem('GROQ_API_KEY');
     if (savedKey) {
@@ -1861,7 +1887,66 @@
     }
     const f = document.getElementById('inputField');
     if (f) f.focus();
+
+    loadChatHistory();
   });
+
+  // ========== FUNÇÕES DO HISTÓRICO LOCAL ==========
+  function saveChatHistory() {
+    try {
+      // Limita histórico as últimas 40 mensagens para evitar que o LocalStorage estoure
+      if (chatHistory.length > 40) {
+        chatHistory = chatHistory.slice(chatHistory.length - 40);
+      }
+      localStorage.setItem('WSE_CHAT_HISTORY', JSON.stringify(chatHistory));
+    } catch(e) {
+      console.warn("Aviso: Histórico de chat muito grande para salvar (possivelmente devido a imagens).", e);
+    }
+  }
+
+  function loadChatHistory() {
+    const saved = localStorage.getItem('WSE_CHAT_HISTORY');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        chatHistory = parsed;
+        
+        if (chatHistory.length > 0) {
+          const chatPanel = document.getElementById('chatPanel');
+          const suggestions = document.getElementById('suggestions');
+          const composerTitle = document.getElementById('composerTitle');
+          
+          chatPanel.classList.remove('centered');
+          chatPanel.classList.add('active-chat');
+          if (suggestions) suggestions.classList.add('hidden');
+          if (composerTitle) composerTitle.classList.add('hidden');
+
+          chatHistory.forEach(msg => {
+            if (msg.role === 'system') return; // Ignora os prompts invisíveis da IA
+            
+            let textToRender = "";
+            let mediaFiles = [];
+            
+            if (typeof msg.content === 'string') {
+              textToRender = msg.content;
+            } else if (Array.isArray(msg.content)) {
+              textToRender = msg.content.find(c => c.type === 'text')?.text || "";
+              msg.content.forEach(c => {
+                 if (c.type === 'image_url') {
+                   mediaFiles.push({ src: c.image_url.url });
+                 }
+              });
+            }
+            appendMessage(textToRender, msg.role === 'user' ? 'user' : 'bot', mediaFiles, true);
+          });
+          
+          setTimeout(scrollToBottom, 100);
+        }
+      } catch(e) {
+        console.warn("Erro ao carregar o histórico de conversas anterior.", e);
+      }
+    }
+  }
 
   // Abre/fecha as Configurações
   function toggleSettingsModal() {
@@ -1932,8 +2017,8 @@
     container.style.display = 'flex';
     container.innerHTML = attachedFiles.map((item, index) => `
       <div class="attachment-thumb">
-        <img src="${item.src}" alt="Preview anexo">
-        <button class="attachment-clear-btn" title="Remover" onclick="removeAttachedFile(${index})">C</button>
+        <img src="${item.src}" alt="Preview anexo" onclick="openFullscreen(this.src)" style="cursor: pointer;">
+        <button class="attachment-clear-btn" title="Remover" onclick="event.stopPropagation(); removeAttachedFile(${index})">C</button>
       </div>
     `).join('');
   }
@@ -1942,6 +2027,21 @@
   function removeAttachedFile(index) {
     attachedFiles.splice(index, 1);
     renderAttachmentPreviews();
+  }
+
+  // ========= LÓGICA DO FULLSCREEN =========
+  function openFullscreen(src) {
+    const modal = document.getElementById('fullscreenModal');
+    const img = document.getElementById('fullscreenImg');
+    if (modal && img) {
+      img.src = src;
+      modal.classList.add('active');
+    }
+  }
+
+  function closeFullscreen() {
+    const modal = document.getElementById('fullscreenModal');
+    if (modal) modal.classList.remove('active');
   }
 
   // Exibir toast premium estilizado
@@ -1980,7 +2080,7 @@
       searchBtn.classList.toggle('search-active', searchMode);
     }
     if (field) {
-      field.placeholder = searchMode ? 'Pesquisar na web estruturada...' : 'Pergunte qualquer coisa ao WSM 1.0...';
+      field.placeholder = searchMode ? 'Pesquisar na web estruturada...' : 'Pergunte qualquer coisa ao WSE AI...';
       field.focus();
     }
   }
@@ -2051,7 +2151,7 @@
         .replace(/<\/table>/g, '</table></div>');
   }
 
-  function appendMessage(text, sender, mediaFiles = []) {
+  function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false) {
     const messages = document.getElementById('messages');
     if (!messages) return;
     const el = document.createElement('div');
@@ -2060,7 +2160,7 @@
     let displayChatText = text;
     let aiSuggestions = [];
 
-    // Sistema Robusto de extração de Sugestões, ignora sujeiras da IA
+    // Sistema Robusto de extração de Sugestões: Lê e remove o bloco final de sugestões para renderizá-lo como Botões Reais
     if (sender === 'bot') {
       const suggestionsRegex = /(?:\[SUGESTOES\]|\*\*Sugestões\*\*|### Sugestões|Sugestões:|Sugestões para o usuário:)\s*\n([\s\S]*)$/i;
       const match = text.match(suggestionsRegex);
@@ -2079,7 +2179,7 @@
     if (mediaFiles && mediaFiles.length > 0) {
       mediaHTML = `<div class="msg-media-grid">`;
       mediaFiles.forEach(fileData => {
-        mediaHTML += `<img src="${fileData.src}" class="msg-media-img" alt="Anexo do usuário">`;
+        mediaHTML += `<img src="${fileData.src}" class="msg-media-img" alt="Anexo" onclick="openFullscreen(this.src)">`;
       });
       mediaHTML += `</div>`;
     }
@@ -2115,12 +2215,11 @@
                     <button class="artifact-card-btn">Abrir Prévia</button>
                 `;
                 
-                // Anexa o evento de click passando o código cru (sem estragar strings)
                 card.addEventListener('click', () => {
                     openArtifact(rawCode, lang);
                 });
                 
-                // Insere o card antes do código original, e remove o bloco antigo de código na tela do chat
+                // Insere o card antes do código original, e remove o bloco antigo da tela
                 preNode.parentNode.insertBefore(card, preNode);
                 preNode.remove();
             } else {
@@ -2129,7 +2228,7 @@
             }
         });
 
-        // Grava no DOM Real (Isso mantém os eventListeners vivos, ao invés de usar innerHTML puro na string)
+        // Grava no DOM Real
         el.innerHTML = mediaHTML;
         el.appendChild(tempDiv);
 
@@ -2164,11 +2263,12 @@
         followupsEl.appendChild(btn);
       });
 
-      // Se o Artifact engoliu o conteúdo, pegamos o tempDiv dentro. Senão, colocamos direto no el.
       el.appendChild(followupsEl);
     }
 
-    scrollToBottom();
+    if (!isHistoryLoad) {
+      scrollToBottom();
+    }
   }
 
   // Mostra indicador visual de carregamento da API
@@ -2183,21 +2283,17 @@
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
-      <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">WSM pensando...</span>
+      <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">WSE pensando...</span>
     `;
     messages.appendChild(indicator);
     scrollToBottom();
   }
 
-  // Remove indicador de carregamento
   function removeTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
-    if (indicator) {
-      indicator.remove();
-    }
+    if (indicator) indicator.remove();
   }
 
-  // Desloca o scroll de forma suave
   function scrollToBottom() {
     const messages = document.getElementById('messages');
     if (messages) {
@@ -2210,18 +2306,16 @@
     }
   }
 
-  // Chamada Real da API do Groq (Gerencia troca de modelos para Visão)
+  // Chamada Real da API do Groq
   async function callGroqAPI(userPrompt, attachments = []) {
-    console.log('🔍 [DEBUG] Iniciando busca da chave GROQ_API_KEY...');
     
-    // Lógica de Modelo: Se houver imagem ou histórico de imagem, usa Llama 4 Scout. Senão, Llama 3.1.
     const modelToUse = (attachments.length > 0 || chatHasImages) 
       ? "meta-llama/llama-4-scout-17b-16e-instruct" 
       : "llama-3.1-8b-instant";
     
     if (attachments.length > 0) chatHasImages = true;
 
-    // Prepara o conteúdo (Texto simples ou Multi-modal para visão)
+    // Prepara o conteúdo
     let userContent = userPrompt;
     if (attachments.length > 0) {
       userContent = [{ type: "text", text: userPrompt || "Analise as imagens enviadas." }];
@@ -2230,59 +2324,36 @@
       });
     }
 
-    // Adiciona ao histórico para manter contexto
+    // Salva contexto e histórico
     chatHistory.push({ role: "user", content: userContent });
+    saveChatHistory();
 
-    // 1. Tentar obter a chave de API em ordem de prioridade
     let apiKey = localStorage.getItem('GROQ_API_KEY');
-    if (apiKey) {
-      console.log('✅ [DEBUG] Chave encontrada em localStorage');
-    }
     
-    // Fallback 1: Tentar carregar de variável global injetada pela Vercel (via script tag ou deploy)
     if (!apiKey && typeof window !== 'undefined' && window.GROQ_API_KEY) {
       apiKey = window.GROQ_API_KEY;
-      console.log('✅ [DEBUG] Chave encontrada em window.GROQ_API_KEY');
     }
 
-    // Fallback 2: Tentar fetch de um endpoint de API que fornece a chave (método seguro para Vercel)
     if (!apiKey) {
-      console.log('🔄 [DEBUG] Tentando fetch de /api/config...');
       try {
         const response = await fetch('/api/config', { 
           method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
-        
-        console.log(`📡 [DEBUG] /api/config respondeu com status: ${response.status}`);
-        
         if (response.ok) {
           const data = await response.json();
-          console.log('📦 [DEBUG] Resposta recebida:', { groqApiKey: data.groqApiKey ? '***' : 'vazia' });
           apiKey = data.groqApiKey;
-          if (apiKey) {
-            console.log('✅ [DEBUG] Chave carregada de /api/config');
-          }
-        } else {
-          const errorData = await response.json();
-          console.warn(`⚠️ [DEBUG] /api/config retornou erro:`, errorData);
         }
-      } catch (err) {
-        console.error("❌ [DEBUG] Erro ao chamar /api/config:", err.message);
-      }
+      } catch (err) {}
     }
 
     if (!apiKey) {
-      console.error('❌ [DEBUG] NENHUMA chave foi encontrada em nenhuma fonte!');
       removeTypingIndicator();
-      appendMessage("Ops! A chave de API do Groq não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro. Tente:\n\n1. **Salvar manualmente**: Clique em ⚙️ Configurações e cole sua chave\n2. **Vercel**: Verifique se GROQ_API_KEY está nas Environment Variables\n3. **Deploy**: Faça um novo deploy após adicionar a variável", "bot");
+      appendMessage("Ops! A chave de API do Groq não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro.", "bot");
       return;
     }
 
-    console.log('✨ [DEBUG] Chave validada! Enviando para API Groq...');
-
     try {
-      console.log('📤 Enviando requisição para API Groq...');
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -2292,7 +2363,7 @@
         body: JSON.stringify({
           model: modelToUse,
           messages: [
-            { role: "system", content: "Você é o WSM AI (WSM 1.0). REGRAS: 1) Use tabelas Markdown VÁLIDAS SEMPRE com a linha separadora (ex: |---|---|). 2) Use LaTeX ($...$). 3) Use títulos (###). 4) OBRIGATÓRIO: Termine a resposta listando exatamente 3 perguntas curtas de acompanhamento precedidas pelo título '### Sugestões:'. Responda em português." },
+            { role: "system", content: "Você é o WSE AI. REGRAS: 1) Estruture as informações de forma clara com listas, tópicos numerados ou texto corrido. Use tabelas APENAS para dados tabulares/comparativos estritos. NUNCA force tabelas para tópicos comuns. 2) Use LaTeX ($...$). 3) Use títulos (###). 4) OBRIGATÓRIO: Termine a resposta listando exatamente 3 perguntas curtas de acompanhamento precedidas pelo título '### Sugestões:'. Responda em português." },
             ...chatHistory
           ],
           temperature: 0.7,
@@ -2300,28 +2371,23 @@
         })
       });
 
-      console.log(`📡 Resposta da Groq: Status ${response.status}`);
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('❌ Erro da Groq:', errorData);
         throw new Error(errorData.error?.message || "Falha na comunicação com o Groq.");
       }
 
       const data = await response.json();
-      console.log('✅ Resposta recebida com sucesso');
       const assistantResponse = data.choices[0].message.content;
 
-      // Adicionar resposta ao histórico local para continuar no contexto
       chatHistory.push({ role: "assistant", content: assistantResponse });
+      saveChatHistory();
 
       removeTypingIndicator();
       appendMessage(assistantResponse, 'bot');
 
     } catch (error) {
-      console.error('❌ Erro completo:', error);
       removeTypingIndicator();
-      appendMessage(`Lamento, ocorreu um erro ao chamar o WSM 1.0: **${error.message}**. Verifique se a sua Chave de API está correta e ativa nas Configurações. (Abra F12 para ver o log completo)`, "bot");
+      appendMessage(`Lamento, ocorreu um erro ao chamar o WSE AI: **${error.message}**.`, "bot");
     }
   }
 
@@ -2332,242 +2398,24 @@
     tertiary: 'llama-3.2-90b-vision-preview'
   };
 
-  async function appendVisionAnalysisResponse(userQuestion = '', attachedFilesData = []) {
-    activeAgentsCount++;
-    const currentAgentId = activeAgentsCount;
-    const messagesEl = document.getElementById('messages');
-    
-    // Usar os arquivos passados ou os globais
-    const filesToAnalyze = attachedFilesData.length > 0 ? attachedFilesData : attachedFiles;
-    
-    if (!messagesEl || filesToAnalyze.length === 0) return;
-
-    const agentContainer = document.createElement('div');
-    agentContainer.className = 'agent-response-container';
-    agentContainer.innerHTML = `
-      <div class="agent-pill vision">
-        <i class="ti ti-eye"></i>
-        WSM Vision ativo
-      </div>
-
-      <div class="thought-box vision-box" id="thoughtBox_${currentAgentId}">
-        <div class="thought-header" onclick="toggleAgentThoughtBox(${currentAgentId})">
-          <div class="thought-status">
-            <div class="spinner" id="mainSpinner_${currentAgentId}"></div>
-            <i class="ti ti-circle-check-filled success-icon" id="mainCheck_${currentAgentId}"></i>
-            <span class="thought-title" id="mainTitle_${currentAgentId}">Analisando arquivos anexados...</span>
-          </div>
-          <span class="thought-duration" id="timer_${currentAgentId}">0.0s</span>
-          <i class="ti ti-chevron-down thought-toggle"></i>
-        </div>
-
-        <div class="thought-content">
-          <div class="step" id="step1_${currentAgentId}">
-            <div class="step-icon" id="icon1_${currentAgentId}">1</div>
-            <div class="step-text">Preparando imagens para processamento com modelo de visão.</div>
-          </div>
-          <div class="step" id="step2_${currentAgentId}">
-            <div class="step-icon" id="icon2_${currentAgentId}">2</div>
-            <div class="step-text">Enviando para análise com IA de visão computacional avançada.</div>
-          </div>
-          <div class="step" id="step3_${currentAgentId}">
-            <div class="step-icon" id="icon3_${currentAgentId}">3</div>
-            <div class="step-text">Gerando insights detalhados sobre os conteúdos anexados.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="output-card" id="outputCard_${currentAgentId}">
-        <p id="outputContent_${currentAgentId}"><em>Carregando análise...</em></p>
-      </div>
-    `;
-
-    messagesEl.appendChild(agentContainer);
-    scrollToBottom();
-
-    let startTime = Date.now();
-    let timerInterval = setInterval(() => {
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      const timerEl = document.getElementById(`timer_${currentAgentId}`);
-      if (timerEl) {
-        timerEl.textContent = `${elapsed}s`;
-      }
-    }, 100);
-
-    try {
-      // ===== ETAPA 1: PREPARAR IMAGENS =====
-      setStepActive(1, currentAgentId);
-      const titleEl = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl) titleEl.textContent = "Preparando imagens para análise...";
-
-      const images = filesToAnalyze
-        .filter(file => file.src && file.file)
-        .map(file => {
-          const base64 = file.src.split(',')[1];
-          return {
-            data: base64,
-            type: file.file.type
-          };
-        });
-      
-      if (images.length === 0) {
-        throw new Error('Nenhuma imagem válida foi selecionada');
-      }
-      setStepCompleted(1, currentAgentId);
-      await sleep(800);
-
-      // ===== ETAPA 2: ENVIAR PARA GROQ =====
-      setStepActive(2, currentAgentId);
-      if (titleEl) titleEl.textContent = "Enviando para análise com IA...";
-
-      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
-      if (!groqApiKey) {
-        const configResponse = await fetch('/api/config');
-        if (configResponse.ok) {
-          const configData = await configResponse.json();
-          groqApiKey = configData.groqApiKey;
-        }
-      }
-
-      if (!groqApiKey) {
-        throw new Error('GROQ_API_KEY não configurada. Verifique as variáveis de ambiente no Vercel.');
-      }
-
-      const messageContent = [
-        {
-          type: 'text',
-          text: 'Analise as seguintes imagens detalhadamente. Descreva o que você vê, objetos principais, cores, contexto, composição, texto visível e qualquer informação relevante. Seja descritivo, detalhado e útil.'
-        }
-      ];
-
-      images.forEach(img => {
-        messageContent.push({
-          type: 'image_url',
-          image_url: {
-            url: `data:${img.type};base64,${img.data}`
-          }
-        });
-      });
-
-      let analysisResult = null;
-      let lastError = null;
-      
-      for (const [modelKey, modelName] of Object.entries(VISION_MODELS)) {
-        try {
-          console.log(`🔄 Tentando modelo: ${modelName}`);
-          
-          const visionResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${groqApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: modelName,
-              messages: [
-                { role: 'system', content: 'Você é um especialista em visão computacional. Use LaTeX ($...$) para quaisquer medidas ou fórmulas matemáticas identificadas.' },
-                { role: 'user', content: messageContent }
-              ],
-              temperature: 0.7,
-              max_tokens: 2000
-            })
-          });
-
-          if (visionResponse.ok) {
-            const visionData = await visionResponse.json();
-            analysisResult = visionData.choices[0].message.content;
-            console.log(`✅ Sucesso com modelo: ${modelName}`);
-            break;
-          } else {
-            const errorData = await visionResponse.json();
-            lastError = errorData.error?.message || `Erro com ${modelName}`;
-            console.warn(`⚠️ Erro com ${modelName}: ${lastError}`);
-          }
-        } catch (err) {
-          lastError = err.message;
-          console.warn(`⚠️ Falha ao tentar ${modelName}: ${err.message}`);
-        }
-      }
-
-      if (!analysisResult) {
-        throw new Error(`Nenhum modelo disponível funcionou. Último erro: ${lastError}`);
-      }
-
-      await sleep(1000);
-      setStepCompleted(2, currentAgentId);
-
-      // ===== ETAPA 3: EXIBIR RESULTADO =====
-      setStepActive(3, currentAgentId);
-      if (titleEl) titleEl.textContent = "Análise concluída com sucesso";
-
-      await sleep(500);
-      setStepCompleted(3, currentAgentId);
-      clearInterval(timerInterval);
-
-      const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
-      if (thoughtBoxEl) {
-        thoughtBoxEl.classList.add('completed');
-      }
-
-      setTimeout(() => {
-        const box = document.getElementById(`thoughtBox_${currentAgentId}`);
-        if (box) box.classList.add('collapsed');
-      }, 500);
-
-      setTimeout(() => {
-        const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
-        const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
-        
-        if (outputContent) {
-          outputContent.innerHTML = formatMarkdown(analysisResult);
-        }
-        if (window.MathJax && outputContent) {
-          MathJax.typesetPromise([outputContent]);
-        }
-
-        if (outputCard) {
-          outputCard.offsetHeight;
-          outputCard.classList.add('visible');
-        }
-        setTimeout(scrollToBottom, 50);
-      }, 900);
-
-    } catch (error) {
-      console.error('❌ Erro em Vision Analysis:', error);
-      clearInterval(timerInterval);
-
-      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
-      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
-      
-      if (outputContent) {
-        outputContent.innerHTML = `
-          <strong>❌ Erro na análise:</strong><br>
-          ${error.message}<br><br>
-          <strong>Soluções:</strong><br>
-          1. Verifique se GROQ_API_KEY está configurada no Vercel<br>
-          2. Verifique se você tem acesso aos modelos de visão<br>
-          3. Tente um modelo diferente (llama-3.2-11b-vision-preview)<br>
-          4. Abra console (F12) para mais detalhes
-        `;
-      }
-      if (outputCard) {
-        outputCard.offsetHeight;
-        outputCard.classList.add('visible');
-      }
-      
-      scrollToBottom();
-    }
-  }
-
   // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
   async function executeDeepResearch(userPrompt, attachedFilesData = []) {
-    console.log('🔄 [DEEP RESEARCH] Iniciando agente em loop...');
-    console.log('📝 Prompt do usuário:', userPrompt);
     
     activeAgentsCount++;
     const currentAgentId = activeAgentsCount;
     const messagesEl = document.getElementById('messages');
     if (!messagesEl) return;
+
+    // Atualiza Histórico Oficial
+    let userContent = userPrompt;
+    if (attachedFilesData && attachedFilesData.length > 0) {
+      userContent = [{ type: "text", text: userPrompt || "Pesquisa avançada com imagens" }];
+      attachedFilesData.forEach(img => {
+        userContent.push({ type: "image_url", image_url: { url: img.src } });
+      });
+    }
+    chatHistory.push({ role: "user", content: userContent });
+    saveChatHistory();
 
     const agentContainer = document.createElement('div');
     let imageAnalysisText = '';
@@ -2673,8 +2521,7 @@
       });
 
       if (!searchResponse.ok) {
-        const errorData = await searchResponse.json();
-        throw new Error(errorData.error || 'Erro ao chamar Tavily API');
+        throw new Error('Erro ao chamar Tavily API');
       }
 
       const searchData = await searchResponse.json();
@@ -2754,7 +2601,6 @@
         const list = document.createElement('div');
         list.className = 'sources-list';
         list.style.display = 'none';
-        list.style.maxHeight = '0';
 
         searchData.results.forEach((result, index) => {
           const domainUrl = new URL(result.url);
@@ -2793,7 +2639,8 @@
           imgs.forEach((imgUrl, i) => {
             const imgEl = document.createElement('div');
             imgEl.className = 'tavily-thumb';
-            imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" />`;
+            // IMG onClick tela cheia
+            imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" onclick="openFullscreen(this.src)" style="cursor: pointer;"/>`;
             imgEl.style.opacity = '0';
             imgEl.style.transform = 'translateY(6px)';
             tavilyBox.appendChild(imgEl);
@@ -2827,7 +2674,7 @@
           messages: [
             {
               role: 'system',
-                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use tabelas Markdown válidas (com linha separadora |---|---|). 2) Use LaTeX ($...$). 3) Cite as fontes [n]. 4) Seja detalhado. 5) OBRIGATÓRIO: No final, liste exatamente 3 perguntas de acompanhamento curtas precedidas pelo título "### Sugestões:". Responda em português.'
+                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use listas ou texto corrido. Use tabelas APENAS para dados tabulares estritos e comparativos, NUNCA force tabelas para tópicos comuns. 2) Cite as fontes [n]. 3) OBRIGATÓRIO: No final, liste exatamente 3 perguntas de acompanhamento curtas precedidas pelo título "### Sugestões:". Responda em português.'
             },
             {
               role: 'user',
@@ -2842,6 +2689,11 @@
 
       const synthesisData = await synthesisResponse.json();
       const finalResponse = synthesisData.choices[0].message.content;
+      
+      // Salva Resposta do Agente no histórico
+      chatHistory.push({ role: "assistant", content: finalResponse });
+      saveChatHistory();
+
       await sleep(800);
       setStepCompleted(4, currentAgentId);
 
@@ -2899,7 +2751,7 @@
             pill.className = 'attachment-summary-pill';
             pill.innerHTML = `
               <div class="pill-thumbs">
-                ${attachedFilesData.slice(0,3).map(f => `<div class="pill-thumb"><img src="${f.src}"/></div>`).join('')}
+                ${attachedFilesData.slice(0,3).map(f => `<div class="pill-thumb"><img src="${f.src}" onclick="openFullscreen(this.src)"/></div>`).join('')}
               </div>
               <div class="pill-label">Imagens enviadas (${attachedFilesData.length})</div>
             `;
@@ -2942,7 +2794,7 @@
       
       if (outputCard && outputContent) {
         outputCard.style.display = 'block';
-        outputContent.innerHTML = `❌ <strong>Erro no Deep Research:</strong> ${error.message}<br><br>Verifique se as chaves de API (GROQ_API_KEY e TAVILY_API_KEY) estão configuradas na Vercel.`;
+        outputContent.innerHTML = `❌ <strong>Erro no Deep Research:</strong> ${error.message}`;
         outputCard.offsetHeight;
         outputCard.classList.add('visible');
       }
@@ -3056,6 +2908,7 @@
 
     attachedFiles = [];
     chatHistory = []; 
+    localStorage.removeItem('WSE_CHAT_HISTORY'); // Limpa histórico salvo
     chatHasImages = false; 
     renderAttachmentPreviews();
 
@@ -3072,7 +2925,6 @@
       chatPanel.classList.add('centered');
       chatPanel.classList.remove('active-chat');
       
-      // Fecha painel Artifact caso aberto
       const mainContent = document.getElementById('mainContent');
       if (mainContent) mainContent.classList.remove('artifact-open');
     }
@@ -3081,7 +2933,7 @@
 
     if (field) {
       field.value = '';
-      field.placeholder = 'Pergunte qualquer coisa ao WSM 1.0...';
+      field.placeholder = 'Pergunte qualquer coisa ao WSE AI...';
       autoResize(field);
       field.focus();
     }
