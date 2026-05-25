@@ -15,6 +15,8 @@
 <!-- Highlight.js para colorir o código na prévia lateral -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <script>
   window.MathJax = {
@@ -466,7 +468,66 @@
     color: var(--text-primary);
     border-radius: 18px 18px 18px 4px;
     border: 0.5px solid var(--border);
+    position: relative;
+    margin-left: 52px; /* Espaço para o GIF fora da caixa */
+    margin-top: 24px;   /* Espaço para o nome da IA */
   }
+
+  .message-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  /* Estilo do Avatar GIF da IA */
+  .bot-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+    position: absolute;
+    left: -48px; /* Posiciona para fora, à esquerda */
+    top: 0;
+    pointer-events: none;
+  }
+
+  /* Nome da IA acima do balão */
+  .bot-name-tag {
+    position: absolute;
+    left: 0;
+    top: -20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* Fileira de Ações da Mensagem */
+  .message-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 6px;
+    padding: 0 4px;
+  }
+  .message.user + .message-actions {
+    justify-content: flex-end;
+  }
+  .message-group.bot .message-actions, .output-card + .message-actions {
+    margin-left: 52px; /* Alinha com o início do balão da IA */
+  }
+  .action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+  .action-btn:hover { color: var(--text-primary); }
+  .action-btn svg { width: 14px; height: 14px; }
 
   .message.bot p, .output-card p {
     margin-bottom: 16px;
@@ -503,7 +564,9 @@
     font-size: 14.5px;
     line-height: 1.6;
     word-break: break-word;
-    margin-top: 8px;
+    margin-top: 28px; /* Espaço para o nome da IA no modo pesquisa */
+    position: relative;
+    margin-left: 52px; /* Espaço para o GIF no modo pesquisa */
     display: none;
   }
 
@@ -2369,6 +2432,13 @@
       }
     }
 
+    const msgId = 'msg_' + Date.now() + Math.random().toString(36).substr(2, 5);
+    const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${msgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
+    const userActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${msgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="editUserMessage('${msgId}')" title="Editar"><i data-lucide="pen-line"></i></button></div>`;
+
+    // HTML do avatar fixo para o bot
+  const botAvatarHTML = sender === 'bot' ? `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>` : '';
+
     let mediaHTML = '';
     if (mediaFiles && mediaFiles.length > 0) {
       mediaHTML = `<div class="msg-media-grid">`;
@@ -2422,16 +2492,31 @@
             }
         });
 
+        const group = document.createElement('div');
+        group.className = 'message-group bot';
+        el.id = msgId;
+        el.setAttribute('data-raw-content', displayChatText);
+
         // Grava no DOM Real
-        el.innerHTML = mediaHTML;
+      el.innerHTML = botAvatarHTML + mediaHTML;
         el.appendChild(tempDiv);
+        
+        group.appendChild(el);
+        group.insertAdjacentHTML('beforeend', botActions);
+        messages.appendChild(group);
 
     } else {
-        el.innerHTML = mediaHTML + `<div>${formattedText}</div>`;
+        const group = document.createElement('div');
+        group.className = 'message-group user';
+        el.id = msgId;
+        el.setAttribute('data-raw-content', text);
+        el.innerHTML = mediaHTML + `<div class="msg-content-text">${formattedText}</div>`;
+        
+        group.appendChild(el);
+        group.insertAdjacentHTML('beforeend', userActions);
+        messages.appendChild(group);
     }
 
-    messages.appendChild(el);
-    
     if (window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise([el]).catch((err) => console.warn('MathJax error:', err));
     }
@@ -2462,6 +2547,77 @@
 
     if (!isHistoryLoad) {
       scrollToBottom();
+    }
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  // Função de Copiar com feedback visual
+  async function copyMessageText(msgId, btn) {
+    const el = document.getElementById(msgId);
+    const text = el.getAttribute('data-raw-content');
+    try {
+      await navigator.clipboard.writeText(text);
+      // Busca o ícone (pode ser <i> ou <svg> após renderizado)
+      const icon = btn.querySelector('[data-lucide]');
+      const oldIconName = icon?.getAttribute('data-lucide');
+      
+      if (icon) icon.setAttribute('data-lucide', 'check');
+      if (window.lucide) lucide.createIcons();
+      btn.style.color = 'var(--agent-green)';
+      
+      setTimeout(() => {
+        if (icon) icon.setAttribute('data-lucide', oldIconName);
+        if (window.lucide) lucide.createIcons();
+        btn.style.color = '';
+      }, 2000);
+    } catch (err) {
+      showToast("Falha ao copiar texto");
+    }
+  }
+
+  // Função de Editar Mensagem do Usuário
+  function editUserMessage(msgId) {
+    const msgEl = document.getElementById(msgId);
+    const contentDiv = msgEl.querySelector('.msg-content-text');
+    const originalText = msgEl.getAttribute('data-raw-content');
+    
+    const textarea = document.createElement('textarea');
+    textarea.className = 'input-field';
+    textarea.style.color = 'inherit';
+    textarea.style.background = 'rgba(0,0,0,0.1)';
+    textarea.style.borderRadius = '8px';
+    textarea.style.padding = '8px';
+    textarea.value = originalText;
+    
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'tool-btn';
+    saveBtn.style.marginTop = '8px';
+    saveBtn.innerText = 'Confirmar Reenvio';
+    saveBtn.onclick = () => {
+      const newText = textarea.value.trim();
+      if (newText) {
+        const field = document.getElementById('inputField');
+        field.value = newText;
+        sendMessage();
+      }
+    };
+
+    contentDiv.innerHTML = '';
+    contentDiv.appendChild(textarea);
+    contentDiv.appendChild(saveBtn);
+    textarea.focus();
+  }
+
+  // Função de Regerar Resposta
+  function regenerateAI() {
+    const userMessages = document.querySelectorAll('.message.user');
+    if (userMessages.length > 0) {
+      const lastUserMsg = userMessages[userMessages.length - 1];
+      const lastText = lastUserMsg.getAttribute('data-raw-content');
+      const field = document.getElementById('inputField');
+      field.value = lastText;
+      sendMessage();
     }
   }
 
@@ -2944,7 +3100,15 @@
               .slice(0, 3);
           }
 
-          outputContent.innerHTML = formatMarkdown(researchDisplay);
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const researchMsgId = 'res_' + Date.now();
+          outputCard.id = researchMsgId;
+          outputCard.setAttribute('data-raw-content', researchDisplay);
+          const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
+          outputContent.innerHTML = botAvatarHTML + formatMarkdown(researchDisplay);
+          outputCard.insertAdjacentHTML('afterend', botActions);
+
+          if (window.lucide) lucide.createIcons();
 
           if (window.MathJax) MathJax.typesetPromise([outputContent]);
 
