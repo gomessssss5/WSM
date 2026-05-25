@@ -468,11 +468,43 @@
     border: 0.5px solid var(--border);
   }
 
-  .message.bot p {
-    margin-bottom: 8px;
+  .message.bot p, .output-card p {
+    margin-bottom: 16px;
   }
-  .message.bot p:last-child {
+  .message.bot p:last-child, .output-card p:last-child {
     margin-bottom: 0;
+  }
+
+  /* Títulos maiores nas respostas */
+  .message.bot h1, .message.bot h2, .message.bot h3, .message.bot h4,
+  .output-card h1, .output-card h2, .output-card h3, .output-card h4 {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    margin-top: 24px;
+    margin-bottom: 14px;
+    line-height: 1.3;
+    font-weight: 700;
+  }
+  .message.bot h1, .output-card h1 { font-size: 24px; }
+  .message.bot h2, .output-card h2 { font-size: 20px; }
+  .message.bot h3, .output-card h3 { font-size: 18px; }
+  .message.bot h4, .output-card h4 { font-size: 16px; }
+  .message.bot *:first-child, .output-card *:first-child { margin-top: 0; }
+
+  /* Estilização do card de saída do Modo Pesquisa para ficar idêntico ao Chat normal */
+  .output-card {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: 18px 18px 18px 4px;
+    border: 0.5px solid var(--border);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-card);
+    font-family: 'Lora', serif;
+    font-size: 14.5px;
+    line-height: 1.6;
+    word-break: break-word;
+    margin-top: 8px;
+    display: none;
   }
 
   /* Ajuste Fino para Listas (Bolinhas e Números com distâncias corretas da borda) */
@@ -1922,7 +1954,7 @@
               <div class="input-actions">
                 <div class="input-tools">
                   <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
-                  <button class="tool-btn" id="searchBtn" type="button"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="searchBtn" type="button" onclick="toggleSearchMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
                 </div>
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
               </div>
