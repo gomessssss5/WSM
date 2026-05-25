@@ -1461,10 +1461,10 @@
   /* FOLLOW-UPS (Flow-up) */
   .followups {
     display: flex;
+    flex-direction: column;
     gap: 8px;
     margin-top: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    align-items: flex-start;
     width: 100%;
   }
 
@@ -2676,7 +2676,7 @@
 
     // Constrói o payload enviando APENAS TEXTOS do passado para evitar erro 413 (Payload Too Large)
     let apiMessages = [
-      { role: "system", content: "Você é o WSM AI 1.0 Flash. REGRAS: 1) Estruture as informações de forma clara com listas, tópicos numerados ou texto corrido. Use tabelas APENAS para dados tabulares/comparativos estritos. NUNCA force tabelas para tópicos comuns. 2) Use LaTeX ($...$). 3) Use títulos (###). 4) OBRIGATÓRIO: Termine a resposta listando exatamente 3 perguntas curtas de acompanhamento precedidas pelo título '### Sugestões:'. Responda em português." }
+      { role: "system", content: "Você é o WSM AI 1.0 Flash. REGRAS: 1) Estruture as informações de forma clara com listas, tópicos numerados ou texto corrido. Use tabelas APENAS para dados tabulares/comparativos estritos. NUNCA force tabelas para tópicos comuns. 2) Use LaTeX ($...$). 3) Use títulos (###). 4) OBRIGATÓRIO: Termine a resposta listando exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda em português." }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -3043,7 +3043,7 @@
           messages: [
             {
               role: 'system',
-                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use listas ou texto corrido. Use tabelas APENAS para dados tabulares estritos e comparativos, NUNCA force tabelas para tópicos comuns. 2) Cite as fontes [n]. 3) OBRIGATÓRIO: No final, liste exatamente 3 perguntas de acompanhamento curtas precedidas pelo título "### Sugestões:". Responda em português.'
+                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use listas ou texto corrido. Use tabelas APENAS para dados tabulares estritos e comparativos, NUNCA force tabelas para tópicos comuns. 2) Cite as fontes [n]. 3) OBRIGATÓRIO: No final, liste exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: \"Quero saber mais sobre...\"), precedidas pelo título \"### Sugestões:\". Responda em português.'
             },
             {
               role: 'user',
