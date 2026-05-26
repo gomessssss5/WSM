@@ -4013,7 +4013,7 @@
       }
 
       // Limita o tamanho do texto para enviar para a IA
-      const textLimit = 15000;
+      const textLimit = 4000;
       let truncatedContent = rawContent;
       if (rawContent.length > textLimit) {
         truncatedContent = rawContent.substring(0, textLimit) + "\n\n[Conteúdo truncado devido ao limite de tamanho...]";
