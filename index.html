@@ -807,6 +807,7 @@
   /* Remove o padding apenas quando o mapa estiver ativo para ele ocupar a tela toda */
   .main-content.artifact-map .artifact-body {
     padding: 0;
+    overflow: hidden;
   }
 
   .artifact-body pre {
@@ -2494,41 +2495,39 @@
         leafletMap.remove();
     }
 
-    leafletMap = L.map('mapContainer');
+    // Inicializa o mapa com um estado neutro imediatamente
+    leafletMap = L.map('mapContainer').setView([0, 0], 2);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(leafletMap);
 
+    const bounds = [];
     // Se encontrou lugares, plotar marcadores
     if (places && places.length > 0) {
-        const bounds = [];
         places.forEach(place => {
             const lat = parseFloat(place.lat);
             const lon = parseFloat(place.lon);
             const marker = L.marker([lat, lon]).addTo(leafletMap);
-            
-            // Construir nome bonito
             let name = place.name || '';
-            if (!name) {
-                const parts = place.display_name.split(',');
-                name = parts[0];
-            }
-
+            if (!name) name = place.display_name.split(',')[0];
             marker.bindPopup(`<div style="font-family:'Inter', sans-serif"><b>${escapeHtml(name)}</b><br><span style="font-size:11px; color:#666;">${escapeHtml(place.display_name)}</span></div>`);
             bounds.push([lat, lon]);
         });
-        
-        // Ajusta câmera pra caber todos
-        leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-    } else {
-        // Fallback pra tela do Brasil caso nache
-        leafletMap.setView([-14.235, -51.925], 4);
     }
 
-    // Leaflet precisa ter o size recalculado dps da transicao css do painel
+    // AGUARDA A ANIMAÇÃO TERMINAR: Só centraliza o mapa quando o container tiver tamanho real
     setTimeout(() => {
-        if(leafletMap) leafletMap.invalidateSize();
-    }, 450);
+        if(leafletMap) {
+            leafletMap.invalidateSize(true);
+            if (bounds.length > 0) {
+                leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+            } else {
+                // Fallback Brasil
+                leafletMap.setView([-14.235, -51.925], 4);
+            }
+        }
+    }, 500);
   }
 
   function closeArtifact() {
