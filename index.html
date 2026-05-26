@@ -1006,6 +1006,7 @@
     font-weight: 700;
     letter-spacing: -0.04em;
     line-height: 1.1;
+    background-clip: text;
     background: linear-gradient(180deg, var(--text-primary) 30%, var(--text-secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1416,6 +1417,36 @@
     background: var(--pill-bg);
     color: var(--text-primary);
     border-color: var(--border-focus);
+  }
+
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  /* Animação do ponto de luz caminhando pela borda do botão Agentes */
+  #agentsBtn {
+    position: relative;
+  }
+  #agentsBtn::after {
+    content: "";
+    position: absolute;
+    /* Ajustado para centralizar o feixe mais grosso na borda */
+    inset: -1.5px;
+    padding: 2.5px; 
+    border-radius: inherit;
+    /* Animamos o ângulo do gradiente (--angle) em vez de girar o elemento */
+    background: conic-gradient(from var(--angle), transparent 92%, var(--agent-blue));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: border-beam 3s linear infinite;
+  }
+  @keyframes border-beam {
+    to { --angle: 360deg; }
   }
 
   /* MODOS ATIVOS - Estilo Escuro (Preto/Branco) */
