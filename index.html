@@ -803,6 +803,12 @@
     padding: 24px;
     min-height: 0;
   }
+
+  /* Remove o padding apenas quando o mapa estiver ativo para ele ocupar a tela toda */
+  .main-content.artifact-map .artifact-body {
+    padding: 0;
+  }
+
   .artifact-body pre {
     margin: 0; background: transparent; padding: 0; border: none; flex: 1;
   }
@@ -813,11 +819,11 @@
   /* MAP CONTAINER DENTRO DO ARTIFACT */
   #mapContainer {
     flex: 1;
-    border-radius: 12px;
+    border-radius: 0; /* Mapa fica melhor sem borda interna no painel */
     box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    z-index: 1;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Garante que o container tenha altura */
+    min-height: 100%;
   }
 
   /* Leaflet forces z-index on some elements, make sure it doesn't overlap weirdly */
@@ -2463,6 +2469,7 @@
     
     // Mostrar animação
     mainContent.classList.add('artifact-open');
+    mainContent.classList.remove('artifact-map');
   }
 
   // NOVA FUNÇÃO: Abrir o Painel Lateral no modo MAPA
@@ -2480,6 +2487,7 @@
 
     titleElement.innerHTML = `<i class="ti ti-map-2" style="color:var(--agent-green)"></i><span>Mapa Interativo</span>`;
     mainContent.classList.add('artifact-open');
+    mainContent.classList.add('artifact-map');
 
     // Se o mapa já existe, remove pra recriar sem bugar as tiles
     if (leafletMap !== null) {
@@ -2525,7 +2533,10 @@
 
   function closeArtifact() {
     const mainContent = document.getElementById('mainContent');
-    if (mainContent) mainContent.classList.remove('artifact-open');
+    if (mainContent) {
+        mainContent.classList.remove('artifact-open');
+        mainContent.classList.remove('artifact-map');
+    }
   }
 
   function copyArtifact() {
