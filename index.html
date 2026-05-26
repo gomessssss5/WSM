@@ -1378,6 +1378,11 @@
     flex-wrap: wrap;
   }
 
+  /* QUANDO UM MODO ESTÁ ATIVO: ESCONDE OS OUTROS BOTÕES */
+  .input-tools.has-active-mode > *:not(.is-active) {
+    display: none !important;
+  }
+
   .tool-btn {
     display: inline-flex;
     align-items: center;
@@ -1413,16 +1418,12 @@
     border-color: var(--border-focus);
   }
 
-  .tool-btn.search-active {
+  /* MODOS ATIVOS - Estilo Escuro (Preto/Branco) */
+  .tool-btn.search-active,
+  .tool-btn.map-active {
     background: var(--accent);
     color: var(--bg);
     border-color: var(--accent);
-  }
-  
-  .tool-btn.map-active {
-    background: var(--agent-green);
-    color: #fff;
-    border-color: var(--agent-green);
   }
 
   .tool-btn.search-active .search-close,
@@ -1442,6 +1443,119 @@
     font-size: 11px;
     line-height: 1;
     margin-left: 2px;
+  }
+
+  /* DROPDOWN DE AGENTES */
+  .agents-dropdown-wrapper {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .agents-menu {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 0;
+    transform: translateY(10px) scale(0.95);
+    transform-origin: bottom left;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 240px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all var(--transition);
+    z-index: 100;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+  }
+
+  .agents-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .agents-menu::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 24px;
+    transform: rotate(45deg);
+    width: 12px;
+    height: 12px;
+    background: var(--bg-card);
+    border-right: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .agents-menu-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 8px 8px;
+  }
+
+  .agent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--transition);
+    text-align: left;
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .agent-item:hover {
+    background: var(--pill-bg);
+  }
+
+  .agent-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .agent-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .agent-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .agent-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  /* Ocultar o botão "Mapas" dedicado até que esteja ativo */
+  #mapActiveBtn {
+    display: none;
+  }
+
+  #mapActiveBtn.is-active {
+    display: inline-flex;
   }
 
   .send-btn {
@@ -2079,10 +2193,31 @@
               
               <div class="input-actions">
                 <div class="input-tools">
+                  <!-- BOTÃO DE ANEXAR -->
                   <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
+                  
+                  <!-- BOTÃO DE PESQUISAR -->
                   <button class="tool-btn" id="searchBtn" type="button" onclick="toggleSearchMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
-                  <button class="tool-btn" id="mapBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
+                  
+                  <!-- NOVO DROPDOWN DE AGENTES -->
+                  <div class="agents-dropdown-wrapper">
+                    <button class="tool-btn" id="agentsBtn" type="button" onclick="toggleAgentsMenu()"><i class="ti ti-apps" aria-hidden="true"></i> Agentes</button>
+                    <div class="agents-menu" id="agentsMenu">
+                      <div class="agents-menu-header">Selecione um Agente</div>
+                      <button class="agent-item" type="button" onclick="toggleMapMode()">
+                        <div class="agent-icon" style="color: var(--agent-green)"><i class="ti ti-map-2"></i></div>
+                        <div class="agent-info">
+                          <span class="agent-name">Mapas</span>
+                          <span class="agent-desc">Pesquisa geolocalizada e rotas</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- BOTÃO DE MAPAS (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
+                  <button class="tool-btn" id="mapActiveBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
                 </div>
+
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
               </div>
             </div>
@@ -2154,6 +2289,23 @@
 
     loadSessions();
   });
+
+  // Fechar o menu dropdown de agentes se clicar fora dele
+  document.addEventListener('click', function(e) {
+    const wrapper = document.querySelector('.agents-dropdown-wrapper');
+    const menu = document.getElementById('agentsMenu');
+    if (wrapper && menu && menu.classList.contains('open')) {
+      if (!wrapper.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    }
+  });
+
+  // Abre e fecha o menu de agentes
+  function toggleAgentsMenu() {
+    const menu = document.getElementById('agentsMenu');
+    if(menu) menu.classList.toggle('open');
+  }
 
   // ========== FUNÇÕES DO HISTÓRICO LOCAL (NO SIDEBAR) ==========
   function saveSessions() {
@@ -2237,8 +2389,11 @@
     const chatPanel = document.getElementById('chatPanel');
     const suggestions = document.getElementById('suggestions');
     const composerTitle = document.getElementById('composerTitle');
+    
+    // Ferramentas da barra inferior
+    const toolsContainer = document.querySelector('.input-tools');
     const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapBtn');
+    const mapBtn = document.getElementById('mapActiveBtn');
     const field = document.getElementById('inputField');
 
     attachedFiles = [];
@@ -2250,8 +2405,11 @@
     
     searchMode = false;
     mapMode = false;
-    if (searchBtn) searchBtn.classList.remove('search-active');
-    if (mapBtn) mapBtn.classList.remove('map-active');
+
+    // Reseta as ferramentas ativas e reexibe todos os botões
+    if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
+    if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
+    if (mapBtn) mapBtn.classList.remove('is-active', 'map-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -2395,47 +2553,52 @@
   // Ativa e desativa modo de pesquisa web
   function toggleSearchMode() {
     const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapBtn');
+    const mapBtn = document.getElementById('mapActiveBtn');
+    const toolsContainer = document.querySelector('.input-tools');
     const field = document.getElementById('inputField');
     
     searchMode = !searchMode;
     
     if (searchMode) {
         mapMode = false;
-        if (mapBtn) mapBtn.classList.remove('map-active');
+        toolsContainer.classList.add('has-active-mode'); // Oculta todos os botões não ativos
+        searchBtn.classList.add('is-active', 'search-active'); // Deixa o Pesquisar vísivel e pintado
+        mapBtn.classList.remove('is-active', 'map-active');
+        if (field) field.placeholder = 'Pesquisar na web estruturada...';
+    } else {
+        toolsContainer.classList.remove('has-active-mode'); // Volta todos os botões
+        searchBtn.classList.remove('is-active', 'search-active');
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
     }
     
-    if (searchBtn) searchBtn.classList.toggle('search-active', searchMode);
-    
-    if (field) {
-      if (searchMode) field.placeholder = 'Pesquisar na web estruturada...';
-      else if (mapMode) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
-      else field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
-      field.focus();
-    }
+    if (field) field.focus();
   }
 
   // Ativa e desativa o agente de Mapas
   function toggleMapMode() {
-    const mapBtn = document.getElementById('mapBtn');
+    const mapBtn = document.getElementById('mapActiveBtn');
     const searchBtn = document.getElementById('searchBtn');
+    const toolsContainer = document.querySelector('.input-tools');
+    const menu = document.getElementById('agentsMenu');
     const field = document.getElementById('inputField');
     
     mapMode = !mapMode;
     
     if (mapMode) {
         searchMode = false;
-        if (searchBtn) searchBtn.classList.remove('search-active');
+        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
+        mapBtn.classList.add('is-active', 'map-active'); // Exibe e pinta o Mapas dedicado
+        searchBtn.classList.remove('is-active', 'search-active');
+        
+        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
+        if (field) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
+    } else {
+        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente (incluindo Agentes)
+        mapBtn.classList.remove('is-active', 'map-active'); // Esconde o mapa dedicado
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
     }
     
-    if (mapBtn) mapBtn.classList.toggle('map-active', mapMode);
-    
-    if (field) {
-        if (mapMode) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
-        else if (searchMode) field.placeholder = 'Pesquisar na web estruturada...';
-        else field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
-        field.focus();
-    }
+    if (field) field.focus();
   }
 
   // Alterna a exibição da barra lateral no mobile
