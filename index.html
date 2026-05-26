@@ -1451,14 +1451,16 @@
 
   /* MODOS ATIVOS - Estilo Escuro (Preto/Branco) */
   .tool-btn.search-active,
-  .tool-btn.map-active {
+  .tool-btn.map-active,
+  .tool-btn.web-reader-active {
     background: var(--accent);
     color: var(--bg);
     border-color: var(--accent);
   }
 
   .tool-btn.search-active .search-close,
-  .tool-btn.map-active .search-close {
+  .tool-btn.map-active .search-close,
+  .tool-btn.web-reader-active .search-close {
     display: inline-flex;
   }
 
@@ -1586,6 +1588,15 @@
   }
 
   #mapActiveBtn.is-active {
+    display: inline-flex;
+  }
+
+  /* Ocultar o botão "Leitor de Web" dedicado até que esteja ativo */
+  #webReaderActiveBtn {
+    display: none;
+  }
+
+  #webReaderActiveBtn.is-active {
     display: inline-flex;
   }
 
@@ -2242,11 +2253,20 @@
                           <span class="agent-desc">Pesquisa geolocalizada e rotas</span>
                         </div>
                       </button>
+                      <button class="agent-item" type="button" onclick="toggleWebReaderMode()">
+                        <div class="agent-icon" style="color: var(--agent-blue)"><i class="ti ti-world-search"></i></div>
+                        <div class="agent-info">
+                          <span class="agent-name">Leitor de Web</span>
+                          <span class="agent-desc">Lê e analisa o conteúdo de links</span>
+                        </div>
+                      </button>
                     </div>
                   </div>
 
                   <!-- BOTÃO DE MAPAS (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
                   <button class="tool-btn" id="mapActiveBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
+                  <!-- BOTÃO DE LEITOR DE WEB (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
+                  <button class="tool-btn" id="webReaderActiveBtn" type="button" onclick="toggleWebReaderMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Leitor de Web <span class="search-close">×</span></button>
                 </div>
 
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
@@ -2301,6 +2321,7 @@
 <script>
   let searchMode = false;
   let mapMode = false;
+  let webReaderMode = false;
   let activeAgentsCount = 0;
   let attachedFiles = []; 
   let leafletMap = null; // Variável global para armazenar instância do Leaflet
@@ -2436,11 +2457,14 @@
     
     searchMode = false;
     mapMode = false;
+    webReaderMode = false;
 
     // Reseta as ferramentas ativas e reexibe todos os botões
     if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
     if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
     if (mapBtn) mapBtn.classList.remove('is-active', 'map-active');
+    const webReaderBtn = document.getElementById('webReaderActiveBtn');
+    if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -2592,9 +2616,12 @@
     
     if (searchMode) {
         mapMode = false;
+        webReaderMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta todos os botões não ativos
         searchBtn.classList.add('is-active', 'search-active'); // Deixa o Pesquisar vísivel e pintado
         mapBtn.classList.remove('is-active', 'map-active');
+        const webReaderBtn = document.getElementById('webReaderActiveBtn');
+        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
         if (field) field.placeholder = 'Pesquisar na web estruturada...';
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Volta todos os botões
@@ -2617,15 +2644,48 @@
     
     if (mapMode) {
         searchMode = false;
+        webReaderMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
         mapBtn.classList.add('is-active', 'map-active'); // Exibe e pinta o Mapas dedicado
         searchBtn.classList.remove('is-active', 'search-active');
+        const webReaderBtn = document.getElementById('webReaderActiveBtn');
+        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente (incluindo Agentes)
         mapBtn.classList.remove('is-active', 'map-active'); // Esconde o mapa dedicado
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+    }
+    
+    if (field) field.focus();
+  }
+
+  // Ativa e desativa o agente Leitor de Web
+  function toggleWebReaderMode() {
+    const webReaderBtn = document.getElementById('webReaderActiveBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const mapBtn = document.getElementById('mapActiveBtn');
+    const toolsContainer = document.querySelector('.input-tools');
+    const menu = document.getElementById('agentsMenu');
+    const field = document.getElementById('inputField');
+    
+    webReaderMode = !webReaderMode;
+    
+    if (webReaderMode) {
+        searchMode = false;
+        mapMode = false;
+        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
+        webReaderBtn.classList.add('is-active', 'web-reader-active'); // Exibe e pinta o Leitor de Web
+        searchBtn.classList.remove('is-active', 'search-active');
+        mapBtn.classList.remove('is-active', 'map-active');
+        
+        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
+        if (field) field.placeholder = 'Cole o link de um site para ler e analisar...';
+    } else {
+        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
+        webReaderBtn.classList.remove('is-active', 'web-reader-active'); // Esconde o botão
         if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
     }
     
@@ -3821,6 +3881,311 @@
     }
   }
 
+  // ========== AGENTE LEITOR DE WEB (TAVILY EXTRACT + MICROLINK SCREENSHOT) ==========
+  async function executeWebReader(userPrompt, detectedUrl = null, attachedFilesData = []) {
+    activeAgentsCount++;
+    const currentAgentId = activeAgentsCount;
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+
+    if (!currentSessionId) {
+      currentSessionId = Date.now().toString();
+      sessions.unshift({
+        id: currentSessionId,
+        title: userPrompt ? userPrompt.substring(0, 30) + "..." : "Leitura de Link",
+        messages: []
+      });
+    }
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+
+    const agentContainer = document.createElement('div');
+    agentContainer.className = 'agent-response-container';
+    agentContainer.innerHTML = `
+      <div class="agent-pill" style="background: rgba(2, 132, 199, 0.1); border-color: rgba(2, 132, 199, 0.2); color: var(--agent-blue);">
+        <i class="ti ti-world-search" style="color: var(--agent-blue);"></i>
+        Agente Leitor de Web ativo
+      </div>
+
+      <div class="thought-box" id="thoughtBox_${currentAgentId}">
+        <div class="thought-header" onclick="toggleAgentThoughtBox(${currentAgentId})">
+          <div class="thought-status">
+            <div class="spinner" id="mainSpinner_${currentAgentId}" style="border-top-color: var(--agent-blue);"></div>
+            <i class="ti ti-circle-check-filled success-icon" id="mainCheck_${currentAgentId}" style="color: var(--agent-blue);"></i>
+            <span class="thought-title" id="mainTitle_${currentAgentId}">Planejando leitura da página...</span>
+          </div>
+          <span class="thought-duration" id="timer_${currentAgentId}">0.0s</span>
+          <i class="ti ti-chevron-down thought-toggle"></i>
+        </div>
+
+        <div class="thought-content">
+          <div class="step" id="step1_${currentAgentId}">
+            <div class="step-icon" id="icon1_${currentAgentId}">1</div>
+            <div class="step-text" id="stepText1_${currentAgentId}">Validando URL fornecida...</div>
+          </div>
+          <div class="step" id="step2_${currentAgentId}">
+            <div class="step-icon" id="icon2_${currentAgentId}">2</div>
+            <div class="step-text" id="stepText2_${currentAgentId}">Acessando o site e gerando miniatura...</div>
+          </div>
+          <div class="step" id="step3_${currentAgentId}">
+            <div class="step-icon" id="icon3_${currentAgentId}">3</div>
+            <div class="step-text" id="stepText3_${currentAgentId}">Extraindo conteúdo de texto principal...</div>
+          </div>
+          <div class="step" id="step4_${currentAgentId}">
+            <div class="step-icon" id="icon4_${currentAgentId}">4</div>
+            <div class="step-text" id="stepText4_${currentAgentId}">Sintetizando e gerando resposta no chat...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-card" id="outputCard_${currentAgentId}">
+        <p id="outputContent_${currentAgentId}"></p>
+        <div id="researchFollowups_${currentAgentId}" class="followups"></div>
+      </div>
+    `;
+
+    messagesEl.appendChild(agentContainer);
+    scrollToBottom();
+
+    let startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      const timerEl = document.getElementById(`timer_${currentAgentId}`);
+      if (timerEl) timerEl.textContent = `${elapsed}s`;
+    }, 100);
+
+    try {
+      // ETAPA 1: Identificar/Validar URL
+      setStepActive(1, currentAgentId);
+      let url = detectedUrl;
+
+      // Se não foi passada URL detectada pelo regex do sendMessage, tenta encontrar no prompt completo
+      if (!url) {
+        const urlRegex = /(https?:\/\/[^\s]+)/gi;
+        const matches = userPrompt.match(urlRegex);
+        if (matches && matches.length > 0) {
+          url = matches[0];
+        }
+      }
+
+      await sleep(600);
+
+      if (!url) {
+        clearInterval(timerInterval);
+        throw new Error("Não encontrei nenhuma URL válida na mensagem. Por favor, envie uma mensagem que contenha um link começando com http:// ou https://.");
+      }
+
+      const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
+      if (stepText1) stepText1.textContent = `URL validada: ${url}`;
+      setStepCompleted(1, currentAgentId, '#0284c7');
+
+      // ETAPA 2: Acessando site e gerando miniatura (Microlink API)
+      setStepActive(2, currentAgentId);
+      const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl2) titleEl2.textContent = `Acessando ${url}...`;
+
+      // Geramos a URL do print usando a API do Microlink
+      const screenshotUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&embed=screenshot.url`;
+      
+      await sleep(1000);
+      setStepCompleted(2, currentAgentId, '#0284c7');
+
+      // ETAPA 3: Extraindo texto (Tavily Extract API)
+      setStepActive(3, currentAgentId);
+      const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl3) titleEl3.textContent = `Lendo conteúdo do site via Tavily Extract...`;
+
+      const extractResponse = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+      });
+
+      if (!extractResponse.ok) {
+        throw new Error('Falha ao extrair conteúdo da página. Verifique se o link está acessível publicamente.');
+      }
+
+      const extractData = await extractResponse.json();
+      const extractedItem = extractData.results && extractData.results.length > 0 ? extractData.results[0] : null;
+      let rawContent = extractedItem ? extractedItem.raw_content : "";
+
+      if (!rawContent || rawContent.trim().length === 0) {
+        throw new Error('Não foi possível extrair nenhum texto útil da URL fornecida.');
+      }
+
+      // Limita o tamanho do texto para enviar para a IA
+      const textLimit = 15000;
+      let truncatedContent = rawContent;
+      if (rawContent.length > textLimit) {
+        truncatedContent = rawContent.substring(0, textLimit) + "\n\n[Conteúdo truncado devido ao limite de tamanho...]";
+      }
+
+      await sleep(1200);
+      setStepCompleted(3, currentAgentId, '#0284c7');
+
+      // ETAPA 4: Chamada à Groq com o contexto do site
+      setStepActive(4, currentAgentId);
+      const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl4) titleEl4.textContent = 'Analisando e sintetizando resposta final...';
+
+      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
+      if (!groqApiKey) {
+        const configResponse = await fetch('/api/config');
+        if (configResponse.ok) {
+          const configData = await configResponse.json();
+          groqApiKey = configData.groqApiKey;
+        }
+      }
+      if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
+
+      const cleanedPrompt = userPrompt.replace(url, '').trim();
+      const instructionToAI = cleanedPrompt.length > 0 
+        ? `Responda à seguinte pergunta/pedido do usuário com base no conteúdo lido da página: "${cleanedPrompt}"`
+        : `Faça um resumo executivo bem estruturado e focado desta página web, destacando os pontos principais em português.`;
+
+      const synthesisResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é o WSM AI 1.0 Flash, atuando como um Agente Leitor de Web premium. Analise o conteúdo do site fornecido e responda de forma estruturada. REGRAS: 1) Responda sempre em português. 2) Se baseie estritamente nas informações contidas na página lida. 3) Use títulos e listas para melhorar a legibilidade. 4) No final, liste exatamente 3 sugestões curtas de acompanhamento na primeira pessoa do singular (ex: "Gostaria de ver um resumo de...", "Explique o ponto X..."), sob o título "### Sugestões:"'
+            },
+            {
+              role: 'user',
+              content: `Site lido: ${url}\n\nConteúdo textual extraído da página:\n---\n${truncatedContent}\n---\n\nInstrução: ${instructionToAI}`
+            }
+          ],
+          temperature: 0.5, max_tokens: 1200
+        })
+      });
+
+      if (!synthesisResponse.ok) throw new Error('Erro ao gerar resposta final com a IA');
+      const synthesisData = await synthesisResponse.json();
+      const finalResponse = synthesisData.choices[0].message.content;
+
+      currentSession.messages.push({ role: 'user', text: userPrompt || `Leitura de Link: ${url}` });
+      currentSession.messages.push({ role: 'bot', text: finalResponse });
+      saveSessions();
+      renderHistoryList();
+
+      await sleep(800);
+      setStepCompleted(4, currentAgentId, '#0284c7');
+
+      clearInterval(timerInterval);
+      const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
+      const titleElFinal = document.getElementById(`mainTitle_${currentAgentId}`);
+      
+      if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
+      if (titleElFinal) titleElFinal.textContent = 'Leitura concluída com sucesso!';
+
+      setTimeout(() => { if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed'); }, 600);
+
+      // Render da resposta final
+      setTimeout(() => {
+        const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+        const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+        const researchFollowups = document.getElementById(`researchFollowups_${currentAgentId}`);
+        
+        if (outputCard && outputContent) {
+          outputCard.style.display = 'block';
+          
+          let researchDisplay = finalResponse;
+          let researchSuggestions = [];
+          
+          const suggestionsRegex = /(?:\[SUGESTOES\]|\*\*Sugestões\*\*|### Sugestões|Sugestões:|Sugestões para o usuário:)\s*\n([\s\S]*)$/i;
+          const match = finalResponse.match(suggestionsRegex);
+
+          if (match) {
+            researchDisplay = finalResponse.replace(suggestionsRegex, '').trim();
+            researchSuggestions = match[1].trim().split('\n')
+              .map(s => s.replace(/^[-*0-9.\s]+/, '').trim())
+              .filter(s => s.length > 0)
+              .slice(0, 3);
+          }
+
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const researchMsgId = 'res_' + Date.now();
+          outputCard.id = researchMsgId;
+          outputCard.setAttribute('data-raw-content', researchDisplay);
+          const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
+          outputContent.innerHTML = botAvatarHTML + formatMarkdown(researchDisplay);
+          outputCard.insertAdjacentHTML('afterend', botActions);
+
+          if (window.lucide) lucide.createIcons();
+
+          // Renderizar o print do site no card de resposta
+          const imgCard = document.createElement('div');
+          imgCard.className = 'image-analysis-card';
+          imgCard.style.marginTop = '14px';
+          imgCard.innerHTML = `
+            <div class="analysis-title"><i class="ti ti-camera"></i> Captura de tela da página</div>
+            <div class="analysis-content" style="display:flex; flex-direction:column; gap:8px;">
+              <img src="${screenshotUrl}" alt="Print de ${url}" style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; border:0.5px solid var(--border); cursor:pointer;" onclick="openFullscreen('${screenshotUrl}')" onerror="this.parentNode.parentNode.remove()">
+              <span style="font-size:11px; color:var(--text-muted);">Clique na imagem para abrir em tela cheia</span>
+            </div>
+          `;
+          outputCard.appendChild(imgCard);
+          setTimeout(() => imgCard.classList.add('visible'), 90);
+
+          // Criar botão para visualizar o texto extraído no painel lateral de Artefatos
+          const viewRawCard = document.createElement('div');
+          viewRawCard.className = 'artifact-trigger-card';
+          viewRawCard.style.maxWidth = '100%';
+          viewRawCard.style.marginTop = '12px';
+          viewRawCard.innerHTML = `
+            <div class="artifact-card-icon"><i class="ti ti-file-text"></i></div>
+            <div class="artifact-card-info">
+              <span class="title">Visualizar Conteúdo Textual Lido</span>
+              <span class="meta">Texto Bruto Extraído (${rawContent.length} caracteres)</span>
+            </div>
+            <button class="artifact-card-btn">Abrir Conteúdo</button>
+          `;
+          viewRawCard.addEventListener('click', () => {
+            openArtifact(rawContent, 'txt');
+            const artifactTitle = document.getElementById('artifactTitle');
+            if (artifactTitle) {
+              artifactTitle.innerHTML = `<i class="ti ti-file-text" style="color:var(--agent-blue)"></i><span>Texto lido de ${url.replace('https://', '').replace('http://', '').split('/')[0]}</span>`;
+            }
+          });
+          outputCard.appendChild(viewRawCard);
+
+          if (researchFollowups && researchSuggestions.length > 0) {
+            researchSuggestions.forEach(s => {
+              const btn = document.createElement('button');
+              btn.className = 'followup-pill';
+              btn.textContent = s;
+              btn.onclick = () => {
+                const f = document.getElementById('inputField');
+                if (f) { f.value = s; autoResize(f); f.focus(); }
+              };
+              researchFollowups.appendChild(btn);
+            });
+          }
+
+          outputCard.offsetHeight;
+          outputCard.classList.add('visible');
+        }
+
+        setTimeout(scrollToBottom, 50);
+      }, 1100);
+
+    } catch (error) {
+      clearInterval(timerInterval);
+      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+      
+      if (outputCard && outputContent) {
+        outputCard.style.display = 'block';
+        outputContent.innerHTML = `❌ <strong>Erro no Leitor de Web:</strong> ${error.message}`;
+        outputCard.offsetHeight;
+        outputCard.classList.add('visible');
+      }
+      scrollToBottom();
+    }
+  }
+
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
   
   function setStepActive(num, agentId) { 
@@ -3925,10 +4290,16 @@
     autoResize(field);
 
     setTimeout(() => {
+        const urlRegex = /(https?:\/\/[^\s]+)/gi;
+        const urlMatch = text.match(urlRegex);
+
         if (mapMode) {
           executeMapAgent(text, currentAttachments);
         } else if (searchMode) {
           executeDeepResearch(text, currentAttachments);
+        } else if (webReaderMode || (urlMatch && !searchMode && !mapMode)) {
+          const urlToRead = urlMatch ? urlMatch[0] : null;
+          executeWebReader(text, urlToRead, currentAttachments);
         } else {
           showTypingIndicator();
           callGroqAPI(text, currentAttachments);
