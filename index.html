@@ -18,6 +18,10 @@
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
+<!-- Leaflet.js para o Mapa Interativo (100% Open Source) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <script>
   window.MathJax = {
     tex: {
@@ -27,7 +31,7 @@
       processEnvironments: true
     },
     chtml: {
-      scale: 1.3 // Aumenta as equações em 30% (mais visíveis)
+      scale: 1.3
     },
     options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
   };
@@ -60,7 +64,7 @@
     --transition: 0.22s cubic-bezier(0.25, 1, 0.5, 1);
 
     --agent-blue: #0284c7;
-    --agent-green: #16a34a;
+    --agent-green: #10b981;
     --agent-amber: #d97706;
     --agent-purple: #8b5cf6;
   }
@@ -83,7 +87,7 @@
       --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.4);
 
       --agent-blue: #38bdf8;
-      --agent-green: #4ade80;
+      --agent-green: #34d399;
       --agent-amber: #fbbf24;
       --agent-purple: #a78bfa;
     }
@@ -105,7 +109,7 @@
     transition: grid-template-columns var(--transition);
   }
 
-  /* SIDEBAR */
+  /* SIDEBAR REFORMULADA (CORREÇÃO DE SCROLL) */
   .sidebar {
     border-right: 0.5px solid var(--border);
     display: flex;
@@ -117,6 +121,8 @@
     -webkit-backdrop-filter: var(--glass-blur);
     z-index: 50;
     transition: transform var(--transition);
+    overflow: hidden; 
+    max-height: 100vh;
   }
 
   .logo {
@@ -125,6 +131,7 @@
     gap: 6px;
     padding: 0 4px 12px;
     letter-spacing: -0.02em;
+    flex-shrink: 0;
   }
 
   .logo-name {
@@ -151,6 +158,7 @@
     width: 100%;
     text-align: left;
     margin-bottom: 8px;
+    flex-shrink: 0;
   }
 
   .new-chat-btn:hover {
@@ -161,14 +169,15 @@
 
   .new-chat-btn i { font-size: 16px; }
 
-  /* SIDEBAR HISTORY LIST */
+  /* SIDEBAR HISTORY LIST (Única parte rolável) */
   .sidebar-history {
     display: flex;
     flex-direction: column;
     gap: 6px;
     margin-top: 4px;
     overflow-y: auto;
-    flex: 1; /* Ocupa espaço restante */
+    flex: 1; 
+    min-height: 0; /* Essencial para permitir scroll no flex */
     scrollbar-width: none;
   }
   .sidebar-history::-webkit-scrollbar { display: none; }
@@ -228,6 +237,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-shrink: 0;
   }
 
   .footer-item {
@@ -558,7 +568,7 @@
   .message.bot h4, .output-card h4 { font-size: 16px; }
   .message.bot *:first-child, .output-card *:first-child { margin-top: 0; }
 
-  /* Estilização do card de saída do Modo Pesquisa para ficar idêntico ao Chat normal */
+  /* Estilização do card de saída do Modo Pesquisa/Mapa para ficar idêntico ao Chat normal */
   .output-card {
     background: var(--bg-card);
     color: var(--text-primary);
@@ -787,14 +797,32 @@
   }
   .artifact-body {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: auto; 
     padding: 24px;
+    min-height: 0;
   }
   .artifact-body pre {
-    margin: 0; background: transparent; padding: 0; border: none;
+    margin: 0; background: transparent; padding: 0; border: none; flex: 1;
   }
   .artifact-body code {
     font-family: 'Fira Code', monospace; font-size: 13.5px; line-height: 1.6; color: #c9d1d9;
+  }
+
+  /* MAP CONTAINER DENTRO DO ARTIFACT */
+  #mapContainer {
+    flex: 1;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Leaflet forces z-index on some elements, make sure it doesn't overlap weirdly */
+  .leaflet-container {
+    font-family: 'Inter', sans-serif;
   }
 
   /* FULLSCREEN MODAL (TELA CHEIA) */
@@ -1383,8 +1411,15 @@
     color: var(--bg);
     border-color: var(--accent);
   }
+  
+  .tool-btn.map-active {
+    background: var(--agent-green);
+    color: #fff;
+    border-color: var(--agent-green);
+  }
 
-  .tool-btn.search-active .search-close {
+  .tool-btn.search-active .search-close,
+  .tool-btn.map-active .search-close {
     display: inline-flex;
   }
 
@@ -1512,7 +1547,7 @@
     color: var(--text-primary);
   }
 
-  /* --- COMPONENTES DA ANIMAÇÃO DE DEEP RESEARCH --- */
+  /* --- COMPONENTES DA ANIMAÇÃO DE DEEP RESEARCH / MAPAS --- */
   .agent-response-container {
     display: flex;
     flex-direction: column;
@@ -1998,7 +2033,7 @@
         </button>
       </div>
       <div class="topbar-right">
-        <button class="icon-btn" title="Pesquisa na web (Simulação)" onclick="toggleSearchMode()"><i class="ti ti-world" aria-hidden="true"></i></button>
+        <!-- Adicionado nada extra na topbar -->
       </div>
     </div>
 
@@ -2039,6 +2074,7 @@
                 <div class="input-tools">
                   <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
                   <button class="tool-btn" id="searchBtn" type="button" onclick="toggleSearchMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="mapBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
                 </div>
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
               </div>
@@ -2057,20 +2093,23 @@
         </div>
       </div>
       
-      <!-- ARTIFACT PANEL (PRÉVIA LATERAL DO CÓDIGO) -->
+      <!-- ARTIFACT PANEL (PRÉVIA LATERAL DO CÓDIGO OU MAPA) -->
       <div class="artifact-panel" id="artifactPanel">
         <div class="artifact-header">
-          <div class="artifact-title">
+          <div class="artifact-title" id="artifactTitle">
             <i class="ti ti-code"></i>
-            <span id="artifactTitle">Código Gerado</span>
+            <span>Código Gerado</span>
           </div>
           <div class="artifact-actions">
-            <button class="artifact-btn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
+            <button class="artifact-btn" id="copyArtifactBtn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
             <button class="artifact-btn" onclick="closeArtifact()" title="Fechar Prévia"><i class="ti ti-x"></i></button>
           </div>
         </div>
-        <div class="artifact-body">
-          <pre><code id="artifactCodeContent" class="hljs"></code></pre>
+        <div class="artifact-body" id="artifactBody">
+          <!-- Bloco do código gerado -->
+          <pre id="artifactCodePre"><code id="artifactCodeContent" class="hljs"></code></pre>
+          <!-- Bloco do Mapa gerado dinamicamente -->
+          <div id="mapContainer" style="display: none;"></div>
         </div>
       </div>
 
@@ -2088,8 +2127,10 @@
 
 <script>
   let searchMode = false;
+  let mapMode = false;
   let activeAgentsCount = 0;
   let attachedFiles = []; 
+  let leafletMap = null; // Variável global para armazenar instância do Leaflet
   
   // Variáveis globais para Gerenciamento de Sessão (Histórico)
   let sessions = [];
@@ -2169,13 +2210,9 @@
     // Fechar painel de código se estiver aberto
     closeArtifact();
 
-    // Restaura o histórico para a API manter o contexto das mensagens antigas
-    chatHistory = [];
-
     // Renderizar as mensagens deste chat
     sess.messages.forEach(msg => {
       const txt = msg.text || "";
-      chatHistory.push({ role: msg.role === 'bot' ? 'assistant' : 'user', content: txt });
       appendMessage(txt, msg.role, [], true); 
     });
     
@@ -2194,6 +2231,7 @@
     const suggestions = document.getElementById('suggestions');
     const composerTitle = document.getElementById('composerTitle');
     const searchBtn = document.getElementById('searchBtn');
+    const mapBtn = document.getElementById('mapBtn');
     const field = document.getElementById('inputField');
 
     attachedFiles = [];
@@ -2203,10 +2241,10 @@
     if (suggestions) suggestions.classList.remove('hidden');
     if (composerTitle) composerTitle.classList.remove('hidden');
     
-    if (searchBtn) {
-      searchBtn.classList.remove('search-active');
-      searchMode = false;
-    }
+    searchMode = false;
+    mapMode = false;
+    if (searchBtn) searchBtn.classList.remove('search-active');
+    if (mapBtn) mapBtn.classList.remove('map-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -2350,14 +2388,46 @@
   // Ativa e desativa modo de pesquisa web
   function toggleSearchMode() {
     const searchBtn = document.getElementById('searchBtn');
+    const mapBtn = document.getElementById('mapBtn');
     const field = document.getElementById('inputField');
+    
     searchMode = !searchMode;
-    if (searchBtn) {
-      searchBtn.classList.toggle('search-active', searchMode);
+    
+    if (searchMode) {
+        mapMode = false;
+        if (mapBtn) mapBtn.classList.remove('map-active');
     }
+    
+    if (searchBtn) searchBtn.classList.toggle('search-active', searchMode);
+    
     if (field) {
-      field.placeholder = searchMode ? 'Pesquisar na web estruturada...' : 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+      if (searchMode) field.placeholder = 'Pesquisar na web estruturada...';
+      else if (mapMode) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
+      else field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
       field.focus();
+    }
+  }
+
+  // Ativa e desativa o agente de Mapas
+  function toggleMapMode() {
+    const mapBtn = document.getElementById('mapBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const field = document.getElementById('inputField');
+    
+    mapMode = !mapMode;
+    
+    if (mapMode) {
+        searchMode = false;
+        if (searchBtn) searchBtn.classList.remove('search-active');
+    }
+    
+    if (mapBtn) mapBtn.classList.toggle('map-active', mapMode);
+    
+    if (field) {
+        if (mapMode) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
+        else if (searchMode) field.placeholder = 'Pesquisar na web estruturada...';
+        else field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        field.focus();
     }
   }
 
@@ -2369,22 +2439,88 @@
     }
   }
 
-  // Funções do Artifact (Painel de Código Lateral)
+  // Funções do Artifact (Painel de Código Lateral ou Mapas)
   function openArtifact(code, lang) {
     const mainContent = document.getElementById('mainContent');
+    const codePre = document.getElementById('artifactCodePre');
     const codeElement = document.getElementById('artifactCodeContent');
     const titleElement = document.getElementById('artifactTitle');
+    const copyBtn = document.getElementById('copyArtifactBtn');
+    const mapContainer = document.getElementById('mapContainer');
+    
+    // Ocultar mapa, exibir código
+    if(mapContainer) mapContainer.style.display = 'none';
+    if(codePre) codePre.style.display = 'block';
+    if(copyBtn) copyBtn.style.display = 'flex';
     
     // Inserir os dados
     codeElement.textContent = code;
     codeElement.className = lang ? `language-${lang}` : '';
-    titleElement.textContent = `Código ${lang.toUpperCase()}`;
+    titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${lang.toUpperCase()}</span>`;
     
     // Aplicar cor (Highlight.js)
     hljs.highlightElement(codeElement);
     
     // Mostrar animação
     mainContent.classList.add('artifact-open');
+  }
+
+  // NOVA FUNÇÃO: Abrir o Painel Lateral no modo MAPA
+  function openMapArtifact(places, searchKeywords) {
+    const mainContent = document.getElementById('mainContent');
+    const codePre = document.getElementById('artifactCodePre');
+    const titleElement = document.getElementById('artifactTitle');
+    const mapContainer = document.getElementById('mapContainer');
+    const copyBtn = document.getElementById('copyArtifactBtn');
+
+    // Ocultar código, exibir mapa
+    if(codePre) codePre.style.display = 'none';
+    if(copyBtn) copyBtn.style.display = 'none';
+    if(mapContainer) mapContainer.style.display = 'block';
+
+    titleElement.innerHTML = `<i class="ti ti-map-2" style="color:var(--agent-green)"></i><span>Mapa Interativo</span>`;
+    mainContent.classList.add('artifact-open');
+
+    // Se o mapa já existe, remove pra recriar sem bugar as tiles
+    if (leafletMap !== null) {
+        leafletMap.remove();
+    }
+
+    leafletMap = L.map('mapContainer');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(leafletMap);
+
+    // Se encontrou lugares, plotar marcadores
+    if (places && places.length > 0) {
+        const bounds = [];
+        places.forEach(place => {
+            const lat = parseFloat(place.lat);
+            const lon = parseFloat(place.lon);
+            const marker = L.marker([lat, lon]).addTo(leafletMap);
+            
+            // Construir nome bonito
+            let name = place.name || '';
+            if (!name) {
+                const parts = place.display_name.split(',');
+                name = parts[0];
+            }
+
+            marker.bindPopup(`<div style="font-family:'Inter', sans-serif"><b>${escapeHtml(name)}</b><br><span style="font-size:11px; color:#666;">${escapeHtml(place.display_name)}</span></div>`);
+            bounds.push([lat, lon]);
+        });
+        
+        // Ajusta câmera pra caber todos
+        leafletMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    } else {
+        // Fallback pra tela do Brasil caso nache
+        leafletMap.setView([-14.235, -51.925], 4);
+    }
+
+    // Leaflet precisa ter o size recalculado dps da transicao css do painel
+    setTimeout(() => {
+        if(leafletMap) leafletMap.invalidateSize();
+    }, 450);
   }
 
   function closeArtifact() {
@@ -2411,7 +2547,7 @@
     return md.utils.escapeHtml(text);
   }
 
-  // FUNÇÃO REFEITA: Pré-processamento limpo apenas com markdown-it puro e seguro
+  // Pré-processamento limpo apenas com markdown-it puro e seguro
   function formatMarkdown(text) {
     if (!text) return "";
 
@@ -2819,7 +2955,7 @@
     tertiary: 'llama-3.2-90b-vision-preview'
   };
 
-  // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH (Agora aceita query forçada no parametro 3) ==========
+  // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
   async function executeDeepResearch(userPrompt, attachedFilesData = [], autoSearchQuery = null) {
     
     activeAgentsCount++;
@@ -2898,7 +3034,7 @@
     }, 100);
 
     try {
-      // ETAPA 1: Determina as palavras-chave (Ou pega a que a IA já montou no Auto-Search)
+      // ETAPA 1
       setStepActive(1, currentAgentId);
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
@@ -2913,7 +3049,6 @@
       let searchKeywords = autoSearchQuery;
 
       if (!searchKeywords) {
-        // Se NÃO for pesquisa automática, precisa fazer o Groq planejar
         const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
@@ -2932,7 +3067,6 @@
         searchKeywords = planData.choices[0].message.content.trim();
         await sleep(800);
       } else {
-        // Se FOR automático, o Groq já nos disse ali atrás qual a query, então só simulo um tempo de tela
         const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
         if (titleEl1) titleEl1.textContent = 'Interpretando necessidade de busca automática...';
         await sleep(600);
@@ -3071,7 +3205,6 @@
           imgs.forEach((imgUrl, i) => {
             const imgEl = document.createElement('div');
             imgEl.className = 'tavily-thumb';
-            // IMG onClick tela cheia
             imgEl.innerHTML = `<img src="${imgUrl}" alt="Tavily image ${i+1}" onclick="openFullscreen(this.src)" style="cursor: pointer;"/>`;
             imgEl.style.opacity = '0';
             imgEl.style.transform = 'translateY(6px)';
@@ -3122,7 +3255,6 @@
       const synthesisData = await synthesisResponse.json();
       const finalResponse = synthesisData.choices[0].message.content;
       
-      // Salva Resposta do Agente no histórico apenas em TEXTO
       currentSession.messages.push({ role: 'user', text: userPrompt || "[Pesquisa Web Iniciada]" });
       currentSession.messages.push({ role: 'bot', text: finalResponse });
       saveSessions();
@@ -3244,10 +3376,276 @@
     }
   }
 
+  // ========== AGENTE DE MAPAS (100% OPEN SOURCE / LEAFLET) ==========
+  async function executeMapAgent(userPrompt, attachedFilesData = []) {
+    activeAgentsCount++;
+    const currentAgentId = activeAgentsCount;
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+
+    if (!currentSessionId) {
+      currentSessionId = Date.now().toString();
+      sessions.unshift({
+        id: currentSessionId,
+        title: userPrompt ? userPrompt.substring(0, 30) + "..." : "Busca no Mapa",
+        messages: []
+      });
+    }
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+
+    const agentContainer = document.createElement('div');
+    agentContainer.className = 'agent-response-container';
+    agentContainer.innerHTML = `
+      <div class="agent-pill" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); color: var(--agent-green);">
+        <i class="ti ti-map-2" style="color: var(--agent-green);"></i>
+        Agente de Mapas ativo
+      </div>
+
+      <div class="thought-box" id="thoughtBox_${currentAgentId}">
+        <div class="thought-header" onclick="toggleAgentThoughtBox(${currentAgentId})">
+          <div class="thought-status">
+            <div class="spinner" id="mainSpinner_${currentAgentId}" style="border-top-color: var(--agent-green);"></div>
+            <i class="ti ti-circle-check-filled success-icon" id="mainCheck_${currentAgentId}" style="color: var(--agent-green);"></i>
+            <span class="thought-title" id="mainTitle_${currentAgentId}">Processando intenção geográfica...</span>
+          </div>
+          <span class="thought-duration" id="timer_${currentAgentId}">0.0s</span>
+          <i class="ti ti-chevron-down thought-toggle"></i>
+        </div>
+
+        <div class="thought-content">
+          <div class="step" id="step1_${currentAgentId}">
+            <div class="step-icon" id="icon1_${currentAgentId}">1</div>
+            <div class="step-text">Interpretando destino e contexto...</div>
+          </div>
+          <div class="step" id="step2_${currentAgentId}">
+            <div class="step-icon" id="icon2_${currentAgentId}">2</div>
+            <div class="step-text">Consultando banco de dados OpenStreetMap...</div>
+          </div>
+          <div class="step" id="step3_${currentAgentId}">
+            <div class="step-icon" id="icon3_${currentAgentId}">3</div>
+            <div class="step-text">Validando coordenadas e gerando mapa...</div>
+          </div>
+          <div class="step" id="step4_${currentAgentId}">
+            <div class="step-icon" id="icon4_${currentAgentId}">4</div>
+            <div class="step-text">Sintetizando detalhes para o chat...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-card" id="outputCard_${currentAgentId}">
+        <p id="outputContent_${currentAgentId}"></p>
+        <div id="researchFollowups_${currentAgentId}" class="followups"></div>
+      </div>
+    `;
+
+    messagesEl.appendChild(agentContainer);
+    scrollToBottom();
+
+    let startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      const timerEl = document.getElementById(`timer_${currentAgentId}`);
+      if (timerEl) timerEl.textContent = `${elapsed}s`;
+    }, 100);
+
+    try {
+      // ETAPA 1: Planejamento via Groq para OpenStreetMap Nominatim
+      setStepActive(1, currentAgentId);
+      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
+      if (!groqApiKey) {
+        const configResponse = await fetch('/api/config');
+        if (configResponse.ok) {
+          const configData = await configResponse.json();
+          groqApiKey = configData.groqApiKey;
+        }
+      }
+      if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
+
+      const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            { role: 'system', content: 'Você é um especialista em geolocalização. Transforme o pedido do usuário em uma busca otimizada para a API Nominatim (OpenStreetMap). Retorne APENAS a string de busca, sem aspas ou acréscimos. Se for um tipo de local em uma cidade, use o formato "local, cidade". Ex: "restaurantes em santos" -> "restaurante, santos". "praias de ubatuba" -> "praia, ubatuba".' },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.1, max_tokens: 50
+        })
+      });
+
+      if (!planResponse.ok) throw new Error('Erro ao planejar busca no mapa');
+      const planData = await planResponse.json();
+      let searchKeywords = planData.choices[0].message.content.trim().replace(/['"]/g, '');
+      await sleep(600);
+      setStepCompleted(1, currentAgentId, '#10b981');
+
+      // ETAPA 2: Consultando Nominatim (Totalmente gratuito)
+      setStepActive(2, currentAgentId);
+      const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl2) titleEl2.textContent = `Consultando Mapa para: ${searchKeywords}...`;
+
+      const nomRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchKeywords)}&limit=15`);
+      if (!nomRes.ok) throw new Error('Erro ao consultar OpenStreetMap');
+      const places = await nomRes.json();
+      await sleep(1000);
+      setStepCompleted(2, currentAgentId, '#10b981');
+
+      // ETAPA 3: Renderizando mapa
+      setStepActive(3, currentAgentId);
+      const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl3) titleEl3.textContent = 'Renderizando mapa interativo ao lado...';
+
+      openMapArtifact(places, searchKeywords);
+      await sleep(1200);
+      setStepCompleted(3, currentAgentId, '#10b981');
+
+      // ETAPA 4: Resposta Sintética no chat
+      setStepActive(4, currentAgentId);
+      const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl4) titleEl4.textContent = 'Sintetizando detalhes para você...';
+
+      let placeNames = places.slice(0, 5).map(p => p.name || p.display_name.split(',')[0]).join(', ');
+      let promptMapContext = places.length > 0
+        ? `Encontramos ${places.length} locais de destaque na região solicitada. Alguns deles: ${placeNames}.`
+        : `Não encontramos as coordenadas exatas no OpenStreetMap para essa busca. O mapa foi centralizado numa visão padrão.`;
+
+      const synthesisResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            {
+              role: 'system',
+                content: 'Você é um assistente de viagens e localização. Informe ao usuário de maneira super amigável que o mapa interativo foi aberto ao lado com os resultados que ele pediu. Mencione os locais se listados. OBRIGATÓRIO: No final, liste exatamente 3 sugestões curtas de acompanhamento para ele continuar, com o título "### Sugestões:"'
+            },
+            {
+              role: 'user',
+              content: `Pedido do usuário: "${userPrompt}".\n\nStatus da consulta no mapa: ${promptMapContext}`
+            }
+          ],
+          temperature: 0.7, max_tokens: 800
+        })
+      });
+
+      if (!synthesisResponse.ok) throw new Error('Erro ao sintetizar resposta do mapa');
+      const synthesisData = await synthesisResponse.json();
+      const finalResponse = synthesisData.choices[0].message.content;
+
+      currentSession.messages.push({ role: 'user', text: userPrompt || "[Busca no Mapa Iniciada]" });
+      currentSession.messages.push({ role: 'bot', text: finalResponse });
+      saveSessions();
+      renderHistoryList();
+
+      await sleep(600);
+      setStepCompleted(4, currentAgentId, '#10b981');
+
+      clearInterval(timerInterval);
+      const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
+      const titleElFinal = document.getElementById(`mainTitle_${currentAgentId}`);
+      
+      if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
+      if (titleElFinal) titleElFinal.textContent = 'Localização finalizada no mapa com sucesso!';
+
+      setTimeout(() => { if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed'); }, 600);
+
+      // Final Render da resposta
+      setTimeout(() => {
+        const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+        const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+        const researchFollowups = document.getElementById(`researchFollowups_${currentAgentId}`);
+        
+        if (outputCard && outputContent) {
+          outputCard.style.display = 'block';
+          
+          let researchDisplay = finalResponse;
+          let researchSuggestions = [];
+          
+          const suggestionsRegex = /(?:\[SUGESTOES\]|\*\*Sugestões\*\*|### Sugestões|Sugestões:|Sugestões para o usuário:)\s*\n([\s\S]*)$/i;
+          const match = finalResponse.match(suggestionsRegex);
+
+          if (match) {
+            researchDisplay = finalResponse.replace(suggestionsRegex, '').trim();
+            researchSuggestions = match[1].trim().split('\n')
+              .map(s => s.replace(/^[-*0-9.\s]+/, '').trim())
+              .filter(s => s.length > 0)
+              .slice(0, 3);
+          }
+
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const researchMsgId = 'res_' + Date.now();
+          outputCard.id = researchMsgId;
+          outputCard.setAttribute('data-raw-content', researchDisplay);
+          const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
+          outputContent.innerHTML = botAvatarHTML + formatMarkdown(researchDisplay);
+          outputCard.insertAdjacentHTML('afterend', botActions);
+
+          if (window.lucide) lucide.createIcons();
+
+          if (researchFollowups && researchSuggestions.length > 0) {
+            researchSuggestions.forEach(s => {
+              const btn = document.createElement('button');
+              btn.className = 'followup-pill';
+              btn.textContent = s;
+              btn.onclick = () => {
+                const f = document.getElementById('inputField');
+                if (f) { f.value = s; autoResize(f); f.focus(); }
+              };
+              researchFollowups.appendChild(btn);
+            });
+          }
+
+          outputCard.offsetHeight;
+          outputCard.classList.add('visible');
+        }
+
+        setTimeout(scrollToBottom, 50);
+      }, 1100);
+
+    } catch (error) {
+      clearInterval(timerInterval);
+      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+      if (outputCard && outputContent) {
+        outputCard.style.display = 'block';
+        outputContent.innerHTML = `❌ <strong>Erro no Mapa:</strong> ${error.message}`;
+        outputCard.offsetHeight;
+        outputCard.classList.add('visible');
+      }
+      scrollToBottom();
+    }
+  }
+
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-  function setStepActive(num, agentId) { const step = document.getElementById(`step${num}_${agentId}`); if (step) step.className = "step active"; }
-  function setStepCompleted(num, agentId) { const step = document.getElementById(`step${num}_${agentId}`); const icon = document.getElementById(`icon${num}_${agentId}`); if (step) step.className = "step completed"; if (icon) icon.innerHTML = '<i class="ti ti-check"></i>'; }
-  function toggleAgentThoughtBox(agentId, boxType = 'thoughtBox') { const boxId = `${boxType}_${agentId}`; const box = document.getElementById(boxId); if (box) { box.classList.toggle('collapsed'); setTimeout(scrollToBottom, 450); } }
+  
+  function setStepActive(num, agentId) { 
+    const step = document.getElementById(`step${num}_${agentId}`); 
+    if (step) step.className = "step active"; 
+  }
+  
+  // Customizada para poder receber cor diferente (usada no mapa verde)
+  function setStepCompleted(num, agentId, customColor = null) { 
+    const step = document.getElementById(`step${num}_${agentId}`); 
+    const icon = document.getElementById(`icon${num}_${agentId}`); 
+    if (step) step.className = "step completed"; 
+    if (icon) {
+        icon.innerHTML = '<i class="ti ti-check"></i>'; 
+        if(customColor) {
+            icon.style.backgroundColor = customColor + '1A';
+            icon.style.color = customColor;
+        }
+    }
+  }
+  
+  function toggleAgentThoughtBox(agentId, boxType = 'thoughtBox') { 
+    const boxId = `${boxType}_${agentId}`; 
+    const box = document.getElementById(boxId); 
+    if (box) { 
+        box.classList.toggle('collapsed'); 
+        setTimeout(scrollToBottom, 450); 
+    } 
+  }
 
   function openSourcesSidebar(agentId, results = []) {
     const sidebar = document.getElementById('sourcesSidebar');
@@ -3323,7 +3721,9 @@
     autoResize(field);
 
     setTimeout(() => {
-        if (searchMode) {
+        if (mapMode) {
+          executeMapAgent(text, currentAttachments);
+        } else if (searchMode) {
           executeDeepResearch(text, currentAttachments);
         } else {
           showTypingIndicator();
