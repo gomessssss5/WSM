@@ -443,6 +443,12 @@
     padding: 0;
   }
 
+  /* ANIMAÇÃO SUAVE E MODERNA DE ENTRADA (MENSAGENS) */
+  @keyframes fadeUpMessage {
+    0% { opacity: 0; transform: translateY(12px) scale(0.99); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
   .message {
     max-width: 85%;
     padding: 14px 18px;
@@ -452,7 +458,7 @@
     font-family: 'Lora', serif; /* Fonte Lora adicionada às mensagens */
     line-height: 1.6;
     word-break: break-word;
-    animation: fadeUp 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
+    animation: fadeUpMessage 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) both;
   }
 
   .message.user {
@@ -836,7 +842,7 @@
   }
   .fullscreen-close:hover { background: rgba(0,0,0,0.8); }
 
-  /* LOADING INDICATOR */
+  /* LOADING INDICATOR (COM ANIMAÇÃO DE SAÍDA SUAVE E MODERNA) */
   .typing-indicator {
     display: flex;
     align-items: center;
@@ -849,7 +855,23 @@
     margin-right: auto;
     margin-bottom: 12px;
     box-shadow: var(--shadow-card);
-    animation: fadeUp 0.25s ease both;
+    
+    /* Configurações para a animação suave de entrada/saída */
+    transform-origin: left bottom;
+    max-height: 44px; 
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    animation: fadeUpMessage 0.35s cubic-bezier(0.25, 1, 0.5, 1) both;
+  }
+
+  .typing-indicator.fade-out {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-width: 0;
+    transform: scale(0.95);
   }
 
   .typing-dot {
@@ -1496,7 +1518,7 @@
     flex-direction: column;
     gap: 14px;
     width: 100%;
-    animation: fadeUp 0.4s ease both;
+    animation: fadeUpMessage 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) both;
     margin-bottom: 8px;
   }
 
@@ -1977,7 +1999,6 @@
       </div>
       <div class="topbar-right">
         <button class="icon-btn" title="Pesquisa na web (Simulação)" onclick="toggleSearchMode()"><i class="ti ti-world" aria-hidden="true"></i></button>
-        <!-- Removido o botão de histórico antigo daqui, pois agora é no sidebar -->
       </div>
     </div>
 
@@ -2639,9 +2660,15 @@
     scrollToBottom();
   }
 
+  // Nova lógica de remoção suave para o indicador de digitação
   function removeTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
-    if (indicator) indicator.remove();
+    if (indicator) {
+      indicator.classList.add('fade-out'); // Adiciona a classe que reduz tamanho/opacidade
+      setTimeout(() => {
+        if (indicator.parentNode) indicator.remove(); // Remove definitivamente após transição
+      }, 300);
+    }
   }
 
   function scrollToBottom() {
@@ -2674,9 +2701,14 @@
     }
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
-    // Constrói o payload enviando APENAS TEXTOS do passado para evitar erro 413 (Payload Too Large)
+    // Prompt do sistema OTIMIZADO para AUTO-PESQUISA
     let apiMessages = [
-      { role: "system", content: "Você é o WSM AI 1.0 Flash. REGRAS: 1) Estruture as informações de forma clara com listas, tópicos numerados ou texto corrido. Use tabelas APENAS para dados tabulares/comparativos estritos. NUNCA force tabelas para tópicos comuns. 2) Use LaTeX ($...$). 3) Use títulos (###). 4) OBRIGATÓRIO: Termine a resposta listando exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda em português." }
+      { role: "system", content: `Você é o WSM AI 1.0 Flash, um assistente inteligente. REGRAS ABSOLUTAS:
+1) MODO AUTO-PESQUISA (OBRIGATÓRIO): Se o usuário pedir para pesquisar algo, perguntar sobre fatos recentes, placares, clima, notícias, ou qualquer coisa que exija buscar na internet, VOCÊ NÃO DEVE RESPONDER NORMALMENTE. Responda APENAS E EXATAMENTE no formato: {web: [o que pesquisar]}. Exemplo: se o usuário perguntar "quem ganhou a copa de 2022", responda APENAS ESTRITAMENTE "{web: [ganhadores copa 2022]}". Não inclua NENHUM texto extra.
+2) MODO NORMAL: Se NÃO precisar de pesquisa, responda normalmente a pergunta. Estruture com listas ou texto corrido. Tabelas APENAS para dados tabulares estritos.
+3) Use LaTeX ($...$) se precisar de equações.
+4) Use títulos (###).
+5) OBRIGATÓRIO NO MODO NORMAL: Termine sua resposta listando exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -2744,8 +2776,26 @@
       }
 
       const data = await response.json();
-      const assistantResponse = data.choices[0].message.content;
+      const assistantResponse = data.choices[0].message.content.trim();
 
+      // MÁGICA DO AUTO-SEARCH AQUI: Identifica se a IA devolveu a tag exclusiva de Pesquisa Web
+      const webMatch = assistantResponse.match(/\{web:\s*\[?([^}\]]+)/i);
+      
+      if (webMatch) {
+        // Pega a palavra-chave que a IA gerou e limpa. Exclui e não exibe o texto ao usuário.
+        const searchQuery = webMatch[1].trim(); 
+        
+        removeTypingIndicator(); // Esconde o balãozinho suavemente
+        
+        // Aguarda a transição de saída do balão concluir antes de invocar a interface de deep research!
+        setTimeout(() => {
+          executeDeepResearch(userPrompt, attachments, searchQuery);
+        }, 200); 
+        
+        return; // ABORTA O FLUXO NORMAL! A IA não mandará nenhuma mensagem normal agora.
+      }
+
+      // -- Se for fluxo normal (IA não mandou {web:}) --
       // Salva histórico na Sessão da UI apenas em TEXTO para manter armazenamento leve
       currentSession.messages.push({ role: 'user', text: userPrompt || "" });
       currentSession.messages.push({ role: 'bot', text: assistantResponse });
@@ -2753,6 +2803,7 @@
       renderHistoryList();
 
       removeTypingIndicator();
+      // O setTimeout garante que a nova mensagem seja adicionada enquanto o indicador vai encolhendo
       appendMessage(assistantResponse, 'bot');
 
     } catch (error) {
@@ -2768,8 +2819,8 @@
     tertiary: 'llama-3.2-90b-vision-preview'
   };
 
-  // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH ==========
-  async function executeDeepResearch(userPrompt, attachedFilesData = []) {
+  // ========== AGENTE DE IA EM LOOP: DEEP RESEARCH (Agora aceita query forçada no parametro 3) ==========
+  async function executeDeepResearch(userPrompt, attachedFilesData = [], autoSearchQuery = null) {
     
     activeAgentsCount++;
     const currentAgentId = activeAgentsCount;
@@ -2847,7 +2898,7 @@
     }, 100);
 
     try {
-      // ETAPA 1
+      // ETAPA 1: Determina as palavras-chave (Ou pega a que a IA já montou no Auto-Search)
       setStepActive(1, currentAgentId);
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
@@ -2859,23 +2910,34 @@
       }
       if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
 
-      const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [
-            { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.3, max_tokens: 100
-        })
-      });
+      let searchKeywords = autoSearchQuery;
 
-      if (!planResponse.ok) throw new Error('Erro ao chamar Groq para planejamento');
-      const planData = await planResponse.json();
-      const searchKeywords = planData.choices[0].message.content.trim();
-      await sleep(800);
+      if (!searchKeywords) {
+        // Se NÃO for pesquisa automática, precisa fazer o Groq planejar
+        const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.1-8b-instant',
+            messages: [
+              { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.3, max_tokens: 100
+          })
+        });
+
+        if (!planResponse.ok) throw new Error('Erro ao chamar Groq para planejamento');
+        const planData = await planResponse.json();
+        searchKeywords = planData.choices[0].message.content.trim();
+        await sleep(800);
+      } else {
+        // Se FOR automático, o Groq já nos disse ali atrás qual a query, então só simulo um tempo de tela
+        const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
+        if (titleEl1) titleEl1.textContent = 'Interpretando necessidade de busca automática...';
+        await sleep(600);
+      }
+      
       setStepCompleted(1, currentAgentId);
 
       // ETAPA 2
@@ -2897,6 +2959,7 @@
       await sleep(1500);
       setStepCompleted(2, currentAgentId);
 
+      // (Lógica de visão mantida intacta)
       if (attachedFilesData && attachedFilesData.length > 0) {
         try {
           const imgsToAnalyze = attachedFilesData
