@@ -2157,6 +2157,139 @@
     to { transform: scale(1); opacity: 1; }
   }
 
+  /* ==========================================================================
+     AGENTE DE APRESENTAÇÕES (SLIDES PREVIEW & FULLSCREEN)
+     ========================================================================== */
+  #slideActiveBtn {
+    display: none;
+  }
+
+  #slideActiveBtn.is-active {
+    display: inline-flex;
+  }
+
+  .tool-btn.slide-active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .tool-btn.slide-active .search-close {
+    display: inline-flex;
+  }
+
+  .slides-preview-container {
+    display: none;
+    padding: 30px;
+    flex-direction: column;
+    gap: 30px;
+    overflow-y: auto;
+    height: 100%;
+    background: #0f0f10;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+
+  .slide-card {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .slide-card-header {
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    font-size: 11px;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px 10px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .slide-card-content-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: auto;
+  }
+
+  .slide-card-content-wrapper section {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    min-height: 100% !important;
+    box-sizing: border-box;
+    padding: 40px;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+
+  /* Reset reveal.js elements styling inside the preview slide cards */
+  .slide-card-content-wrapper section h1,
+  .slide-card-content-wrapper section h2,
+  .slide-card-content-wrapper section h3 {
+    margin-top: 0;
+    font-weight: 700;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+
+  .slide-card-content-wrapper section h1 { font-size: 2.2rem; }
+  .slide-card-content-wrapper section h2 { font-size: 1.8rem; }
+  .slide-card-content-wrapper section h3 { font-size: 1.4rem; }
+  .slide-card-content-wrapper section p,
+  .slide-card-content-wrapper section li {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .slide-card-content-wrapper section ul,
+  .slide-card-content-wrapper section ol {
+    text-align: left;
+    margin-top: 15px;
+    display: inline-block;
+  }
+
+  .slide-card-content-wrapper section img {
+    max-height: 40%;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 15px;
+  }
+
+  /* Layout de grade/divisão padrão nas apresentações */
+  .slide-card-content-wrapper section .split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+    text-align: left;
+  }
+
 </style>
 </head>
 <body>
@@ -2306,6 +2439,13 @@
                           <span class="agent-desc">Lê e analisa o conteúdo de links</span>
                         </div>
                       </button>
+                      <button class="agent-item" type="button" onclick="toggleSlideMode()">
+                        <div class="agent-icon" style="color: var(--agent-purple, #9333ea)"><i class="ti ti-presentation"></i></div>
+                        <div class="agent-info">
+                          <span class="agent-name">Apresentação</span>
+                          <span class="agent-desc">Gera slides usando Reveal.js</span>
+                        </div>
+                      </button>
                     </div>
                   </div>
 
@@ -2313,6 +2453,8 @@
                   <button class="tool-btn" id="mapActiveBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
                   <!-- BOTÃO DE LEITOR DE WEB (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
                   <button class="tool-btn" id="webReaderActiveBtn" type="button" onclick="toggleWebReaderMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Leitor de Web <span class="search-close">×</span></button>
+                  <!-- BOTÃO DE APRESENTAÇÃO (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
+                  <button class="tool-btn" id="slideActiveBtn" type="button" onclick="toggleSlideMode()"><i class="ti ti-presentation" aria-hidden="true"></i> Apresentação <span class="search-close">×</span></button>
                 </div>
 
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
@@ -2345,6 +2487,13 @@
               <button class="artifact-btn active" id="viewCodeBtn" onclick="toggleArtifactView('code')" title="Visualizar Código"><i class="ti ti-code"></i></button>
               <button class="artifact-btn" id="viewPreviewBtn" onclick="toggleArtifactView('preview')" title="Visualizar Site Rendenizado"><i class="ti ti-eye"></i></button>
             </div>
+
+            <!-- Toggle de visualização para Slides -->
+            <div id="slideToggleContainer" style="display: none; align-items: center; gap: 4px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; margin-right: 4px;">
+              <button class="artifact-btn active" id="viewSlideCodeBtn" onclick="toggleArtifactView('code')" title="Visualizar Código"><i class="ti ti-code"></i></button>
+              <button class="artifact-btn" id="viewSlidePreviewBtn" onclick="toggleArtifactView('slide')" title="Visualizar Slides"><i class="ti ti-presentation"></i></button>
+              <button class="artifact-btn" id="viewSlideFullscreenBtn" onclick="openSlidesFullscreen()" title="Apresentar em Tela Cheia"><i class="ti ti-maximize"></i></button>
+            </div>
             
             <button class="artifact-btn" id="copyArtifactBtn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
             <button class="artifact-btn" id="downloadArtifactBtn" onclick="downloadArtifact()" title="Baixar Arquivo"><i class="ti ti-download"></i></button>
@@ -2356,6 +2505,8 @@
           <pre id="artifactCodePre" style="margin: 0; height: 100%;"><code id="artifactCodeContent" class="hljs"></code></pre>
           <!-- Bloco do HTML renderizado -->
           <iframe id="artifactIframe" style="display: none; border: none; width: 100%; height: 100%; background: white; border-radius: 8px;"></iframe>
+          <!-- Bloco dos slides renderizados -->
+          <div id="slidesPreviewContainer" class="slides-preview-container"></div>
           <!-- Bloco do Mapa gerado dinamicamente -->
           <div id="mapContainer" style="display: none;"></div>
         </div>
@@ -2371,12 +2522,19 @@
     <img id="fullscreenImg" src="" alt="Visualização em tela cheia" onclick="event.stopPropagation()">
   </div>
 
+  <!-- FULLSCREEN SLIDES PRESENTATION MODAL -->
+  <div class="fullscreen-modal" id="slidesFullscreenModal" style="display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 10000; background: #000;">
+    <button class="fullscreen-close" onclick="closeSlidesFullscreen()" style="position: absolute; top: 20px; right: 20px; z-index: 10001; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px;"><i class="ti ti-x"></i></button>
+    <iframe id="slidesFullscreenIframe" style="width: 100%; height: 100%; border: none; background: #000;"></iframe>
+  </div>
+
 </div>
 
 <script>
   let searchMode = false;
   let mapMode = false;
   let webReaderMode = false;
+  let slideMode = false;
   let activeAgentsCount = 0;
   let attachedFiles = []; 
   let leafletMap = null; // Variável global para armazenar instância do Leaflet
@@ -2479,7 +2637,7 @@
     // Renderizar as mensagens deste chat
     sess.messages.forEach(msg => {
       const txt = msg.text || "";
-      appendMessage(txt, msg.role, [], true, msg.screenshotUrl, msg.webReaderUrl, msg.webReaderContent); 
+      appendMessage(txt, msg.role, [], true, msg.screenshotUrl, msg.webReaderUrl, msg.webReaderContent, msg.isSlide); 
     });
     
     renderHistoryList();
@@ -2513,6 +2671,7 @@
     searchMode = false;
     mapMode = false;
     webReaderMode = false;
+    slideMode = false;
 
     // Reseta as ferramentas ativas e reexibe todos os botões
     if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
@@ -2520,6 +2679,8 @@
     if (mapBtn) mapBtn.classList.remove('is-active', 'map-active');
     const webReaderBtn = document.getElementById('webReaderActiveBtn');
     if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
+    const slideActiveBtn = document.getElementById('slideActiveBtn');
+    if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -2680,11 +2841,14 @@
     if (searchMode) {
         mapMode = false;
         webReaderMode = false;
+        slideMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta todos os botões não ativos
         searchBtn.classList.add('is-active', 'search-active'); // Deixa o Pesquisar vísivel e pintado
         mapBtn.classList.remove('is-active', 'map-active');
         const webReaderBtn = document.getElementById('webReaderActiveBtn');
         if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
+        const slideActiveBtn = document.getElementById('slideActiveBtn');
+        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
         if (field) field.placeholder = 'Pesquisar na web estruturada...';
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Volta todos os botões
@@ -2708,11 +2872,14 @@
     if (mapMode) {
         searchMode = false;
         webReaderMode = false;
+        slideMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
         mapBtn.classList.add('is-active', 'map-active'); // Exibe e pinta o Mapas dedicado
         searchBtn.classList.remove('is-active', 'search-active');
         const webReaderBtn = document.getElementById('webReaderActiveBtn');
         if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
+        const slideActiveBtn = document.getElementById('slideActiveBtn');
+        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
@@ -2739,16 +2906,52 @@
     if (webReaderMode) {
         searchMode = false;
         mapMode = false;
+        slideMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
         webReaderBtn.classList.add('is-active', 'web-reader-active'); // Exibe e pinta o Leitor de Web
         searchBtn.classList.remove('is-active', 'search-active');
         mapBtn.classList.remove('is-active', 'map-active');
+        const slideActiveBtn = document.getElementById('slideActiveBtn');
+        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Cole o link de um site para ler e analisar...';
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
         webReaderBtn.classList.remove('is-active', 'web-reader-active'); // Esconde o botão
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+    }
+    
+    if (field) field.focus();
+  }
+
+  // Ativa e desativa o agente de Apresentação
+  function toggleSlideMode() {
+    const slideActiveBtn = document.getElementById('slideActiveBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const mapBtn = document.getElementById('mapActiveBtn');
+    const webReaderBtn = document.getElementById('webReaderActiveBtn');
+    const toolsContainer = document.querySelector('.input-tools');
+    const menu = document.getElementById('agentsMenu');
+    const field = document.getElementById('inputField');
+    
+    slideMode = !slideMode;
+    
+    if (slideMode) {
+        searchMode = false;
+        mapMode = false;
+        webReaderMode = false;
+        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
+        slideActiveBtn.classList.add('is-active', 'slide-active'); // Exibe e pinta o Slide
+        searchBtn.classList.remove('is-active', 'search-active');
+        mapBtn.classList.remove('is-active', 'map-active');
+        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
+        
+        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
+        if (field) field.placeholder = 'Digite o tema ou assunto para criar os slides de apresentação...';
+    } else {
+        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
+        slideActiveBtn.classList.remove('is-active', 'slide-active'); // Esconde o botão
         if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
     }
     
@@ -2776,15 +2979,18 @@
     const copyBtn = document.getElementById('copyArtifactBtn');
     const mapContainer = document.getElementById('mapContainer');
     const iframe = document.getElementById('artifactIframe');
+    const slidesContainer = document.getElementById('slidesPreviewContainer');
     const htmlToggleContainer = document.getElementById('htmlToggleContainer');
+    const slideToggleContainer = document.getElementById('slideToggleContainer');
     
     // Guardar os dados atuais
     currentArtifactCode = code;
     currentArtifactLang = lang || 'texto';
     
-    // Ocultar mapa e iframe, exibir código
+    // Ocultar mapa, iframe e slides, exibir código
     if(mapContainer) mapContainer.style.display = 'none';
     if(iframe) iframe.style.display = 'none';
+    if(slidesContainer) slidesContainer.style.display = 'none';
     if(codePre) codePre.style.display = 'block';
     if(copyBtn) copyBtn.style.display = 'flex';
     
@@ -2793,10 +2999,23 @@
     codeElement.className = lang ? `language-${lang}` : '';
     
     let displayLang = (lang || 'TEXTO').toUpperCase();
-    titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
+    if (lang === 'slide') {
+      displayLang = 'APRESENTAÇÃO';
+      titleElement.innerHTML = `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i><span>Apresentação</span>`;
+    } else {
+      titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
+    }
     
-    // Se for HTML, exibe o controle de alternância de abas
-    if (lang && lang.toLowerCase() === 'html') {
+    // Se for Slide, exibe o controle de slides
+    if (lang && lang.toLowerCase() === 'slide') {
+      if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
+      if (slideToggleContainer) slideToggleContainer.style.display = 'flex';
+      const viewSlideCodeBtn = document.getElementById('viewSlideCodeBtn');
+      const viewSlidePreviewBtn = document.getElementById('viewSlidePreviewBtn');
+      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.add('active');
+      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.remove('active');
+    } else if (lang && lang.toLowerCase() === 'html') {
+      if (slideToggleContainer) slideToggleContainer.style.display = 'none';
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'flex';
       const viewCodeBtn = document.getElementById('viewCodeBtn');
       const viewPreviewBtn = document.getElementById('viewPreviewBtn');
@@ -2804,6 +3023,7 @@
       if (viewPreviewBtn) viewPreviewBtn.classList.remove('active');
     } else {
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
+      if (slideToggleContainer) slideToggleContainer.style.display = 'none';
     }
     
     // Aplicar cor (Highlight.js)
@@ -2814,19 +3034,32 @@
     mainContent.classList.remove('artifact-map');
   }
 
-  // NOVA FUNÇÃO: Alternar visualização (Preview vs Código) para HTML
+  // NOVA FUNÇÃO: Alternar visualização (Preview vs Código)
   function toggleArtifactView(mode) {
     const codePre = document.getElementById('artifactCodePre');
     const iframe = document.getElementById('artifactIframe');
+    const slidesContainer = document.getElementById('slidesPreviewContainer');
+    
+    // HTML Buttons
     const viewCodeBtn = document.getElementById('viewCodeBtn');
     const viewPreviewBtn = document.getElementById('viewPreviewBtn');
+    
+    // Slide Buttons
+    const viewSlideCodeBtn = document.getElementById('viewSlideCodeBtn');
+    const viewSlidePreviewBtn = document.getElementById('viewSlidePreviewBtn');
+    
     const copyBtn = document.getElementById('copyArtifactBtn');
     
     if (mode === 'code') {
       if (codePre) codePre.style.display = 'block';
       if (iframe) iframe.style.display = 'none';
+      if (slidesContainer) slidesContainer.style.display = 'none';
+      
       if (viewCodeBtn) viewCodeBtn.classList.add('active');
       if (viewPreviewBtn) viewPreviewBtn.classList.remove('active');
+      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.add('active');
+      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.remove('active');
+      
       if (copyBtn) copyBtn.style.display = 'flex';
     } else if (mode === 'preview') {
       if (codePre) codePre.style.display = 'none';
@@ -2834,8 +3067,23 @@
         iframe.style.display = 'block';
         iframe.srcdoc = currentArtifactCode;
       }
+      if (slidesContainer) slidesContainer.style.display = 'none';
+      
       if (viewCodeBtn) viewCodeBtn.classList.remove('active');
       if (viewPreviewBtn) viewPreviewBtn.classList.add('active');
+      
+      if (copyBtn) copyBtn.style.display = 'none';
+    } else if (mode === 'slide') {
+      if (codePre) codePre.style.display = 'none';
+      if (iframe) iframe.style.display = 'none';
+      if (slidesContainer) {
+        slidesContainer.style.display = 'flex';
+        renderSlidesPreview(currentArtifactCode);
+      }
+      
+      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.remove('active');
+      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.add('active');
+      
       if (copyBtn) copyBtn.style.display = 'none';
     }
   }
@@ -2990,7 +3238,7 @@
         .replace(/<\/table>/g, '</table></div>');
   }
 
-  function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false, screenshotUrl = null, webReaderUrl = null, webReaderContent = null) {
+  function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false, screenshotUrl = null, webReaderUrl = null, webReaderContent = null, isSlide = false) {
     const messages = document.getElementById('messages');
     if (!messages) return;
     const el = document.createElement('div');
@@ -3043,19 +3291,31 @@
         codeBlocks.forEach((codeNode) => {
             const rawCode = codeNode.textContent;
             const lines = rawCode.split('\n').length;
-            const lang = codeNode.className.replace('language-', '') || 'texto';
+            let lang = codeNode.className.replace('language-', '') || 'texto';
+            
+            const isThisSlide = isSlide || lang === 'slide' || rawCode.includes('class="reveal"') || rawCode.includes('class="slides"');
+            if (isThisSlide) {
+              lang = 'slide';
+            }
 
             // Se for um bloco considerável (mais de 5 linhas), substitui pelo Botão Bonito
-            if (lines > 5 || rawCode.length > 250) {
+            if (isThisSlide || lines > 5 || rawCode.length > 250) {
                 const preNode = codeNode.parentNode;
                 
                 const card = document.createElement('div');
                 card.className = 'artifact-trigger-card';
+                
+                const iconHTML = isThisSlide 
+                  ? `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i>` 
+                  : `<i class="ti ti-braces"></i>`;
+                const titleText = isThisSlide ? `Visualizar Apresentação` : `Visualizar Código`;
+                const metaText = isThisSlide ? `Reveal.js Slides • ${lines} linhas` : `${lang.toUpperCase()} • ${lines} linhas`;
+                
                 card.innerHTML = `
-                    <div class="artifact-card-icon"><i class="ti ti-braces"></i></div>
+                    <div class="artifact-card-icon">${iconHTML}</div>
                     <div class="artifact-card-info">
-                        <span class="title">Visualizar Código</span>
-                        <span class="meta">${lang.toUpperCase()} • ${lines} linhas</span>
+                        <span class="title">${titleText}</span>
+                        <span class="meta">${metaText}</span>
                     </div>
                     <button class="artifact-card-btn">Abrir Prévia</button>
                 `;
@@ -4441,6 +4701,346 @@
     }
   }
 
+  // ========== AGENTE DE SLIDES: APRESENTAÇÃO (HTML REVEAL.JS) ==========
+  async function executeSlideAgent(userPrompt, attachedFilesData = []) {
+    activeAgentsCount++;
+    const currentAgentId = activeAgentsCount;
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+
+    if (!currentSessionId) {
+      currentSessionId = Date.now().toString();
+      sessions.unshift({
+        id: currentSessionId,
+        title: userPrompt ? userPrompt.substring(0, 30) + "..." : "Apresentação",
+        messages: []
+      });
+    }
+    const currentSession = sessions.find(s => s.id === currentSessionId);
+
+    const agentContainer = document.createElement('div');
+    agentContainer.className = 'agent-response-container';
+    agentContainer.innerHTML = `
+      <div class="agent-pill" style="background: rgba(147, 51, 234, 0.1); border-color: rgba(147, 51, 234, 0.2); color: var(--agent-purple, #9333ea);">
+        <i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea);"></i>
+        Agente de Apresentação ativo
+      </div>
+
+      <div class="thought-box" id="thoughtBox_${currentAgentId}">
+        <div class="thought-header" onclick="toggleAgentThoughtBox(${currentAgentId})">
+          <div class="thought-status">
+            <div class="spinner" id="mainSpinner_${currentAgentId}" style="border-top-color: var(--agent-purple, #9333ea);"></div>
+            <i class="ti ti-circle-check-filled success-icon" id="mainCheck_${currentAgentId}" style="color: var(--agent-purple, #9333ea);"></i>
+            <span class="thought-title" id="mainTitle_${currentAgentId}">Validando plano de apresentação...</span>
+          </div>
+          <span class="thought-duration" id="timer_${currentAgentId}">0.0s</span>
+          <i class="ti ti-chevron-down thought-toggle"></i>
+        </div>
+
+        <div class="thought-content">
+          <div class="step" id="step1_${currentAgentId}">
+            <div class="step-icon" id="icon1_${currentAgentId}">1</div>
+            <div class="step-text" id="stepText1_${currentAgentId}">Mapeando tópicos e estruturando capítulos...</div>
+          </div>
+          <div class="step" id="step2_${currentAgentId}">
+            <div class="step-icon" id="icon2_${currentAgentId}">2</div>
+            <div class="step-text" id="stepText2_${currentAgentId}">Pesquisando referências visuais e temas...</div>
+          </div>
+          <div class="step" id="step3_${currentAgentId}">
+            <div class="step-icon" id="icon3_${currentAgentId}">3</div>
+            <div class="step-text" id="stepText3_${currentAgentId}">Desenvolvendo design CSS e slides Reveal.js...</div>
+          </div>
+          <div class="step" id="step4_${currentAgentId}">
+            <div class="step-icon" id="icon4_${currentAgentId}">4</div>
+            <div class="step-text" id="stepText4_${currentAgentId}">Sintetizando e gerando visualizador de slides...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-card" id="outputCard_${currentAgentId}" style="display: none; margin-top: 28px; margin-left: 52px; position: relative;">
+        <!-- Bot Header (Avatar + Name) -->
+        <div id="botHeader_${currentAgentId}"></div>
+        
+        <div class="bot-response-content" id="outputContent_${currentAgentId}"></div>
+        <div id="researchFollowups_${currentAgentId}" class="followups"></div>
+      </div>
+    `;
+
+    messagesEl.appendChild(agentContainer);
+    scrollToBottom();
+
+    let startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      const timerEl = document.getElementById(`timer_${currentAgentId}`);
+      if (timerEl) timerEl.textContent = `${elapsed}s`;
+    }, 100);
+
+    try {
+      // ETAPA 1
+      setStepActive(1, currentAgentId);
+      await sleep(1000);
+      const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
+      if (stepText1) stepText1.textContent = 'Tópicos estruturados: Introdução, Problema, Solução e Conclusão.';
+      setStepCompleted(1, currentAgentId, '#9333ea');
+
+      // ETAPA 2
+      setStepActive(2, currentAgentId);
+      await sleep(1200);
+      const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
+      if (stepText2) stepText2.textContent = 'Tema e paleta de cores selecionados de acordo com o assunto.';
+      setStepCompleted(2, currentAgentId, '#9333ea');
+
+      // ETAPA 3
+      setStepActive(3, currentAgentId);
+      await sleep(1500);
+      const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
+      if (stepText3) stepText3.textContent = 'Esqueleto Reveal.js e classes CSS customizadas injetados.';
+      setStepCompleted(3, currentAgentId, '#9333ea');
+
+      // ETAPA 4
+      setStepActive(4, currentAgentId);
+      
+      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
+      if (!groqApiKey) {
+        const configResponse = await fetch('/api/config');
+        if (configResponse.ok) {
+          const configData = await configResponse.json();
+          groqApiKey = configData.groqApiKey;
+        }
+      }
+      if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
+
+      const systemInstruction = `Você é o WSM AI 1.0 Flash, atuando como o Agent-slide (Agente de Apresentações premium).
+Sua única tarefa é gerar uma apresentação de slides interativa e moderna usando o framework Reveal.js em formato HTML completo (válido e auto-contido).
+REGRAS CRÍTICAS:
+1) Responda sempre em português.
+2) Retorne APENAS o código HTML completo da apresentação contido em um bloco de código markdown (e.g. \`\`\`html ... \`\`\`). Não adicione nenhuma explicação ou texto fora do bloco de código.
+3) A apresentação deve conter a estrutura correta do Reveal.js:
+   <div class="reveal">
+     <div class="slides">
+       <section>...</section>
+     </div>
+   </div>
+4) Carregue os assets do Reveal.js via CDN de forma confiável na head:
+   - CSS Reset: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css
+   - CSS Core: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css
+   - CSS Tema: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/black.min.css (Escolha temas que combinem com o assunto: black, white, league, beige, sky, night, serif, simple, solarized, blood, moon).
+   - Script JS: https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.js
+5) Inicialize obrigatoriamente na tag script inferior:
+   Reveal.initialize({ hash: true, controls: true, slideNumber: true, transition: "slide" });
+6) Customize o design: Adicione uma tag <style> no <head> com classes de utilidades flexíveis como .split-layout (grade de 2 colunas para alinhar texto e imagem/tópicos), .box-highlight (caixas para destacar dados importantes), animações de texto e backgrounds elegantes.
+7) Mídia: Use imagens com alt text, bordas arredondadas e sombras. Para imagens, dê preferência a URLs do Unsplash (ex: https://images.unsplash.com/photo-...) que combinem com o assunto.
+8) Conteúdo e Legibilidade (Regra 10/20/30): Limite cada slide a poucas palavras ou bullets fáceis de ler. Use a classe "fragment" para que itens de lista apareçam sequencialmente.
+9) Narrativa: Siga uma ordem lógica como Introdução -> Problema -> Conteúdo/Solução -> Conclusão.`;
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: `Crie uma apresentação de slides profissional sobre o seguinte assunto: "${userPrompt}"` }
+          ],
+          temperature: 0.6, max_tokens: 2500
+        })
+      });
+
+      if (!response.ok) throw new Error('Falha ao gerar apresentação de slides com a IA.');
+      const data = await response.json();
+      const aiResponseText = data.choices[0].message.content;
+
+      // Salva na sessão do chat
+      currentSession.messages.push({ role: 'user', text: userPrompt || 'Gerar Slides' });
+      currentSession.messages.push({ 
+        role: 'bot', 
+        text: aiResponseText,
+        isSlide: true
+      });
+      saveSessions();
+      renderHistoryList();
+
+      await sleep(600);
+      setStepCompleted(4, currentAgentId, '#9333ea');
+      clearInterval(timerInterval);
+
+      const thoughtBoxEl = document.getElementById(`thoughtBox_${currentAgentId}`);
+      const titleElFinal = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (thoughtBoxEl) thoughtBoxEl.classList.add('completed');
+      if (titleElFinal) titleElFinal.textContent = 'Slides gerados com sucesso!';
+      setTimeout(() => { if (thoughtBoxEl) thoughtBoxEl.classList.add('collapsed'); }, 600);
+
+      // Exibe a resposta
+      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+      const researchFollowups = document.getElementById(`researchFollowups_${currentAgentId}`);
+      
+      if (outputCard && outputContent) {
+        outputCard.style.display = 'block';
+        outputCard.classList.add('visible');
+
+        let displayResponse = aiResponseText;
+        let followups = [];
+        
+        const suggestionsRegex = /(?:\[SUGESTOES\]|\*\*Sugestões\*\*|### Sugestões|Sugestões:|Sugestões para o usuário:)\s*\n([\s\S]*)$/i;
+        const match = aiResponseText.match(suggestionsRegex);
+        if (match) {
+          displayResponse = aiResponseText.replace(suggestionsRegex, '').trim();
+          followups = match[1].trim().split('\n')
+            .map(s => s.replace(/^[-*0-9.\s]+/, '').trim())
+            .filter(s => s.length > 0)
+            .slice(0, 3);
+        }
+
+        const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+        const botHeader = document.getElementById(`botHeader_${currentAgentId}`);
+        if (botHeader) botHeader.innerHTML = botAvatarHTML;
+
+        const slideMsgId = 'slide_' + Date.now();
+        outputCard.id = slideMsgId;
+        outputCard.setAttribute('data-raw-content', displayResponse);
+
+        // Ações da mensagem (Copiar/Regenerar)
+        const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${slideMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
+        outputContent.innerHTML = formatMarkdown(displayResponse);
+        outputCard.insertAdjacentHTML('afterend', botActions);
+        if (window.lucide) lucide.createIcons();
+
+        // Substituir o bloco de código grande de reveal.js gerado por um botão para abrir no painel lateral
+        const codeNode = outputContent.querySelector('pre code');
+        if (codeNode) {
+          const rawCode = codeNode.textContent;
+          const lines = rawCode.split('\n').length;
+          const preNode = codeNode.parentNode;
+          
+          const card = document.createElement('div');
+          card.className = 'artifact-trigger-card';
+          card.innerHTML = `
+              <div class="artifact-card-icon"><i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i></div>
+              <div class="artifact-card-info">
+                  <span class="title">Visualizar Apresentação</span>
+                  <span class="meta">Reveal.js Slides • ${lines} linhas</span>
+              </div>
+              <button class="artifact-card-btn">Abrir Prévia</button>
+          `;
+          
+          card.addEventListener('click', () => {
+              openArtifact(rawCode, 'slide');
+          });
+          
+          preNode.parentNode.insertBefore(card, preNode);
+          preNode.remove();
+          
+          // Abre automaticamente na primeira vez
+          openArtifact(rawCode, 'slide');
+        }
+
+        if (researchFollowups && followups.length > 0) {
+          followups.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'followup-pill';
+            btn.textContent = s;
+            btn.onclick = () => {
+              const f = document.getElementById('inputField');
+              if (f) { f.value = s; autoResize(f); f.focus(); }
+            };
+            researchFollowups.appendChild(btn);
+          });
+        }
+      }
+
+      setTimeout(scrollToBottom, 50);
+
+    } catch (error) {
+      clearInterval(timerInterval);
+      const outputCard = document.getElementById(`outputCard_${currentAgentId}`);
+      const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
+      if (outputCard && outputContent) {
+        outputCard.style.display = 'block';
+        outputContent.innerHTML = `❌ <strong>Erro no Agente de Apresentação:</strong> ${error.message}`;
+        outputCard.offsetHeight;
+        outputCard.classList.add('visible');
+      }
+      scrollToBottom();
+    }
+  }
+
+  // Visualizar slides em tela cheia (Reveal.js interativo)
+  function openSlidesFullscreen() {
+    const modal = document.getElementById('slidesFullscreenModal');
+    const iframe = document.getElementById('slidesFullscreenIframe');
+    if (modal && iframe) {
+      modal.style.display = 'block';
+      iframe.srcdoc = currentArtifactCode;
+    }
+  }
+  
+  function closeSlidesFullscreen() {
+    const modal = document.getElementById('slidesFullscreenModal');
+    const iframe = document.getElementById('slidesFullscreenIframe');
+    if (modal && iframe) {
+      modal.style.display = 'none';
+      iframe.srcdoc = '';
+    }
+  }
+
+  // Renderizar slides de forma empilhada verticalmente (Visualizar Slides)
+  function renderSlidesPreview(htmlContent) {
+    const slidesContainer = document.getElementById('slidesPreviewContainer');
+    if (!slidesContainer) return;
+    slidesContainer.innerHTML = '';
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    
+    let sections = [];
+    const topSections = tempDiv.querySelectorAll('.slides > section, body > section');
+    
+    if (topSections.length > 0) {
+      topSections.forEach(sec => {
+        const nested = sec.querySelectorAll('section');
+        if (nested.length > 0) {
+          nested.forEach(nSec => sections.push(nSec));
+        } else {
+          sections.push(sec);
+        }
+      });
+    } else {
+      sections = Array.from(tempDiv.querySelectorAll('section')).filter(sec => sec.querySelectorAll('section').length === 0);
+    }
+    
+    if (sections.length === 0) {
+      sections = Array.from(tempDiv.querySelectorAll('section'));
+    }
+    
+    const styleTags = tempDiv.querySelectorAll('style');
+    styleTags.forEach(style => {
+      const clonedStyle = style.cloneNode(true);
+      slidesContainer.appendChild(clonedStyle);
+    });
+    
+    sections.forEach((sec, index) => {
+      const card = document.createElement('div');
+      card.className = 'slide-card';
+      
+      const header = document.createElement('div');
+      header.className = 'slide-card-header';
+      header.textContent = `Slide ${index + 1}`;
+      
+      const wrapper = document.createElement('div');
+      wrapper.className = 'slide-card-content-wrapper';
+      
+      const clonedSec = sec.cloneNode(true);
+      clonedSec.querySelectorAll('.fragment').forEach(f => f.classList.remove('fragment'));
+      
+      wrapper.appendChild(clonedSec);
+      card.appendChild(header);
+      card.appendChild(wrapper);
+      slidesContainer.appendChild(card);
+    });
+  }
+
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
   
   function setStepActive(num, agentId) { 
@@ -4548,7 +5148,9 @@
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         const urlMatch = text.match(urlRegex);
 
-        if (mapMode) {
+        if (slideMode) {
+          executeSlideAgent(text, currentAttachments);
+        } else if (mapMode) {
           executeMapAgent(text, currentAttachments);
         } else if (searchMode) {
           executeDeepResearch(text, currentAttachments);
