@@ -1425,6 +1425,11 @@
     display: none !important;
   }
 
+  /* QUANDO HÁ ANEXOS: EXIBE SOMENTE O BOTÃO DE ANEXAR */
+  .input-tools.has-attachments > *:not(#attachBtn) {
+    display: none !important;
+  }
+
   .tool-btn {
     display: inline-flex;
     align-items: center;
@@ -2590,11 +2595,15 @@
   // Renderizar cartões de miniatura
   function renderAttachmentPreviews() {
     const container = document.getElementById('attachmentPreview');
+    const toolsContainer = document.querySelector('.input-tools');
     if (!container) return;
 
     if (attachedFiles.length === 0) {
       container.style.display = 'none';
       container.innerHTML = '';
+      if (toolsContainer) {
+        toolsContainer.classList.remove('has-attachments');
+      }
       return;
     }
 
@@ -2605,6 +2614,10 @@
         <button class="attachment-clear-btn" title="Remover" onclick="event.stopPropagation(); removeAttachedFile(${index})">C</button>
       </div>
     `).join('');
+
+    if (toolsContainer) {
+      toolsContainer.classList.add('has-attachments');
+    }
   }
 
   // Remover imagem selecionada individualmente
