@@ -91,30 +91,8 @@
     --agent-purple: #8b5cf6;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111110;
-      --bg-card: rgba(28, 28, 26, 0.88);
-      --bg-input: rgba(24, 24, 22, 0.96);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-focus: rgba(255, 255, 255, 0.2);
-      --text-primary: #f0f0ee;
-      --text-secondary: #888885;
-      --text-muted: #555553;
-      --accent: #f0f0ee;
-      --pill-bg: rgba(255, 255, 255, 0.06);
-      --pill-hover: rgba(255, 255, 255, 0.1);
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
-      --shadow-input: 0 4px 18px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.05);
-      --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.4);
-
-      --agent-blue: #38bdf8;
-      --agent-green: #34d399;
-      --agent-amber: #fbbf24;
-      --agent-purple: #a78bfa;
-    }
-  }
-
+  /* Removido Dark Mode */
+  
   html, body {
     height: 100%;
     font-family: 'Inter', -apple-system, sans-serif;
@@ -303,12 +281,6 @@
     background: radial-gradient(circle, rgba(0,0,0,0.022) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .main::before {
-      background: radial-gradient(circle, rgba(255,255,255,0.025) 0%, transparent 70%);
-    }
   }
 
   /* TOP BAR */
@@ -2662,8 +2634,14 @@
         </button>
       </div>
       <div class="topbar-right">
-        <div id="memoryTracker" style="font-size: 12px; color: var(--text-secondary); margin-right: 15px; font-weight: 500;">
-          Memória: 0%
+        <div id="memoryTracker" style="width: 120px; font-size: 11px; margin-right: 15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+                <span>Memória</span>
+                <span id="memoryText">0%</span>
+            </div>
+            <div style="height: 6px; background: var(--pill-bg); border-radius: 3px; overflow: hidden;">
+                <div id="memoryBar" style="height: 100%; width: 0%; background: var(--agent-green); transition: width 0.3s ease, background 0.3s ease;"></div>
+            </div>
         </div>
       </div>
     </div>
@@ -4133,6 +4111,7 @@
     }
 
     try {
+      const startTime = Date.now();
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -4146,6 +4125,17 @@
           max_tokens: 1500
         })
       });
+
+      const duration = Date.now() - startTime;
+      if (duration > 10000 && document.hidden) {
+        if (Notification.permission === "granted") {
+            new Notification("WSM AI", { body: "A resposta da IA ficou pronta!" });
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") new Notification("WSM AI", { body: "A resposta da IA ficou pronta!" });
+            });
+        }
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -6508,8 +6498,19 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     localStorage.setItem('wsm_tokens_consumed', consumed.toString());
     const limit = 32000;
     const percent = Math.min(Math.round((consumed / limit) * 100), 100);
-    const tracker = document.getElementById('memoryTracker');
-    if (tracker) tracker.innerText = `Memória: ${percent}%`;
+    
+    const bar = document.getElementById('memoryBar');
+    const text = document.getElementById('memoryText');
+    if (bar && text) {
+        bar.style.width = `${percent}%`;
+        text.innerText = `${percent}%`;
+        
+        // Color logic
+        if (percent < 70) bar.style.backgroundColor = 'var(--agent-green)';
+        else if (percent < 90) bar.style.backgroundColor = 'var(--agent-amber)';
+        else bar.style.backgroundColor = 'red';
+    }
+    
     if (percent >= 100) {
         document.getElementById('memoryOverlay').style.display = 'flex';
         const chatInput = document.querySelector('textarea');
