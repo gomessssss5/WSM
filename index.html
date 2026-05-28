@@ -1673,15 +1673,13 @@
 
   .send-btn i { font-size: 16px; }
 
-  /* SUGGESTIONS */
+  /* SUGGESTIONS / AGENTS PROMO CARD */
   .suggestions {
     display: flex;
-    gap: 8px;
-    margin-top: 24px;
-    flex-wrap: wrap;
     justify-content: center;
     width: 100%;
-    max-height: 150px;
+    margin-top: 28px;
+    max-height: 400px;
     transition: opacity var(--transition), transform var(--transition), max-height var(--transition), margin-top var(--transition);
     opacity: 1;
     animation: fadeUp 0.7s 0.1s cubic-bezier(0.25, 1, 0.5, 1) both;
@@ -1694,6 +1692,170 @@
     transform: translateY(15px);
     overflow: hidden;
     pointer-events: none;
+  }
+
+  .agents-promo-card {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    max-width: 580px;
+    width: 100%;
+    padding: 12px 20px;
+    gap: 16px;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .agents-promo-card:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border-color: var(--border-focus);
+  }
+
+  .agents-promo-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    padding-right: 16px;
+    flex-shrink: 0;
+    width: 90px;
+  }
+
+  .agents-icons-stack {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 40px;
+    width: 72px;
+    justify-content: center;
+  }
+
+  .promo-icon-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    position: absolute;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    border: 1.5px solid var(--bg-card);
+    transition: transform 0.3s ease;
+  }
+
+  .promo-icon-circle.icon-map {
+    left: 0;
+    z-index: 1;
+  }
+  .promo-icon-circle.icon-web {
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  .promo-icon-circle.icon-slide {
+    right: 0;
+    z-index: 1;
+  }
+
+  .agents-promo-card:hover .promo-icon-circle.icon-map {
+    transform: translateX(-4px) scale(1.05);
+  }
+  .agents-promo-card:hover .promo-icon-circle.icon-slide {
+    transform: translateX(4px) scale(1.05);
+  }
+  .agents-promo-card:hover .promo-icon-circle.icon-web {
+    transform: translateX(-50%) scale(1.1);
+    z-index: 3;
+  }
+
+  .promo-badge {
+    margin-top: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: linear-gradient(135deg, var(--agent-blue), var(--agent-purple));
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .agents-promo-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    flex-grow: 1;
+  }
+
+  .agents-promo-right h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    letter-spacing: -0.2px;
+  }
+
+  .agents-promo-right p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .promo-agents-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .promo-agent-tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--pill-bg);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .promo-agent-tag .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    display: inline-block;
+  }
+
+  @media (max-width: 580px) {
+    .agents-promo-card {
+      flex-direction: column;
+      padding: 12px;
+      gap: 10px;
+    }
+    .agents-promo-left {
+      flex-direction: row;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding-right: 0;
+      padding-bottom: 8px;
+      width: 100%;
+      justify-content: space-around;
+    }
+    .agents-promo-right {
+      text-align: center;
+    }
+    .promo-agents-row {
+      justify-content: center;
+    }
   }
 
   .suggestion-pill {
@@ -2298,10 +2460,36 @@
     text-align: left;
   }
 
+  /* Gradiente de fundo interativo */
+  #bgGradient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: var(--bg);
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    opacity: 1;
+    overflow: hidden;
+  }
+  
+  body.active-chat-state #bgGradient {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #bgBlobCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: blur(80px) saturate(1.6);
+    transform: scale(1.15);
+    opacity: 0.75;
+  }
+
 </style>
 </head>
 <body>
-
+<div id="bgGradient"><canvas id="bgBlobCanvas"></canvas></div>
 <div class="app" id="app">
 
   <!-- TOAST NOTIFICATION CONTAINER -->
@@ -2484,13 +2672,33 @@
             </div>
           </div>
 
-          <!-- Pílulas de Sugestões -->
+          <!-- Card de Novidades dos Agentes -->
           <div class="suggestions" id="suggestions">
-            <button class="suggestion-pill"><i class="ti ti-code" aria-hidden="true"></i> Escrever código</button>
-            <button class="suggestion-pill"><i class="ti ti-chart-bar" aria-hidden="true"></i> Analisar dados</button>
-            <button class="suggestion-pill"><i class="ti ti-file-text" aria-hidden="true"></i> Resumir texto</button>
-            <button class="suggestion-pill"><i class="ti ti-bulb" aria-hidden="true"></i> Brainstorm</button>
-            <button class="suggestion-pill"><i class="ti ti-language" aria-hidden="true"></i> Traduzir</button>
+            <div class="agents-promo-card">
+              <div class="agents-promo-left">
+                <div class="agents-icons-stack">
+                  <div class="promo-icon-circle icon-map" style="background: rgba(16, 185, 129, 0.12); color: var(--agent-green)">
+                    <i class="ti ti-map-2"></i>
+                  </div>
+                  <div class="promo-icon-circle icon-web" style="background: rgba(2, 132, 199, 0.12); color: var(--agent-blue)">
+                    <i class="ti ti-world-search"></i>
+                  </div>
+                  <div class="promo-icon-circle icon-slide" style="background: rgba(139, 92, 246, 0.12); color: var(--agent-purple)">
+                    <i class="ti ti-presentation"></i>
+                  </div>
+                </div>
+                <div class="promo-badge">Novidade</div>
+              </div>
+              <div class="agents-promo-right">
+                <h3>Conheça os Agentes WSM</h3>
+                <p>Assistentes integrados para potencializar seu chat. Ative-os no menu de ferramentas:</p>
+                <div class="promo-agents-row">
+                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-green)"></span>Mapas</span>
+                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-blue)"></span>Leitor Web</span>
+                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-purple)"></span>Apresentação</span>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -2565,6 +2773,58 @@
   let sessions = [];
   let currentSessionId = null;
 
+  function applyCustomCursor(cursorUrl) {
+    let styleEl = document.getElementById('customCursorStyle');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'customCursorStyle';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = `
+      * {
+        cursor: url('${cursorUrl}') 13 13, auto;
+      }
+      a, button, input, textarea, select, [role="button"], [onclick], 
+      .history-item, .followup-pill, .modal-close-btn, .modal-btn, 
+      .action-btn, .new-chat-btn, .agents-menu-btn, .agent-item, 
+      .artifact-card-btn, .artifact-trigger-card {
+        cursor: pointer !important;
+      }
+      input[type="text"], input[type="password"], textarea, code, pre {
+        cursor: text !important;
+      }
+    `;
+  }
+
+  function preloadAndScaleCursor() {
+    const cached = localStorage.getItem('CUSTOM_CURSOR_BASE64_52');
+    if (cached) {
+      applyCustomCursor(cached);
+    }
+    
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = function() {
+      const size = 52;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, size, size);
+      try {
+        const base64 = canvas.toDataURL('image/png');
+        localStorage.setItem('CUSTOM_CURSOR_BASE64_52', base64);
+        applyCustomCursor(base64);
+      } catch(e) {
+        console.warn('Failed to cache scaled custom cursor:', e);
+      }
+    };
+    img.onerror = function() {
+      applyCustomCursor('https://i.ibb.co/hJFMwhDH/abdb5443d9e785db127a8701389997c3-removebg-preview.png');
+    };
+    img.src = 'https://i.ibb.co/hJFMwhDH/abdb5443d9e785db127a8701389997c3-removebg-preview.png';
+  }
+
   // Carrega chave da API do LocalStorage e o Histórico se houver
   window.addEventListener('load', () => {
     const savedKey = localStorage.getItem('GROQ_API_KEY');
@@ -2575,6 +2835,7 @@
     if (f) f.focus();
 
     loadSessions();
+    preloadAndScaleCursor();
   });
 
   // Fechar o menu dropdown de agentes se clicar fora dele
@@ -2650,6 +2911,7 @@
     
     chatPanel.classList.remove('centered');
     chatPanel.classList.add('active-chat');
+    document.body.classList.add('active-chat-state');
     if (suggestions) suggestions.classList.add('hidden');
     if (composerTitle) composerTitle.classList.add('hidden');
 
@@ -2707,6 +2969,7 @@
     if (chatPanel) {
       chatPanel.classList.add('centered');
       chatPanel.classList.remove('active-chat');
+      document.body.classList.remove('active-chat-state');
     }
 
     closeArtifact();
@@ -2757,6 +3020,7 @@
       if (chatPanel) {
         chatPanel.classList.add('centered');
         chatPanel.classList.remove('active-chat');
+        document.body.classList.remove('active-chat-state');
       }
       if (suggestions) suggestions.classList.remove('hidden');
       if (composerTitle) composerTitle.classList.remove('hidden');
@@ -5776,6 +6040,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       if (composerTitle) composerTitle.classList.add('hidden');
       chatPanel.classList.remove('centered');
       chatPanel.classList.add('active-chat');
+      document.body.classList.add('active-chat-state');
     }
 
     const currentAttachments = [...attachedFiles];
@@ -5813,6 +6078,242 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     }
   }
 
+</script>
+<script>
+  // Canvas Blob Background Animation (Sistema de Partículas Físico)
+  (function() {
+    const canvas = document.getElementById('bgBlobCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+    
+    window.addEventListener('resize', () => {
+      width = (canvas.width = window.innerWidth);
+      height = (canvas.height = window.innerHeight);
+    });
+    
+    // Posição central do rastreamento (easing)
+    let blobX = width / 2;
+    let blobY = height / 2;
+    let targetX = width / 2;
+    let targetY = height / 2;
+    
+    let velocity = 0;
+    let targetVelocity = 0;
+    let lastX = 0;
+    let lastY = 0;
+    let lastTime = Date.now();
+    let exploded = false;
+    
+    // Rastreamento do mouse
+    window.addEventListener('mousemove', (e) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      
+      const now = Date.now();
+      const dt = now - lastTime;
+      if (dt > 0) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        const speed = dist / dt;
+        targetVelocity += speed * 0.9;
+        if (targetVelocity > 90) targetVelocity = 90;
+      }
+      lastX = e.clientX;
+      lastY = e.clientY;
+      lastTime = now;
+    });
+
+    const baseRadius = Math.min(width, height) * 0.22;
+    const particles = [];
+    const numParticles = 26;
+
+    // Inicializa o sistema de partículas com a paleta azul-lilás/roxa
+    // 4 partículas brancas no centro para brilho e 22 coloridas (azul, índigo, lilás) na borda
+    for (let i = 0; i < numParticles; i++) {
+      const angle = (i / (numParticles - 4)) * Math.PI * 2;
+      const isCenter = i >= numParticles - 4;
+      
+      let color = '';
+      let radius = baseRadius * (0.4 + Math.random() * 0.2);
+      
+      if (isCenter) {
+        color = 'rgba(255, 255, 255, 0.9)'; // Centro brilhante
+        radius = baseRadius * 0.35;
+      } else {
+        // Paleta predominante azul-lilás (mais azul do que roxo)
+        const rand = Math.random();
+        if (rand < 0.4) {
+          color = 'rgba(59, 130, 246, 0.75)';  // Azul Royal
+        } else if (rand < 0.75) {
+          color = 'rgba(99, 102, 241, 0.8)';   // Índigo / Azul Lilás
+        } else {
+          color = 'rgba(167, 139, 250, 0.7)';  // Lilás / Roxo claro
+        }
+      }
+
+      particles.push({
+        angle: isCenter ? Math.random() * Math.PI * 2 : angle,
+        isCenter: isCenter,
+        x: width / 2,
+        y: height / 2,
+        vx: 0,
+        vy: 0,
+        r: radius,
+        color: color
+      });
+    }
+
+    // Escuta evento de digitação no campo de input do chat para "desmontar" a bola
+    const inputField = document.getElementById('inputField');
+    if (inputField) {
+      inputField.addEventListener('input', () => {
+        if (exploded) return;
+        // Dispersa as partículas de forma totalmente caótica e desordenada (desmontando a gema)
+        particles.forEach(p => {
+          const force = Math.random() * 22 + 8;
+          const randomAngle = Math.random() * Math.PI * 2;
+          p.vx += Math.cos(randomAngle) * force;
+          p.vy += Math.sin(randomAngle) * force;
+        });
+      });
+    }
+    
+    function animate() {
+      const isChatActive = document.body.classList.contains('active-chat-state');
+      
+      // Controla a lógica de explosão na transição de início do chat
+      if (isChatActive && !exploded) {
+        exploded = true;
+        // Explode a gema em direções e velocidades totalmente caóticas para os cantos
+        particles.forEach(p => {
+          const angle = Math.random() * Math.PI * 2; // Direção 100% desordenada
+          const force = Math.random() * 55 + 30;     // Velocidades e impulsos variados
+          p.vx = Math.cos(angle) * force + (Math.random() - 0.5) * 15;
+          p.vy = Math.sin(angle) * force + (Math.random() - 0.5) * 15;
+        });
+      }
+      
+      // Se já explodiu e o chat está ativo, e as partículas já saíram da tela, podemos poupar rendering
+      if (isChatActive && exploded) {
+        // Atualiza a física de fuga das partículas sem redesenhar para poupar CPU
+        let visible = false;
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.98;
+          p.vy *= 0.98;
+          if (p.x > -p.r && p.x < width + p.r && p.y > -p.r && p.y < height + p.r) {
+            visible = true;
+          }
+        });
+        if (!visible) {
+          requestAnimationFrame(animate);
+          return; // Todas fora da tela e chat ativo, pula desenho
+        }
+      }
+
+      // Restaura a bola caso o chat seja reiniciado
+      if (!isChatActive && exploded) {
+        exploded = false;
+        particles.forEach(p => {
+          p.x = width / 2;
+          p.y = height / 2;
+          p.vx = 0;
+          p.vy = 0;
+        });
+      }
+      
+      ctx.clearRect(0, 0, width, height);
+      
+      // Easing de movimento do centro da bola
+      blobX += (targetX - blobX) * 0.08;
+      blobY += (targetY - blobY) * 0.08;
+      
+      targetVelocity *= 0.94;
+      velocity += (targetVelocity - velocity) * 0.1;
+      
+      // Física e renderização das partículas
+      particles.forEach(p => {
+        let tx, ty;
+        
+        if (p.isCenter) {
+          tx = blobX + Math.cos(p.angle) * (baseRadius * 0.15);
+          ty = blobY + Math.sin(p.angle) * (baseRadius * 0.15);
+        } else {
+          tx = blobX + Math.cos(p.angle) * baseRadius;
+          ty = blobY + Math.sin(p.angle) * baseRadius;
+        }
+
+        // Força de atração da mola (desativada na explosão)
+        const spring = exploded ? 0 : 0.035;
+        const ax = (tx - p.x) * spring;
+        const ay = (ty - p.y) * spring;
+        
+        p.vx = (p.vx + ax) * 0.91;
+        p.vy = (p.vy + ay) * 0.91;
+        
+        // Deformação por velocidade do mouse (efeito de "se desmanchar" caoticamente)
+        if (!exploded && velocity > 1.5) {
+          const noise = velocity * 0.65;
+          const noiseAngle = Math.random() * Math.PI * 2;
+          p.vx += Math.cos(noiseAngle) * noise;
+          p.vy += Math.sin(noiseAngle) * noise;
+        }
+
+        // Turbulência fluida orgânica (efeito de gema líquida constante)
+        if (!exploded) {
+          const timeCoeff = Date.now() * 0.0025;
+          p.vx += Math.sin(p.y * 0.008 + timeCoeff) * 0.45;
+          p.vy += Math.cos(p.x * 0.008 + timeCoeff) * 0.45;
+        }
+        
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // Desenha cada partícula com gradiente radial para efeito metaball
+        const grad = ctx.createRadialGradient(
+          p.x - p.r * 0.15,
+          p.y - p.r * 0.15,
+          0,
+          p.x,
+          p.y,
+          p.r
+        );
+        
+        if (p.isCenter) {
+          grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+          grad.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+          grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        } else {
+          grad.addColorStop(0, p.color);
+          // Suaviza a transição para transparente nas bordas
+          const transColor = p.color.replace('0.75', '0.4').replace('0.8', '0.4').replace('0.7', '0.3');
+          grad.addColorStop(0.4, transColor);
+          grad.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        }
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 1.3, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      });
+      
+      requestAnimationFrame(animate);
+    }
+    
+    window.addEventListener('mouseenter', (e) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+      lastTime = Date.now();
+    });
+    
+    animate();
+  })();
 </script>
 
 </body>
