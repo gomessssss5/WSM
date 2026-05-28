@@ -2202,6 +2202,13 @@
     position: relative;
     overflow: hidden;
     box-sizing: border-box;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+  .slide-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--agent-purple, #9333ea);
+    box-shadow: 0 12px 30px -5px rgba(147, 51, 234, 0.3);
   }
 
   .slide-card-header {
@@ -2990,13 +2997,11 @@
     // Ocultar mapa, e decidir o que exibir baseado no tipo
     if (mapContainer) mapContainer.style.display = 'none';
     if (lang && lang.toLowerCase() === 'slide') {
-        // Exibir preview de slides empilhadas diretamente no iframe
         if (codePre) codePre.style.display = 'none';
-        if (slidesContainer) slidesContainer.style.display = 'none';
-        if (iframe) {
-            iframe.style.display = 'block';
-            iframe.style.background = '#0f0f10';
-            iframe.srcdoc = getSlidePreviewHTML(code);
+        if (iframe) iframe.style.display = 'none';
+        if (slidesContainer) {
+            slidesContainer.style.display = 'flex';
+            renderSlidesPreview(code);
         }
         if (copyBtn) copyBtn.style.display = 'none';
     } else {
@@ -3088,11 +3093,10 @@
       if (copyBtn) copyBtn.style.display = 'none';
     } else if (mode === 'slide') {
       if (codePre) codePre.style.display = 'none';
-      if (slidesContainer) slidesContainer.style.display = 'none';
-      if (iframe) {
-        iframe.style.display = 'block';
-        iframe.style.background = '#0f0f10';
-        iframe.srcdoc = getSlidePreviewHTML(currentArtifactCode);
+      if (iframe) iframe.style.display = 'none';
+      if (slidesContainer) {
+        slidesContainer.style.display = 'flex';
+        renderSlidesPreview(currentArtifactCode);
       }
       
       if (viewSlideCodeBtn) viewSlideCodeBtn.classList.remove('active');
@@ -5011,14 +5015,52 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
     }
   }
 
-  // Visualizar slides em tela cheia (Reveal.js interativo)
-  function openSlidesFullscreen() {
+  // Visualizar slides em tela cheia (Reveal.js interativo) a partir do slide horizontal h e vertical v
+  function openSlidesFullscreenAt(h, v) {
     const modal = document.getElementById('slidesFullscreenModal');
     const iframe = document.getElementById('slidesFullscreenIframe');
     if (modal && iframe) {
-      iframe.srcdoc = currentArtifactCode;
+      // Injeta um script no iframe para capturar a tecla Escape e fazer a navegação correta inicial
+      const initScript = `
+        <script>
+          window.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+              window.parent.postMessage('close-fullscreen-slides', '*');
+            }
+          });
+          (function() {
+            function initFullscreen() {
+              if (typeof Reveal !== 'undefined') {
+                if (Reveal.isReady()) {
+                  Reveal.slide(${h}, ${v}, 0);
+                  Reveal.configure({ keyboard: true, touch: true, controls: true, progress: true });
+                } else {
+                  Reveal.on('ready', () => {
+                    Reveal.slide(${h}, ${v}, 0);
+                    Reveal.configure({ keyboard: true, touch: true, controls: true, progress: true });
+                  });
+                }
+              } else {
+                setTimeout(initFullscreen, 50);
+              }
+            }
+            initFullscreen();
+          })();
+        </script>
+      `;
+      let code = currentArtifactCode;
+      if (code.includes('</body>')) {
+        code = code.replace('</body>', initScript + '</body>');
+      } else {
+        code += initScript;
+      }
+      iframe.srcdoc = code;
       modal.classList.add('active');
     }
+  }
+
+  function openSlidesFullscreen() {
+    openSlidesFullscreenAt(0, 0);
   }
   
   function closeSlidesFullscreen() {
@@ -5032,97 +5074,177 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
     }
   }
 
-  // Injeta estilos de visualização vertical no HTML dos slides para a prévia stacked (como PDF)
-  function getSlidePreviewHTML(rawHTML) {
-    const overrideStyle = `
-<style>
-  html, body {
-    overflow-y: auto !important;
-    height: auto !important;
-    background: #0f0f10 !important;
-    padding: 30px 0 !important;
-    margin: 0 !important;
-    scroll-behavior: smooth;
-  }
-  /* Estilização da barra de rolagem interna */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0f0f10;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #27272a;
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f46;
-  }
-  .reveal {
-    overflow: visible !important;
-    height: auto !important;
-    font-family: inherit;
-  }
-  .reveal .slides {
-    position: static !important;
-    width: 90% !important;
-    height: auto !important;
-    zoom: 1 !important;
-    transform: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 30px !important;
-    align-items: center !important;
-    max-width: 800px !important;
-    margin: 0 auto !important;
-  }
-  .reveal .slides section {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    position: relative !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    aspect-ratio: 16 / 9 !important;
-    height: auto !important;
-    min-height: auto !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
-    border: 1px solid #27272a !important;
-    border-radius: 12px !important;
-    box-sizing: border-box !important;
-    padding: 40px !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: none !important;
-    overflow: hidden !important;
-    page-break-after: always !important;
-  }
-  /* Ocultar controles nativos flutuantes do Reveal na prévia */
-  .reveal .controls, .reveal .progress, .reveal .slide-number {
-    display: none !important;
-  }
-  /* Forçar a exibição de todos os fragmentos escondidos na prévia */
-  .reveal .slides section .fragment {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: none !important;
-    display: block !important;
-  }
-  .reveal .slides section .fragment.fade-up {
-    transform: none !important;
-    opacity: 1 !important;
-  }
-</style>
-    `;
-    if (rawHTML.includes('</body>')) {
-      return rawHTML.replace('</body>', overrideStyle + '</body>');
-    } else if (rawHTML.includes('</head>')) {
-      return rawHTML.replace('</head>', overrideStyle + '</head>');
+  // Listener para sair do modo tela cheia quando o escape é pressionado (tanto no iframe quanto no pai)
+  window.addEventListener('message', function(e) {
+    if (e.data === 'close-fullscreen-slides') {
+      closeSlidesFullscreen();
     }
-    return rawHTML + overrideStyle;
+  });
+
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeSlidesFullscreen();
+    }
+  });
+
+  // Extrai título amigável para o cabeçalho de cada slide
+  function getSlideTitle(sectionElement, defaultNum) {
+    const header = sectionElement.querySelector('h1, h2, h3, h4');
+    if (header && header.textContent.trim()) {
+      const text = header.textContent.trim();
+      return text.length > 25 ? text.substring(0, 25) + '...' : text;
+    }
+    return `Slide ${defaultNum}`;
+  }
+
+  // Prepara o código HTML de um único slide para ser renderizado em seu próprio iframe
+  function getSingleSlideHtml(htmlContent, h, v) {
+    const customStyles = `
+      <style>
+        html, body {
+          overflow: hidden !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #0f0f10 !important;
+        }
+        .reveal {
+          width: 100% !important;
+          height: 100% !important;
+        }
+        /* Oculta controles, progresso e navegação nativa do Reveal na prévia */
+        .reveal .controls, 
+        .reveal .progress, 
+        .reveal .slide-number, 
+        .reveal .playback {
+          display: none !important;
+        }
+        /* Exibe todos os fragmentos escondidos na prévia */
+        .reveal .slides section .fragment {
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none !important;
+        }
+      </style>
+    `;
+    
+    const customScript = `
+      <script>
+        (function() {
+          function initPreview() {
+            if (typeof Reveal !== 'undefined') {
+              if (Reveal.isReady()) {
+                Reveal.slide(${h}, ${v}, 0);
+                Reveal.configure({ 
+                  keyboard: false, 
+                  touch: false, 
+                  controls: false, 
+                  progress: false,
+                  help: false,
+                  overview: false
+                });
+              } else {
+                Reveal.on('ready', () => {
+                  Reveal.slide(${h}, ${v}, 0);
+                  Reveal.configure({ 
+                    keyboard: false, 
+                    touch: false, 
+                    controls: false, 
+                    progress: false,
+                    help: false,
+                    overview: false
+                  });
+                });
+              }
+            } else {
+              setTimeout(initPreview, 50);
+            }
+          }
+          initPreview();
+        })();
+      </script>
+    `;
+    
+    let processed = htmlContent;
+    if (processed.includes('</head>')) {
+      processed = processed.replace('</head>', customStyles + '</head>');
+    } else {
+      processed = customStyles + processed;
+    }
+    
+    if (processed.includes('</body>')) {
+      processed = processed.replace('</body>', customScript + '</body>');
+    } else {
+      processed = processed + customScript;
+    }
+    
+    return processed;
+  }
+
+  // Renderiza todos os slides empilhados (PDF style) usando múltiplos iframes isolados
+  function renderSlidesPreview(htmlContent) {
+    const container = document.getElementById('slidesPreviewContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    const slides = [];
+    const topLevelSections = doc.querySelectorAll('.reveal .slides > section');
+    if (topLevelSections.length > 0) {
+      topLevelSections.forEach((sec, h) => {
+        const nestedSections = sec.querySelectorAll('section');
+        if (nestedSections.length === 0) {
+          slides.push({ h, v: 0, title: getSlideTitle(sec, h + 1) });
+        } else {
+          nestedSections.forEach((subsec, v) => {
+            slides.push({ h, v, title: getSlideTitle(subsec, `${h + 1}.${v + 1}`) });
+          });
+        }
+      });
+    } else {
+      const allSections = doc.querySelectorAll('section');
+      allSections.forEach((sec, idx) => {
+        slides.push({ h: idx, v: 0, title: getSlideTitle(sec, idx + 1) });
+      });
+    }
+    
+    if (slides.length === 0) {
+      container.innerHTML = '<div style="color: #a1a1aa; text-align: center; padding: 20px;">Nenhum slide encontrado para renderizar.</div>';
+      return;
+    }
+    
+    slides.forEach((slide, idx) => {
+      const card = document.createElement('div');
+      card.className = 'slide-card';
+      card.style.marginBottom = '20px';
+      
+      const header = document.createElement('div');
+      header.className = 'slide-card-header';
+      header.textContent = `SLIDE ${idx + 1} - ${slide.title}`;
+      card.appendChild(header);
+      
+      const iframe = document.createElement('iframe');
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.background = '#0f0f10';
+      iframe.style.display = 'block';
+      iframe.style.pointerEvents = 'none'; // Evita que cliques entrem no iframe, permitindo que subam para o card
+      
+      iframe.srcdoc = getSingleSlideHtml(htmlContent, slide.h, slide.v);
+      
+      card.appendChild(iframe);
+      
+      // Clique no card abre fullscreen exatamente a partir deste slide
+      card.onclick = function() {
+        openSlidesFullscreenAt(slide.h, slide.v);
+      };
+      
+      container.appendChild(card);
+    });
   }
 
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
