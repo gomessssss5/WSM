@@ -2314,20 +2314,34 @@
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Configurar Chave Groq API</h3>
+        <h3 class="modal-title">Configurações do Sistema</h3>
         <button class="modal-close-btn" onclick="toggleSettingsModal()"><i class="ti ti-x"></i></button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
-          Insira sua chave de API do Groq para conversar com o WSM AI 1.0 Flash em tempo real. A chave é salva apenas localmente no seu navegador.
+        <h4 style="font-size: 13px; color: var(--text-primary); margin-bottom: 8px;">Chave de API do Groq</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
+          Insira sua chave de API para conversar em tempo real. A chave é salva apenas localmente no seu navegador.
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
           <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">GROQ_API_KEY</code> nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{groqApiKey: "..."}</code>.
         </p>
+        
+        <hr style="border: 0; border-top: 1px dashed #27272a; margin: 16px 0;">
+        
+        <h4 style="font-size: 13px; color: var(--text-primary); margin-bottom: 8px;">Armazenamento Local</h4>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
+          Se o aplicativo estiver lento ou pesado, você pode limpar todo o histórico de conversas salvas no navegador.
+        </p>
+        <button class="modal-btn danger-btn" onclick="clearAllSessions()" 
+                onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" 
+                onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+          <i class="ti ti-trash" style="margin-right: 6px; font-size: 14px;"></i>Excluir Conversas Recentes
+        </button>
       </div>
       <div class="modal-footer">
-        <button class="modal-btn" onclick="toggleSettingsModal()">Cancelar</button>
+        <button class="modal-btn" onclick="toggleSettingsModal()">Fechar</button>
         <button class="modal-btn primary" onclick="saveApiKey()">Salvar Chave</button>
       </div>
     </div>
@@ -2726,6 +2740,34 @@
     }
   }
 
+  function clearAllSessions() {
+    if (confirm('Tem certeza que deseja excluir todas as conversas do histórico? Essa ação não pode ser desfeita.')) {
+      sessions = [];
+      localStorage.removeItem('WSM_SESSIONS');
+      currentSessionId = null;
+      
+      // Limpa a tela
+      const messagesEl = document.getElementById('messages');
+      if (messagesEl) messagesEl.innerHTML = '';
+      
+      const chatPanel = document.getElementById('chatPanel');
+      const suggestions = document.getElementById('suggestions');
+      const composerTitle = document.getElementById('composerTitle');
+      
+      if (chatPanel) {
+        chatPanel.classList.add('centered');
+        chatPanel.classList.remove('active-chat');
+      }
+      if (suggestions) suggestions.classList.remove('hidden');
+      if (composerTitle) composerTitle.classList.remove('hidden');
+      
+      closeArtifact();
+      renderHistoryList();
+      toggleSettingsModal();
+      showToast('Histórico de conversas apagado com sucesso!', 'info');
+    }
+  }
+
   // Disparar o seletor nativo ao clicar em "Anexar"
   function triggerFileUpload() {
     const fileInput = document.getElementById('mediaFileInput');
@@ -3117,6 +3159,11 @@
     const titleEl = document.querySelector('#artifactTitle span');
     let filename = 'download.txt';
     const lang = currentArtifactLang.toLowerCase();
+    
+    if (lang === 'slide') {
+      downloadSlidesAsPDF();
+      return;
+    }
     
     if (titleEl) {
       const titleText = titleEl.textContent.trim().toLowerCase();
@@ -4796,11 +4843,6 @@
     }, 100);
 
     try {
-      // ETAPA 1: Planejar termos de busca
-      setStepActive(1, currentAgentId);
-      const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl1) titleEl1.textContent = 'Planejando termos de pesquisa factual na web...';
-      
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
         const configResponse = await fetch('/api/config');
@@ -4811,115 +4853,144 @@
       }
       if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
 
-      const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [
-            { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica, científica e conceitual. Analise a solicitação do usuário e retorne OBRIGATORIAMENTE de 1 a 3 termos específicos de busca na web para coletar fatos, dados e datas precisas sobre o tema. Você NUNCA deve retornar colchetes vazios ou decidir não pesquisar. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}".' },
-            { role: 'user', content: userPrompt }
-          ],
-          temperature: 0.2, max_tokens: 100
-        })
-      });
+      // Verifica se já existe um slide gerado anteriormente na sessão ativa
+      const previousSlideMsg = currentSession && currentSession.messages 
+        ? currentSession.messages.slice().reverse().find(m => m.role === 'bot' && m.isSlide && m.text)
+        : null;
+      const hasPreviousSlide = !!previousSlideMsg;
 
-      let matches = [];
-      if (planResponse.ok) {
-        const planData = await planResponse.json();
-        const planText = planData.choices[0].message.content.trim();
-        const bracketRegex = /\{([^}]+)\}/g;
-        let match;
-        while ((match = bracketRegex.exec(planText)) !== null) {
-          matches.push(match[1].trim());
-        }
-      }
-
-      // Fallback: se nenhum termo for retornado, usa o próprio prompt do usuário como termo de busca para garantir a pesquisa web
-      if (matches.length === 0 && userPrompt) {
-        matches.push(userPrompt.trim());
-      }
-
-      const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
-      if (stepText1) {
-        stepText1.textContent = matches.length > 0 
-          ? `Termos planejados: ${matches.map(m => `"${m}"`).join(', ')}`
-          : 'Nenhuma busca web externa considerada necessária.';
-      }
-      setStepCompleted(1, currentAgentId, '#9333ea');
-
-      // ETAPA 2: Realizar buscas na web (5 segundos de intervalo entre cada)
-      setStepActive(2, currentAgentId);
-      const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl2) titleEl2.textContent = 'Pesquisando na web em tempo real (Tavily)...';
-      
-      const allSearchResults = [];
-      const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
-      
-      if (matches.length > 0) {
-        for (let i = 0; i < matches.length; i++) {
-          const query = matches[i];
-          if (stepText2) stepText2.textContent = `Buscando por: "${query}" (${i + 1}/${matches.length})...`;
-          
-          try {
-            const searchResponse = await fetch('/api/search', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ searchQuery: query })
-            });
-            if (searchResponse.ok) {
-              const searchData = await searchResponse.json();
-              if (searchData && searchData.results) {
-                searchData.results.forEach(res => {
-                  allSearchResults.push({
-                    title: res.title || 'Busca Sem Título',
-                    url: res.url || '',
-                    content: res.content || ''
-                  });
-                });
-              }
-            }
-          } catch (err) {
-            console.error(`Erro ao pesquisar por "${query}":`, err);
-          }
-          
-          if (i < matches.length - 1) {
-            await sleep(5000); // 5 segundos de intervalo entre chamadas
-          }
-        }
-      }
-
-      if (stepText2) {
-        stepText2.textContent = allSearchResults.length > 0 
-          ? `Coletadas ${allSearchResults.length} fontes e referências da web.`
-          : 'Busca na web concluída (sem novos dados adicionais).';
-      }
-      setStepCompleted(2, currentAgentId, '#9333ea');
-
-      // ETAPA 3: Compilar referências e estruturar design
-      setStepActive(3, currentAgentId);
-      const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
-      if (titleEl3) titleEl3.textContent = 'Compilando referências e design dos slides...';
-      
       let searchContextText = "";
-      if (allSearchResults.length > 0) {
-        searchContextText = "Aqui estão fatos históricos/científicos reais e atualizados extraídos da web para fundamentar sua apresentação e garantir precisão factual absoluta (utilize estritamente estes dados de nomes, anos, personagens e eventos ao gerar os slides):\n\n";
-        // Limita a 6 fontes para economizar tokens de contexto
-        allSearchResults.slice(0, 6).forEach((res, index) => {
-          searchContextText += `--- FONTE [${index + 1}] ---\n`;
-          searchContextText += `Título: ${res.title}\n`;
-          searchContextText += `URL: ${res.url}\n`;
-          searchContextText += `Conteúdo: ${res.content.substring(0, 400)}\n\n`;
-        });
-      }
+      let matches = [];
 
-      const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
-      if (stepText3) {
-        stepText3.textContent = allSearchResults.length > 0 
-          ? 'Referências compiladas e estruturadas com sucesso.'
-          : 'Preparando prompt de estruturação dos slides.';
+      if (!hasPreviousSlide) {
+        // ETAPA 1: Planejar termos de busca
+        setStepActive(1, currentAgentId);
+        const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
+        if (titleEl1) titleEl1.textContent = 'Planejando termos de pesquisa factual na web...';
+
+        const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'llama-3.1-8b-instant',
+            messages: [
+              { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica, científica e conceitual. Analise a solicitação do usuário e retorne OBRIGATORIAMENTE de 1 a 3 termos específicos de busca na web para coletar fatos, dados e datas precisas sobre o tema. Você NUNCA deve retornar colchetes vazios ou decidir não pesquisar. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}".' },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.2, max_tokens: 100
+          })
+        });
+
+        if (planResponse.ok) {
+          const planData = await planResponse.json();
+          const planText = planData.choices[0].message.content.trim();
+          const bracketRegex = /\{([^}]+)\}/g;
+          let match;
+          while ((match = bracketRegex.exec(planText)) !== null) {
+            matches.push(match[1].trim());
+          }
+        }
+
+        // Fallback: se nenhum termo for retornado, usa o próprio prompt do usuário como termo de busca para garantir a pesquisa web
+        if (matches.length === 0 && userPrompt) {
+          matches.push(userPrompt.trim());
+        }
+
+        const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
+        if (stepText1) {
+          stepText1.textContent = matches.length > 0 
+            ? `Termos planejados: ${matches.map(m => `"${m}"`).join(', ')}`
+            : 'Nenhuma busca web externa considerada necessária.';
+        }
+        setStepCompleted(1, currentAgentId, '#9333ea');
+
+        // ETAPA 2: Realizar buscas na web (5 segundos de intervalo entre cada)
+        setStepActive(2, currentAgentId);
+        const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
+        if (titleEl2) titleEl2.textContent = 'Pesquisando na web em tempo real (Tavily)...';
+        
+        const allSearchResults = [];
+        const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
+        
+        if (matches.length > 0) {
+          for (let i = 0; i < matches.length; i++) {
+            const query = matches[i];
+            if (stepText2) stepText2.textContent = `Buscando por: "${query}" (${i + 1}/${matches.length})...`;
+            
+            try {
+              const searchResponse = await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ searchQuery: query })
+              });
+              if (searchResponse.ok) {
+                const searchData = await searchResponse.json();
+                if (searchData && searchData.results) {
+                  searchData.results.forEach(res => {
+                    allSearchResults.push({
+                      title: res.title || 'Busca Sem Título',
+                      url: res.url || '',
+                      content: res.content || ''
+                    });
+                  });
+                }
+              }
+            } catch (err) {
+              console.error(`Erro ao pesquisar por "${query}":`, err);
+            }
+            
+            if (i < matches.length - 1) {
+              await sleep(5000); // 5 segundos de intervalo entre chamadas
+            }
+          }
+        }
+
+        if (stepText2) {
+          stepText2.textContent = allSearchResults.length > 0 
+            ? `Coletadas ${allSearchResults.length} fontes e referências da web.`
+            : 'Busca na web concluída (sem novos dados adicionais).';
+        }
+        setStepCompleted(2, currentAgentId, '#9333ea');
+
+        // ETAPA 3: Compilar referências e estruturar design
+        setStepActive(3, currentAgentId);
+        const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
+        if (titleEl3) titleEl3.textContent = 'Compilando referências e design dos slides...';
+        
+        if (allSearchResults.length > 0) {
+          searchContextText = "Aqui estão fatos históricos/científicos reais e atualizados extraídos da web para fundamentar sua apresentação e garantir precisão factual absoluta (utilize estritamente estes dados de nomes, anos, personagens e eventos ao gerar os slides):\n\n";
+          allSearchResults.slice(0, 6).forEach((res, index) => {
+            searchContextText += `--- FONTE [${index + 1}] ---\n`;
+            searchContextText += `Título: ${res.title}\n`;
+            searchContextText += `URL: ${res.url}\n`;
+            searchContextText += `Conteúdo: ${res.content.substring(0, 400)}\n\n`;
+          });
+        }
+
+        const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
+        if (stepText3) {
+          stepText3.textContent = allSearchResults.length > 0 
+            ? 'Referências compiladas e estruturadas com sucesso.'
+            : 'Preparando prompt de estruturação dos slides.';
+        }
+        setStepCompleted(3, currentAgentId, '#9333ea');
+      } else {
+        // MODO EDIÇÃO: pular etapas de pesquisa e avisar nos logs
+        setStepActive(1, currentAgentId);
+        const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
+        if (stepText1) stepText1.textContent = 'Edição solicitada. Pulando planejamento de busca.';
+        setStepCompleted(1, currentAgentId, '#9333ea');
+
+        setStepActive(2, currentAgentId);
+        const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
+        if (stepText2) stepText2.textContent = 'Pulando busca na web (modo edição).';
+        setStepCompleted(2, currentAgentId, '#9333ea');
+
+        setStepActive(3, currentAgentId);
+        const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
+        if (stepText3) stepText3.textContent = 'Carregando versão anterior do slide para modificação...';
+        setStepCompleted(3, currentAgentId, '#9333ea');
       }
-      setStepCompleted(3, currentAgentId, '#9333ea');
 
       // ETAPA 4: Gerar slides didáticos
       setStepActive(4, currentAgentId);
@@ -4991,16 +5062,37 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
 8) ENTREGA:
    - Retorne APENAS o código HTML completo dentro de um bloco de código markdown (\`\`\`html ... \`\`\`). Sem explicações antes ou depois.`;
 
+      let messagesForGroq = [];
+      if (hasPreviousSlide) {
+        const editSystemInstruction = `${systemInstruction}
+
+Você está no MODO DE EDIÇÃO de uma apresentação de slides Reveal.js já existente.
+Você receberá o código HTML atual dos slides e a solicitação de alteração do usuário (ex: adicionar um slide, corrigir uma informação, mudar cores, alterar um título, etc.).
+Sua tarefa é analisar o HTML anterior, aplicar as alterações solicitadas com precisão e retornar o código HTML completo e atualizado da apresentação.
+Garanta que você mantém os outros slides intactos e coerentes, respeitando a estrutura do Reveal.js.
+NUNCA use tags <img> nem ícones (como FontAwesome).
+Foque em explicações didáticas, concisas e pedagógicas que caibam inteiramente em 16:9.
+Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código markdown (\`\`\`html ... \`\`\`).`;
+
+        messagesForGroq = [
+          { role: 'system', content: editSystemInstruction },
+          { role: 'user', content: `Solicitação de alteração do usuário: "${userPrompt}"\n\nAqui está o código HTML atual dos slides que você deve editar:\n\`\`\`html\n${previousSlideMsg.text}\n\`\`\`` }
+        ];
+      } else {
+        messagesForGroq = [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: `Utilizando os dados de busca abaixo como fonte de informação factual precisa, crie a apresentação de slides sobre: "${userPrompt}"\n\nContexto de Busca:\n${searchContextText}` }
+        ];
+      }
+
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          messages: [
-            { role: 'system', content: systemInstruction },
-            { role: 'user', content: `Utilizando os dados de busca abaixo como fonte de informação factual precisa, crie a apresentação de slides sobre: "${userPrompt}"\n\nContexto de Busca:\n${searchContextText}` }
-          ],
-          temperature: 0.6, max_tokens: 2500
+          messages: messagesForGroq,
+          temperature: 0.6,
+          max_tokens: 2500
         })
       });
 
@@ -5404,6 +5496,171 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
       
       container.appendChild(card);
     });
+  }
+
+  function downloadSlidesAsPDF() {
+    if (!currentArtifactCode) {
+      showToast("Nenhum slide para exportar!", "error");
+      return;
+    }
+
+    showToast("Preparando exportação de PDF...", "info");
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(currentArtifactCode, 'text/html');
+
+    // Container temporário para renderizar as páginas do PDF
+    const printContainer = document.createElement('div');
+    printContainer.id = 'pdfPrintContainer';
+    printContainer.style.position = 'fixed';
+    printContainer.style.left = '-9999px';
+    printContainer.style.top = '-9999px';
+    printContainer.style.width = '1080px';
+    printContainer.style.background = '#0f0f10';
+    document.body.appendChild(printContainer);
+
+    // Copia todas as folhas de estilo do slide original
+    doc.querySelectorAll('style, link[rel="stylesheet"]').forEach(tag => {
+      printContainer.appendChild(tag.cloneNode(true));
+    });
+
+    // Adiciona o estilo customizado para o PDF
+    const customPDFStyle = document.createElement('style');
+    customPDFStyle.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+      .pdf-page {
+        color: #ffffff;
+        font-family: "Outfit", "Inter", sans-serif;
+        text-align: center;
+        width: 1080px;
+        height: 607.5px;
+        position: relative;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px;
+        page-break-after: always;
+        background: #0f172a;
+      }
+      .pdf-page h1, .pdf-page h2, .pdf-page h3 {
+        margin-top: 0;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #ffffff;
+      }
+      .pdf-page h1 { font-size: 52px; margin-bottom: 24px; }
+      .pdf-page h2 { font-size: 40px; margin-bottom: 20px; }
+      .pdf-page h3 { font-size: 32px; margin-bottom: 16px; }
+      .pdf-page p, .pdf-page li {
+        font-size: 22px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .pdf-page ul, .pdf-page ol {
+        text-align: left;
+        margin-top: 20px;
+        display: inline-block;
+      }
+      .pdf-page .split-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        width: 100%;
+        align-items: center;
+        text-align: left;
+      }
+    `;
+    printContainer.appendChild(customPDFStyle);
+
+    // Mapeia todos os slides (incluindo verticais se houver)
+    const flatSections = [];
+    const topLevelSections = doc.querySelectorAll('.reveal .slides > section');
+    if (topLevelSections.length > 0) {
+      topLevelSections.forEach(sec => {
+        const nested = sec.querySelectorAll('section');
+        if (nested.length === 0) {
+          flatSections.push(sec);
+        } else {
+          nested.forEach(subsec => {
+            flatSections.push(subsec);
+          });
+        }
+      });
+    } else {
+      doc.querySelectorAll('section').forEach(sec => {
+        flatSections.push(sec);
+      });
+    }
+
+    if (flatSections.length === 0) {
+      showToast("Nenhum slide estruturado encontrado.", "error");
+      printContainer.remove();
+      return;
+    }
+
+    // Tenta extrair a cor ou imagem de fundo do próprio reveal
+    let defaultBg = '';
+    const revealSlides = doc.querySelector('.reveal');
+    if (revealSlides && revealSlides.style.background) {
+      defaultBg = revealSlides.style.background;
+    }
+
+    // Cria as páginas para o PDF
+    flatSections.forEach(sec => {
+      const page = document.createElement('div');
+      page.className = 'pdf-page';
+      
+      // Aplica fundo
+      if (sec.style.background) {
+        page.style.background = sec.style.background;
+      } else if (sec.style.backgroundImage) {
+        page.style.backgroundImage = sec.style.backgroundImage;
+      } else if (defaultBg) {
+        page.style.background = defaultBg;
+      }
+
+      // Clona o conteúdo
+      Array.from(sec.childNodes).forEach(child => {
+        page.appendChild(child.cloneNode(true));
+      });
+
+      printContainer.appendChild(page);
+    });
+
+    const opt = {
+      margin:       0,
+      filename:     'apresentacao.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF:        { unit: 'px', format: [1080, 607.5], orientation: 'landscape' }
+    };
+
+    function startPDFGeneration() {
+      html2pdf().set(opt).from(printContainer).save().then(() => {
+        printContainer.remove();
+        showToast("PDF baixado com sucesso!", "info");
+      }).catch(err => {
+        console.error("Erro ao gerar PDF:", err);
+        printContainer.remove();
+        showToast("Erro ao exportar PDF.");
+      });
+    }
+
+    if (typeof html2pdf === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      script.onload = startPDFGeneration;
+      script.onerror = () => {
+        printContainer.remove();
+        showToast("Erro ao carregar conversor PDF.");
+      };
+      document.head.appendChild(script);
+    } else {
+      startPDFGeneration();
+    }
   }
 
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
