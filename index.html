@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WSM AI 1.0 Flash</title>
+<title>WSM AI 1.0 Omni</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2718,21 +2718,21 @@
                       <button class="agent-item" type="button" onclick="toggleMapMode()">
                         <div class="agent-icon" style="color: var(--agent-green)"><i class="ti ti-map-2"></i></div>
                         <div class="agent-info">
-                          <span class="agent-name">Mapas</span>
+                          <span class="agent-name">WSM 1.0 Agent Maps</span>
                           <span class="agent-desc">Pesquisa geolocalizada e rotas</span>
                         </div>
                       </button>
                       <button class="agent-item" type="button" onclick="toggleWebReaderMode()">
                         <div class="agent-icon" style="color: var(--agent-blue)"><i class="ti ti-world-search"></i></div>
                         <div class="agent-info">
-                          <span class="agent-name">Leitor de Web</span>
+                          <span class="agent-name">WSM 1.0 Agent Web</span>
                           <span class="agent-desc">Lê e analisa o conteúdo de links</span>
                         </div>
                       </button>
                       <button class="agent-item" type="button" onclick="toggleSlideMode()">
                         <div class="agent-icon" style="color: var(--agent-purple, #9333ea)"><i class="ti ti-presentation"></i></div>
                         <div class="agent-info">
-                          <span class="agent-name">Apresentação</span>
+                          <span class="agent-name">WSM 1.0 Agent Slide</span>
                           <span class="agent-desc">Gera slides usando Reveal.js</span>
                         </div>
                       </button>
@@ -2740,11 +2740,11 @@
                   </div>
 
                   <!-- BOTÃO DE MAPAS (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="mapActiveBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> Mapas <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="mapActiveBtn" type="button" onclick="toggleMapMode()"><i class="ti ti-map-2" aria-hidden="true"></i> WSM 1.0 Agent Maps <span class="search-close">×</span></button>
                   <!-- BOTÃO DE LEITOR DE WEB (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="webReaderActiveBtn" type="button" onclick="toggleWebReaderMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Leitor de Web <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="webReaderActiveBtn" type="button" onclick="toggleWebReaderMode()"><i class="ti ti-world-search" aria-hidden="true"></i> WSM 1.0 Agent Web <span class="search-close">×</span></button>
                   <!-- BOTÃO DE APRESENTAÇÃO (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="slideActiveBtn" type="button" onclick="toggleSlideMode()"><i class="ti ti-presentation" aria-hidden="true"></i> Apresentação <span class="search-close">×</span></button>
+                  <button class="tool-btn" id="slideActiveBtn" type="button" onclick="toggleSlideMode()"><i class="ti ti-presentation" aria-hidden="true"></i> WSM 1.0 Agent Slide <span class="search-close">×</span></button>
                 </div>
 
                 <button class="tool-btn icon-only-btn" id="micBtn" type="button" onclick="toggleSpeechRecognition()" title="Gravar voz"><i class="ti ti-microphone" aria-hidden="true"></i></button>
@@ -2774,9 +2774,9 @@
                 <h3>Conheça os Agentes WSM</h3>
                 <p>Assistentes integrados para potencializar seu chat. Ative-os no menu de ferramentas:</p>
                 <div class="promo-agents-row">
-                  <span class="promo-agent-tag" title="Mapas" onclick="activateAgent('map')"><span class="dot" style="background: var(--agent-green)"></span>Mapas</span>
-                  <span class="promo-agent-tag" title="Leitor Web" onclick="activateAgent('web')"><span class="dot" style="background: var(--agent-blue)"></span>Leitor Web</span>
-                  <span class="promo-agent-tag" title="Apresentação" onclick="activateAgent('slide')"><span class="dot" style="background: var(--agent-purple)"></span>Apresentação</span>
+                  <span class="promo-agent-tag" title="WSM 1.0 Agent Maps" onclick="activateAgent('map')"><span class="dot" style="background: var(--agent-green)"></span>WSM 1.0 Agent Maps</span>
+                  <span class="promo-agent-tag" title="WSM 1.0 Agent Web" onclick="activateAgent('web')"><span class="dot" style="background: var(--agent-blue)"></span>WSM 1.0 Agent Web</span>
+                  <span class="promo-agent-tag" title="WSM 1.0 Agent Slide" onclick="activateAgent('slide')"><span class="dot" style="background: var(--agent-purple)"></span>WSM 1.0 Agent Slide</span>
                 </div>
               </div>
             </div>
@@ -3500,7 +3500,7 @@
     let displayLang = (lang || 'TEXTO').toUpperCase();
     if (lang === 'slide') {
       displayLang = 'APRESENTAÇÃO';
-      titleElement.innerHTML = `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i><span>Apresentação</span>`;
+      titleElement.innerHTML = `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i><span>WSM 1.0 Agent Slide</span>`;
     } else {
       titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
     }
@@ -3770,7 +3770,7 @@
     const userActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${msgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="editUserMessage('${msgId}')" title="Editar"><i data-lucide="pen-line"></i></button></div>`;
 
     // HTML do avatar fixo para o bot
-  const botAvatarHTML = sender === 'bot' ? `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>` : '';
+  const botAvatarHTML = sender === 'bot' ? `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Omni</span>` : '';
 
     let mediaHTML = '';
     if (mediaFiles && mediaFiles.length > 0) {
@@ -4536,7 +4536,7 @@
               .slice(0, 3);
           }
 
-          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Omni</span>`;
           const researchMsgId = 'res_' + Date.now();
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
@@ -4814,7 +4814,7 @@
               .slice(0, 3);
           }
 
-          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Omni</span>`;
           const researchMsgId = 'res_' + Date.now();
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
@@ -5138,7 +5138,7 @@
               .slice(0, 3);
           }
 
-          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+          const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Omni</span>`;
           const researchMsgId = 'res_' + Date.now();
           
           const botHeader = document.getElementById(`botHeader_${currentAgentId}`);
@@ -5591,7 +5591,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
             .slice(0, 3);
         }
 
-        const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Flash</span>`;
+        const botAvatarHTML = `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">WSM 1.0 Omni</span>`;
         const botHeader = document.getElementById(`botHeader_${currentAgentId}`);
         if (botHeader) botHeader.innerHTML = botAvatarHTML;
 
@@ -5617,7 +5617,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
           card.innerHTML = `
               <div class="artifact-card-icon"><i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i></div>
               <div class="artifact-card-info">
-                  <span class="title">Visualizar Apresentação</span>
+                  <span class="title">Visualizar WSM 1.0 Agent Slide</span>
                   <span class="meta">Reveal.js Slides • ${lines} linhas</span>
               </div>
               <button class="artifact-card-btn">Abrir Prévia</button>
@@ -5656,7 +5656,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       const outputContent = document.getElementById(`outputContent_${currentAgentId}`);
       if (outputCard && outputContent) {
         outputCard.style.display = 'block';
-        outputContent.innerHTML = `❌ <strong>Erro no Agente de Apresentação:</strong> ${error.message}`;
+        outputContent.innerHTML = `❌ <strong>Erro no WSM 1.0 Agent Slide:</strong> ${error.message}`;
         outputCard.offsetHeight;
         outputCard.classList.add('visible');
       }
@@ -6494,6 +6494,87 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     
   animate();
   })();
+
+  // --- WSM AI Memory Tracker & Tic-Tac-Toe ---
+  function updateMemory(tokens) {
+    let consumed = parseInt(localStorage.getItem('wsm_tokens_consumed') || '0');
+    consumed += tokens;
+    localStorage.setItem('wsm_tokens_consumed', consumed.toString());
+    const limit = 32000;
+    const percent = Math.min(Math.round((consumed / limit) * 100), 100);
+    const tracker = document.getElementById('memoryTracker');
+    if (tracker) tracker.innerText = `Memória: ${percent}%`;
+    if (percent >= 100) {
+        document.getElementById('memoryOverlay').style.display = 'flex';
+        const chatInput = document.querySelector('textarea');
+        if (chatInput) chatInput.disabled = true;
+    }
+  }
+
+  function exportChat() {
+    const messages = Array.from(document.querySelectorAll('.message')).map(m => m.innerText).join('\n\n');
+    const blob = new Blob([messages], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'conversa.txt';
+    a.click();
+  }
+
+  let tttScore = { ai: 0, user: 0 };
+  function startTicTacToe() {
+      const messagesEl = document.getElementById('messages');
+      const game = document.createElement('div');
+      game.className = 'message bot';
+      game.id = 'ttt-game';
+      game.innerHTML = `
+        <div style="font-weight:bold; margin-bottom:10px;">WSM ${tttScore.ai} X ${tttScore.user} Você</div>
+        <div id="ttt-board" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:5px; width:120px;"></div>
+      `;
+      messagesEl.appendChild(game);
+      let board = Array(9).fill(null);
+      let difficulty = 'normal'; 
+      
+      function render() {
+          const tttBoard = document.getElementById('ttt-board');
+          tttBoard.innerHTML = '';
+          board.forEach((cell, i) => {
+              const div = document.createElement('div');
+              div.style.cssText = 'width:35px; height:35px; background:var(--pill-bg); display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:bold; border-radius:4px;';
+              div.style.color = cell === 'X' ? 'red' : 'var(--agent-blue)';
+              div.innerText = cell || '';
+              div.onclick = () => play(i);
+              tttBoard.appendChild(div);
+          });
+      }
+      
+      function play(i) {
+          if (board[i] || checkWinner()) return;
+          board[i] = 'X';
+          render();
+          if (checkWinner()) return;
+          aiTurn();
+      }
+      
+      function aiTurn() {
+          let move;
+          if (difficulty === 'easy') move = board.findIndex(c => !c);
+          else if (difficulty === 'normal') move = Math.random() < 0.5 ? board.findIndex(c => !c) : bestMove();
+          else move = bestMove();
+          
+          if (move !== -1) {
+              board[move] = 'O';
+              render();
+              checkWinner();
+          }
+      }
+      
+      function bestMove() { return board.findIndex(c => !c); }
+      function checkWinner() { return false; }
+      
+      render();
+      aiTurn();
+  }
+
   updateMemory(0);
 </script>
 
