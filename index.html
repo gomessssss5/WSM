@@ -5509,13 +5509,14 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     const parser = new DOMParser();
     const doc = parser.parseFromString(currentArtifactCode, 'text/html');
 
-    // Container temporário para renderizar as páginas do PDF
+    // Container temporário para renderizar as páginas do PDF (posicionado atrás do app para ser visível ao html2canvas)
     const printContainer = document.createElement('div');
     printContainer.id = 'pdfPrintContainer';
     printContainer.style.position = 'fixed';
-    printContainer.style.left = '-9999px';
-    printContainer.style.top = '-9999px';
+    printContainer.style.left = '0';
+    printContainer.style.top = '0';
     printContainer.style.width = '1080px';
+    printContainer.style.zIndex = '-9999';
     printContainer.style.background = '#0f0f10';
     document.body.appendChild(printContainer);
 
@@ -5528,6 +5529,14 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     const customPDFStyle = document.createElement('style');
     customPDFStyle.innerHTML = `
       @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+      #pdfPrintContainer {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      #pdfPrintContainer style {
+        display: none !important;
+      }
       .pdf-page {
         color: #ffffff;
         font-family: "Outfit", "Inter", sans-serif;
@@ -5537,13 +5546,24 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         position: relative;
         box-sizing: border-box;
         overflow: hidden;
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding: 60px;
         page-break-after: always;
         background: #0f172a;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      .pdf-page * {
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      .pdf-page .fragment {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
       }
       .pdf-page h1, .pdf-page h2, .pdf-page h3 {
         margin-top: 0;
@@ -5565,7 +5585,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         display: inline-block;
       }
       .pdf-page .split-layout {
-        display: grid;
+        display: grid !important;
         grid-template-columns: 1fr 1fr;
         gap: 30px;
         width: 100%;
