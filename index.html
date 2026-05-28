@@ -4852,9 +4852,10 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
    - IMPORTAÇÃO DE FONTES OBRIGATÓRIA: Adicione na primeira linha da sua tag <style> no <head> o import do Google Fonts:
      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
    - Use 'font-family: "Outfit", sans-serif;' para títulos normais/tecnologia e 'font-family: "Playfair Display", serif;' para temas históricos, literários ou humanísticos, gerando elegância.
-   - Use fundos modernos com gradientes CSS refinados (ex: linear-gradient(135deg, #0f172a, #1e1b4b) para temas escuros) ou cores sólidas sofisticadas com bordas iluminadas.
+   - Use fundos modernos com gradientes CSS refinados usando a propriedade "background" ou "background-image" (ex: background: linear-gradient(135deg, #0f172a, #1e1b4b) para temas escuros). NUNCA use a propriedade "background-color" para gradientes, pois ela será ignorada pelo navegador.
 
 4) ORGANIZAÇÃO DOS LAYOUTS (MUITO IMPORTANTE):
+   - NUNCA aplique a classe "fragment" em títulos principais do slide (como tags <h1> ou <h2> que dão nome ao slide). O título principal deve ficar visível imediatamente quando o slide carrega. Use "fragment" apenas em tópicos auxiliares (<li>), imagens secundárias ou blocos de texto adicionais para que apareçam progressivamente.
    - Nunca aplique classes de layout de grade/colunas como 'split-layout' diretamente em títulos (h1, h2) ou parágrafos (p). Elas devem ser aplicadas em elementos de agrupamento (divs contêineres).
    - Exemplo correto de estrutura para split screen (imagem + texto):
      <div class="split-layout">
@@ -4866,7 +4867,7 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
          </ul>
        </div>
        <div>
-         <img src="https://images.unsplash.com/photo-1599733589046-9b8308b5b50d?auto=format&fit=crop&w=600&q=80" alt="Robespierre portrait painting">
+         <img src="https://loremflickr.com/600/400/robespierre-painting" alt="Robespierre portrait painting">
        </div>
      </div>
    - Defina os estilos apropriados no <style>:
@@ -4876,9 +4877,16 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
 5) TEXTO REDUZIDO (SINTETIZADO E BULLETS):
    - NÃO USE TEXTO CORRIDO LONGO OU PARÁGRAFOS ENORMES. Limite a no máximo 2 a 3 frases curtas por slide ou 3 a 4 itens em listas de tópicos. Deixe que o visual e os fragmentos guiem a leitura.
 
-6) IMAGENS HISTÓRICAS E RELEVANTES:
-   - Se o assunto for histórico (ex: Revolução Francesa), procure por imagens do Unsplash usando buscas em inglês no link que tragam pinturas, arquivos ou conceitos da época (ex: 'french revolution painting', 'bastille', 'guillotine', 'louis xvi', 'ancient book', 'historical map'). Evite fotos de Paris moderna ou fotos corporativas genéricas.
-   - Certifique-se de que os URLs do Unsplash sejam bem estruturados.
+6) IMAGENS HISTÓRICAS E RELEVANTES (OBRIGATÓRIO LOREMFLICKR):
+   - NUNCA use IDs arbitrários ou inventados do Unsplash (isso resulta em imagens quebradas / erro 404).
+   - Use obrigatoriamente o LoremFlickr para buscar imagens públicas correspondentes aos tópicos do slide.
+   - Formato do URL: https://loremflickr.com/600/400/<palavras-chave-em-ingles-separadas-por-hifen>
+   - Exemplos de URLs válidos:
+     * Pintura da Revolução: https://loremflickr.com/600/400/french-revolution-painting
+     * Robespierre: https://loremflickr.com/600/400/robespierre-painting
+     * Napoleão: https://loremflickr.com/600/400/napoleon-bonaparte
+     * Astronomia: https://loremflickr.com/600/400/galaxy-stars
+   - A tag <img> principal de um slide NÃO deve ter a classe "fragment" para que seja exibida imediatamente com o slide.
 
 7) ENTREGA:
    - Retorne APENAS o código HTML completo dentro de um bloco de código markdown (\`\`\`html ... \`\`\`). Sem explicações antes ou depois.`;
@@ -5054,6 +5062,12 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
       } else {
         code += initScript;
       }
+      iframe.onload = function() {
+        setTimeout(() => {
+          iframe.focus();
+          if (iframe.contentWindow) iframe.contentWindow.focus();
+        }, 150);
+      };
       iframe.srcdoc = code;
       modal.classList.add('active');
     }
@@ -5144,6 +5158,8 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
                   help: false,
                   overview: false
                 });
+                setTimeout(function() { Reveal.layout(); }, 100);
+                setTimeout(function() { Reveal.layout(); }, 300);
               } else {
                 Reveal.on('ready', () => {
                   Reveal.slide(${h}, ${v}, 0);
@@ -5155,6 +5171,8 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
                     help: false,
                     overview: false
                   });
+                  setTimeout(function() { Reveal.layout(); }, 100);
+                  setTimeout(function() { Reveal.layout(); }, 300);
                 });
               }
             } else {
@@ -5162,6 +5180,9 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
             }
           }
           initPreview();
+          window.addEventListener('load', function() {
+            setTimeout(function() { if (typeof Reveal !== 'undefined') Reveal.layout(); }, 500);
+          });
         })();
       <\/script>
     `;
