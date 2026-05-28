@@ -4846,7 +4846,7 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
    - E no final do <body>, logo antes de fechar a tag html, carregue o script e inicialize:
      <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.js"><\/script>
      <script>
-       Reveal.initialize({ hash: true, controls: true, slideNumber: true, transition: "slide", center: true });
+       Reveal.initialize({ hash: false, history: false, controls: true, slideNumber: true, transition: "slide", center: true });
      <\/script>
 
 3) DESIGN VISUAL PREMIUM & IMPORTAÇÃO DE FONTES:
@@ -5067,6 +5067,10 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
         <\/script>
       `;
       let code = currentArtifactCode;
+      // Disable hash and history to prevent replaceState SecurityError inside iframe srcdoc
+      code = code.replace(/hash:\s*true/g, 'hash: false');
+      code = code.replace(/history:\s*true/g, 'history: false');
+      code = code.replace(/Reveal\.initialize\(\{/g, 'Reveal.initialize({ hash: false, history: false, ');
       if (code.includes('</body>')) {
         code = code.replace('</body>', initScript + '</body>');
       } else {
@@ -5214,6 +5218,10 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
     `;
     
     let processed = htmlContent;
+    // Disable hash and history to prevent replaceState SecurityError inside iframe srcdoc
+    processed = processed.replace(/hash:\s*true/g, 'hash: false');
+    processed = processed.replace(/history:\s*true/g, 'history: false');
+    processed = processed.replace(/Reveal\.initialize\(\{/g, 'Reveal.initialize({ hash: false, history: false, ');
     if (processed.includes('</head>')) {
       processed = processed.replace('</head>', customStyles + '</head>');
     } else {
