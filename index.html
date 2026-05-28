@@ -2204,6 +2204,7 @@
     box-sizing: border-box;
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    flex-shrink: 0;
   }
   .slide-card:hover {
     transform: translateY(-2px);
@@ -5028,12 +5029,21 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
     const modal = document.getElementById('slidesFullscreenModal');
     const iframe = document.getElementById('slidesFullscreenIframe');
     if (modal && iframe) {
-      // Injeta um script no iframe para capturar a tecla Escape e fazer a navegação correta inicial
+      // Injeta um script no iframe para capturar a tecla Escape e mensagens de navegação
       const initScript = `
         <script>
           window.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
               window.parent.postMessage('close-fullscreen-slides', '*');
+            }
+          });
+          window.addEventListener('message', function(msgEvent) {
+            if (typeof Reveal !== 'undefined') {
+              if (msgEvent.data === 'reveal-next') {
+                Reveal.next();
+              } else if (msgEvent.data === 'reveal-prev') {
+                Reveal.prev();
+              }
             }
           });
           (function() {
@@ -5096,8 +5106,24 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
   });
 
   window.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeSlidesFullscreen();
+    const modal = document.getElementById('slidesFullscreenModal');
+    if (modal && modal.classList.contains('active')) {
+      const iframe = document.getElementById('slidesFullscreenIframe');
+      if (iframe && iframe.contentWindow) {
+        if (e.key === 'Escape') {
+          closeSlidesFullscreen();
+        } else if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) {
+          iframe.contentWindow.postMessage('reveal-next', '*');
+          e.preventDefault();
+        } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) {
+          iframe.contentWindow.postMessage('reveal-prev', '*');
+          e.preventDefault();
+        }
+      }
+    } else {
+      if (e.key === 'Escape') {
+        closeSlidesFullscreen();
+      }
     }
   });
 
