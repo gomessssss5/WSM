@@ -3092,6 +3092,9 @@
     const suggestions = document.getElementById('suggestions');
     const composerTitle = document.getElementById('composerTitle');
     
+    localStorage.removeItem('wsm_tokens_consumed');
+    updateMemory(0);
+
     // Ferramentas da barra inferior
     const toolsContainer = document.querySelector('.input-tools');
     const searchBtn = document.getElementById('searchBtn');
