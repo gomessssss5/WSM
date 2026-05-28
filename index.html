@@ -23,6 +23,28 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
+  (function() {
+    const originalFetch = window.fetch;
+    window.fetch = async (url, options) => {
+      if (url === 'https://api.groq.com/openai/v1/chat/completions') {
+        let response = await originalFetch(url, options);
+        if (!response.ok) {
+          try {
+            const config = await (await originalFetch('/api/config')).json();
+            const keys = config.groqApiKeys;
+            for (const key of keys) {
+              const newOptions = { ...options, headers: { ...options.headers, 'Authorization': `Bearer ${key}` } };
+              response = await originalFetch(url, newOptions);
+              if (response.ok) break;
+            }
+          } catch (e) { console.error("Fallback failed", e); }
+        }
+        return response;
+      }
+      return originalFetch(url, options);
+    };
+  })();
+
   window.MathJax = {
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']],
