@@ -1408,7 +1408,7 @@
   .input-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin-top: 14px;
     gap: 12px;
   }
@@ -1418,6 +1418,7 @@
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+    flex: 1;
   }
 
   /* QUANDO UM MODO ESTÁ ATIVO: ESCONDE OS OUTROS BOTÕES */
@@ -1825,6 +1826,17 @@
     background: var(--pill-bg);
     padding: 2px 8px;
     border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+  }
+
+  .promo-agent-tag:hover {
+    background: var(--pill-hover);
+    transform: translateY(-1px);
+  }
+
+  .promo-agent-tag:active {
+    transform: translateY(0);
   }
 
   .promo-agent-tag .dot {
@@ -1833,6 +1845,49 @@
     border-radius: 50%;
     margin-right: 5px;
     display: inline-block;
+  }
+
+  /* GLOWING BORDERS FOR ACTIVE AGENTS */
+  @keyframes pulse-glow-map {
+    0% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.2), var(--shadow-input); }
+    50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.5), var(--shadow-input); }
+    100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.2), var(--shadow-input); }
+  }
+  @keyframes pulse-glow-web {
+    0% { box-shadow: 0 0 4px rgba(2, 132, 199, 0.2), var(--shadow-input); }
+    50% { box-shadow: 0 0 16px rgba(2, 132, 199, 0.5), var(--shadow-input); }
+    100% { box-shadow: 0 0 4px rgba(2, 132, 199, 0.2), var(--shadow-input); }
+  }
+  @keyframes pulse-glow-slide {
+    0% { box-shadow: 0 0 4px rgba(139, 92, 246, 0.2), var(--shadow-input); }
+    50% { box-shadow: 0 0 16px rgba(139, 92, 246, 0.5), var(--shadow-input); }
+    100% { box-shadow: 0 0 4px rgba(139, 92, 246, 0.2), var(--shadow-input); }
+  }
+
+  .input-box.agent-map-active {
+    border-color: var(--agent-green) !important;
+    animation: pulse-glow-map 2s infinite ease-in-out;
+  }
+  .input-box.agent-web-active {
+    border-color: var(--agent-blue) !important;
+    animation: pulse-glow-web 2s infinite ease-in-out;
+  }
+  .input-box.agent-slide-active {
+    border-color: var(--agent-purple) !important;
+    animation: pulse-glow-slide 2s infinite ease-in-out;
+  }
+
+  /* MICROPHONE ACTIVE PULSE EFFECT */
+  @keyframes mic-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+    100% { transform: scale(1); }
+  }
+
+  .tool-btn.mic-active {
+    animation: mic-pulse 1.2s infinite ease-in-out;
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
   }
 
   @media (max-width: 580px) {
@@ -2626,6 +2681,7 @@
                 <div class="input-tools">
                   <!-- BOTÃO DE ANEXAR -->
                   <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
+
                   
                   <!-- BOTÃO DE PESQUISAR -->
                   <button class="tool-btn" id="searchBtn" type="button" onclick="toggleSearchMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
@@ -2667,6 +2723,7 @@
                   <button class="tool-btn" id="slideActiveBtn" type="button" onclick="toggleSlideMode()"><i class="ti ti-presentation" aria-hidden="true"></i> Apresentação <span class="search-close">×</span></button>
                 </div>
 
+                <button class="tool-btn icon-only-btn" id="micBtn" type="button" onclick="toggleSpeechRecognition()" title="Gravar voz"><i class="ti ti-microphone" aria-hidden="true"></i></button>
                 <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
               </div>
             </div>
@@ -2693,9 +2750,9 @@
                 <h3>Conheça os Agentes WSM</h3>
                 <p>Assistentes integrados para potencializar seu chat. Ative-os no menu de ferramentas:</p>
                 <div class="promo-agents-row">
-                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-green)"></span>Mapas</span>
-                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-blue)"></span>Leitor Web</span>
-                  <span class="promo-agent-tag"><span class="dot" style="background: var(--agent-purple)"></span>Apresentação</span>
+                  <span class="promo-agent-tag" title="Mapas" onclick="activateAgent('map')"><span class="dot" style="background: var(--agent-green)"></span>Mapas</span>
+                  <span class="promo-agent-tag" title="Leitor Web" onclick="activateAgent('web')"><span class="dot" style="background: var(--agent-blue)"></span>Leitor Web</span>
+                  <span class="promo-agent-tag" title="Apresentação" onclick="activateAgent('slide')"><span class="dot" style="background: var(--agent-purple)"></span>Apresentação</span>
                 </div>
               </div>
             </div>
@@ -2768,6 +2825,8 @@
   let activeAgentsCount = 0;
   let attachedFiles = []; 
   let leafletMap = null; // Variável global para armazenar instância do Leaflet
+  let speechRecognition = null;
+  let isSpeechRecognitionActive = false;
   
   // Variáveis globais para Gerenciamento de Sessão (Histórico)
   let sessions = [];
@@ -2855,7 +2914,77 @@
     if(menu) menu.classList.toggle('open');
   }
 
+  // Ativa agente via tag promocional
+  function activateAgent(agent) {
+    // Fecha o menu de agentes se estiver aberto
+    const menu = document.getElementById('agentsMenu');
+    if (menu && menu.classList.contains('open')) {
+      menu.classList.remove('open');
+    }
+    switch(agent) {
+      case 'map':
+        toggleMapMode();
+        break;
+      case 'web':
+        toggleWebReaderMode();
+        break;
+      case 'slide':
+        toggleSlideMode();
+        break;
+      default:
+        console.warn('Agent unknown:', agent);
+    }
+  }
+
   // ========== FUNÇÕES DO HISTÓRICO LOCAL (NO SIDEBAR) ==========
+
+  // Função de comando de voz via microfone
+  function toggleSpeechRecognition() {
+    const micBtn = document.getElementById('micBtn');
+    if (!micBtn) return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('Reconhecimento de voz não suportado neste navegador.', 'info');
+      return;
+    }
+
+    if (!speechRecognition) {
+      speechRecognition = new SpeechRecognition();
+      speechRecognition.lang = 'pt-BR';
+      speechRecognition.interimResults = true;
+      speechRecognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(r => r[0].transcript)
+          .join('');
+        const field = document.getElementById('inputField');
+        if (field) {
+          field.value = transcript;
+          autoResize(field);
+        }
+      };
+      speechRecognition.onend = () => {
+        isSpeechRecognitionActive = false;
+        micBtn.classList.remove('mic-active');
+      };
+      speechRecognition.onerror = (e) => {
+        isSpeechRecognitionActive = false;
+        micBtn.classList.remove('mic-active');
+        showToast('Erro no reconhecimento de voz: ' + e.error, 'info');
+      };
+    }
+
+    if (isSpeechRecognitionActive) {
+      speechRecognition.stop();
+      isSpeechRecognitionActive = false;
+      micBtn.classList.remove('mic-active');
+    } else {
+      speechRecognition.start();
+      isSpeechRecognitionActive = true;
+      micBtn.classList.add('mic-active');
+      showToast('Gravação iniciada. Fale agora.', 'info');
+    }
+  }
   function saveSessions() {
     try {
       // Limita o histórico a 20 chats para não estourar o LocalStorage
