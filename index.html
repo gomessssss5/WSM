@@ -3094,6 +3094,9 @@
     if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
     const slideActiveBtn = document.getElementById('slideActiveBtn');
     if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
+    // Remove any glowing border classes from the input box
+    const inputBox = document.querySelector('.input-box');
+    inputBox?.classList.remove('agent-map-active', 'agent-web-active', 'agent-slide-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -3309,6 +3312,7 @@
     const toolsContainer = document.querySelector('.input-tools');
     const menu = document.getElementById('agentsMenu');
     const field = document.getElementById('inputField');
+    const inputBox = document.querySelector('.input-box');
     
     mapMode = !mapMode;
     
@@ -3326,10 +3330,15 @@
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
+        // Apply glowing border for Map agent
+        inputBox?.classList.add('agent-map-active');
+        inputBox?.classList.remove('agent-web-active', 'agent-slide-active');
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente (incluindo Agentes)
         mapBtn.classList.remove('is-active', 'map-active'); // Esconde o mapa dedicado
         if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        // Remove glowing border
+        inputBox?.classList.remove('agent-map-active');
     }
     
     if (field) field.focus();
@@ -3343,6 +3352,7 @@
     const toolsContainer = document.querySelector('.input-tools');
     const menu = document.getElementById('agentsMenu');
     const field = document.getElementById('inputField');
+    const inputBox = document.querySelector('.input-box');
     
     webReaderMode = !webReaderMode;
     
@@ -3359,10 +3369,15 @@
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Cole o link de um site para ler e analisar...';
+        // Apply glowing border for Web Reader agent
+        inputBox?.classList.add('agent-web-active');
+        inputBox?.classList.remove('agent-map-active', 'agent-slide-active');
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
         webReaderBtn.classList.remove('is-active', 'web-reader-active'); // Esconde o botão
         if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        // Remove glowing border
+        inputBox?.classList.remove('agent-web-active');
     }
     
     if (field) field.focus();
@@ -3377,6 +3392,7 @@
     const toolsContainer = document.querySelector('.input-tools');
     const menu = document.getElementById('agentsMenu');
     const field = document.getElementById('inputField');
+    const inputBox = document.querySelector('.input-box');
     
     slideMode = !slideMode;
     
@@ -3392,10 +3408,15 @@
         
         if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
         if (field) field.placeholder = 'Digite o tema ou assunto para criar os slides de apresentação...';
+        // Apply glowing border for Slide agent
+        inputBox?.classList.add('agent-slide-active');
+        inputBox?.classList.remove('agent-map-active', 'agent-web-active');
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
         slideActiveBtn.classList.remove('is-active', 'slide-active'); // Esconde o botão
         if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        // Remove glowing border
+        inputBox?.classList.remove('agent-slide-active');
     }
     
     if (field) field.focus();
