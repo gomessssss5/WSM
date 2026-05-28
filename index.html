@@ -4817,7 +4817,7 @@
         body: JSON.stringify({
           model: 'llama-3.1-8b-instant',
           messages: [
-            { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica e científica. Analise a solicitação do usuário e retorne de 1 a 3 termos específicos de busca na web para coletar fatos e datas precisas. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}". Se a solicitação do usuário for abstrata ou não requerer fatos reais, retorne apenas colchetes vazios "{}".' },
+            { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica, científica e conceitual. Analise a solicitação do usuário e retorne OBRIGATORIAMENTE de 1 a 3 termos específicos de busca na web para coletar fatos, dados e datas precisas sobre o tema. Você NUNCA deve retornar colchetes vazios ou decidir não pesquisar. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}".' },
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.2, max_tokens: 100
@@ -4833,6 +4833,11 @@
         while ((match = bracketRegex.exec(planText)) !== null) {
           matches.push(match[1].trim());
         }
+      }
+
+      // Fallback: se nenhum termo for retornado, usa o próprio prompt do usuário como termo de busca para garantir a pesquisa web
+      if (matches.length === 0 && userPrompt) {
+        matches.push(userPrompt.trim());
       }
 
       const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
@@ -4963,10 +4968,12 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
    - Defina os estilos apropriados no <style> para o split-layout:
      .split-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; align-items: center; width: 100%; box-sizing: border-box; }
 
-5) TEXTO PEDAGÓGICO E DIDÁTICO (SLIDE É PARA ENSINAR):
-   - NÃO faça apenas tópicos curtos sem contexto ou listas de palavras soltas. Os textos devem explicar os conceitos com frases claras e eficazes, de forma simples e de fácil compreensão.
-   - Os parágrafos devem conter de 2 a 3 frases bem estruturadas.
-   - Use tópicos (listas de bullets) com moderação e sempre explicando brevemente o que cada ponto representa, em vez de apenas listar palavras isoladas.
+5) TEXTO PEDAGÓGICO, CONCISO E SEM OVERFLOW (CADA SLIDE DEVE CABER NA TELA 16:9):
+   - Os textos devem ser extremamente didáticos e pedagógicos, mas muito concisos e objetivos, garantindo que caibam perfeitamente na proporção 16:9 sem rolagem vertical ou cortes.
+   - NÃO remova informações essenciais, mas sintetize-as em frases compactas e curtas de alto impacto.
+   - Parágrafos de explicação devem conter no máximo 1 ou 2 frases curtas, diretas e limpas.
+   - Use tópicos (bullets) com moderação: no máximo 2 a 3 itens por slide, onde cada item deve conter uma explicação direta de no máximo 1 linha.
+   - Caso utilize grids, caixas de destaque ou split-layouts, limite o texto interno para que cada coluna ou bloco não ultrapasse 2 a 3 linhas explicativas.
 
 6) RECURSOS VISUAIS TEXTUAIS (TIMELINES E DESTAQUES):
    - TIMELINES: Crie cronologias usando estruturas de tabela ou blocos flex em CSS para ilustrar eventos cronológicos lado a lado de forma clara e visual.
