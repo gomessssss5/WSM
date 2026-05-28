@@ -2596,6 +2596,10 @@
       Nova conversa
     </button>
     
+    <div style="padding: 0 4px; margin-bottom: 8px;">
+        <input type="text" id="historySearch" placeholder="Buscar conversas..." style="width: 100%; padding: 8px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--bg-card); color: var(--text-primary); outline: none;">
+    </div>
+    
     <div class="sidebar-history" id="sidebarHistory">
       <div class="history-list" id="historyList">
         <!-- Itens de Histórico renderizados aqui via JS -->
@@ -4148,6 +4152,14 @@
 
       if (assistantResponse.includes('{jogo-velha}')) {
           startTicTacToe();
+          return;
+      }
+
+      // -- Artifact for long documents --
+      if (assistantResponse.length > 1000) {
+          openArtifact(assistantResponse, 'txt');
+          appendMessage("Gerando um documento longo para você...", "bot");
+          removeTypingIndicator();
           return;
       }
 
@@ -6582,7 +6594,27 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       aiTurn();
   }
 
-  updateMemory(0);
+  document.getElementById('historySearch').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const items = document.querySelectorAll('.history-item');
+    items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        item.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+  });
+
+  // --- Slash Commands ---
+  const inputField = document.getElementById('inputField');
+  inputField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && inputField.value.startsWith('/')) {
+        e.preventDefault();
+        const cmd = inputField.value.toLowerCase();
+        if (cmd === '/limpar') startNewChat();
+        else if (cmd === '/agentes') toggleAgentsMenu();
+        else if (cmd === '/ajuda') appendMessage("Comandos disponíveis: /limpar, /agentes, /ajuda", "bot");
+        inputField.value = '';
+    }
+  });
 </script>
 
 <div id="memoryOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; flex-direction:column; align-items:center; justify-content:center; color:white;">
