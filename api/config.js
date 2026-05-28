@@ -13,19 +13,24 @@ export default function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const groqApiKey = process.env.GROQ_API_KEY;
+  const keys = [
+    process.env.GROQ_API_KEY,
+    process.env.GROQ_API_KEY_2,
+    process.env.GROQ_API_KEY_3
+  ].filter(Boolean);
 
-  if (!groqApiKey) {
-    console.error('❌ GROQ_API_KEY não configurada na Vercel!');
+  if (keys.length === 0) {
+    console.error('❌ Nenhuma GROQ_API_KEY configurada na Vercel!');
     return res.status(400).json({ 
-      error: 'GROQ_API_KEY não configurada nas Environment Variables da Vercel',
+      error: 'Nenhuma GROQ_API_KEY configurada nas Environment Variables da Vercel',
       hint: 'Configure em: Vercel Dashboard → Project Settings → Environment Variables'
     });
   }
 
-  console.log('✅ GROQ_API_KEY lida com sucesso da Vercel');
+  console.log(`✅ ${keys.length} GROQ_API_KEY(s) carregadas com sucesso`);
   return res.status(200).json({
-    groqApiKey: groqApiKey,
-    message: 'Chave carregada da Vercel com sucesso'
+    groqApiKeys: keys,
+    groqApiKey: keys[0], // Mantém compatibilidade com versões antigas
+    message: 'Chaves carregadas da Vercel com sucesso'
   });
 }
