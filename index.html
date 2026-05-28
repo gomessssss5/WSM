@@ -4759,19 +4759,19 @@
         <div class="thought-content">
           <div class="step" id="step1_${currentAgentId}">
             <div class="step-icon" id="icon1_${currentAgentId}">1</div>
-            <div class="step-text" id="stepText1_${currentAgentId}">Mapeando tópicos e estruturando capítulos...</div>
+            <div class="step-text" id="stepText1_${currentAgentId}">Planejando termos de pesquisa factual na web...</div>
           </div>
           <div class="step" id="step2_${currentAgentId}">
             <div class="step-icon" id="icon2_${currentAgentId}">2</div>
-            <div class="step-text" id="stepText2_${currentAgentId}">Pesquisando referências visuais e temas...</div>
+            <div class="step-text" id="stepText2_${currentAgentId}">Pesquisando referências na web em tempo real...</div>
           </div>
           <div class="step" id="step3_${currentAgentId}">
             <div class="step-icon" id="icon3_${currentAgentId}">3</div>
-            <div class="step-text" id="stepText3_${currentAgentId}">Desenvolvendo design CSS e slides Reveal.js...</div>
+            <div class="step-text" id="stepText3_${currentAgentId}">Compilando referências e design dos slides...</div>
           </div>
           <div class="step" id="step4_${currentAgentId}">
             <div class="step-icon" id="icon4_${currentAgentId}">4</div>
-            <div class="step-text" id="stepText4_${currentAgentId}">Sintetizando e gerando visualizador de slides...</div>
+            <div class="step-text" id="stepText4_${currentAgentId}">Sintetizando e gerando slides didáticos (Llama 3.3 70B)...</div>
           </div>
         </div>
       </div>
@@ -4796,29 +4796,10 @@
     }, 100);
 
     try {
-      // ETAPA 1
+      // ETAPA 1: Planejar termos de busca
       setStepActive(1, currentAgentId);
-      await sleep(1000);
-      const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
-      if (stepText1) stepText1.textContent = 'Tópicos estruturados: Introdução, Problema, Solução e Conclusão.';
-      setStepCompleted(1, currentAgentId, '#9333ea');
-
-      // ETAPA 2
-      setStepActive(2, currentAgentId);
-      await sleep(1200);
-      const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
-      if (stepText2) stepText2.textContent = 'Tema e paleta de cores selecionados de acordo com o assunto.';
-      setStepCompleted(2, currentAgentId, '#9333ea');
-
-      // ETAPA 3
-      setStepActive(3, currentAgentId);
-      await sleep(1500);
-      const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
-      if (stepText3) stepText3.textContent = 'Esqueleto Reveal.js e classes CSS customizadas injetados.';
-      setStepCompleted(3, currentAgentId, '#9333ea');
-
-      // ETAPA 4
-      setStepActive(4, currentAgentId);
+      const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl1) titleEl1.textContent = 'Planejando termos de pesquisa factual na web...';
       
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
       if (!groqApiKey) {
@@ -4830,6 +4811,116 @@
       }
       if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
 
+      const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.1-8b-instant',
+          messages: [
+            { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica e científica. Analise a solicitação do usuário e retorne de 1 a 3 termos específicos de busca na web para coletar fatos e datas precisas. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}". Se a solicitação do usuário for abstrata ou não requerer fatos reais, retorne apenas colchetes vazios "{}".' },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: 0.2, max_tokens: 100
+        })
+      });
+
+      let matches = [];
+      if (planResponse.ok) {
+        const planData = await planResponse.json();
+        const planText = planData.choices[0].message.content.trim();
+        const bracketRegex = /\{([^}]+)\}/g;
+        let match;
+        while ((match = bracketRegex.exec(planText)) !== null) {
+          matches.push(match[1].trim());
+        }
+      }
+
+      const stepText1 = document.getElementById(`stepText1_${currentAgentId}`);
+      if (stepText1) {
+        stepText1.textContent = matches.length > 0 
+          ? `Termos planejados: ${matches.map(m => `"${m}"`).join(', ')}`
+          : 'Nenhuma busca web externa considerada necessária.';
+      }
+      setStepCompleted(1, currentAgentId, '#9333ea');
+
+      // ETAPA 2: Realizar buscas na web (5 segundos de intervalo entre cada)
+      setStepActive(2, currentAgentId);
+      const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl2) titleEl2.textContent = 'Pesquisando na web em tempo real (Tavily)...';
+      
+      const allSearchResults = [];
+      const stepText2 = document.getElementById(`stepText2_${currentAgentId}`);
+      
+      if (matches.length > 0) {
+        for (let i = 0; i < matches.length; i++) {
+          const query = matches[i];
+          if (stepText2) stepText2.textContent = `Buscando por: "${query}" (${i + 1}/${matches.length})...`;
+          
+          try {
+            const searchResponse = await fetch('/api/search', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ searchQuery: query })
+            });
+            if (searchResponse.ok) {
+              const searchData = await searchResponse.json();
+              if (searchData && searchData.results) {
+                searchData.results.forEach(res => {
+                  allSearchResults.push({
+                    title: res.title || 'Busca Sem Título',
+                    url: res.url || '',
+                    content: res.content || ''
+                  });
+                });
+              }
+            }
+          } catch (err) {
+            console.error(`Erro ao pesquisar por "${query}":`, err);
+          }
+          
+          if (i < matches.length - 1) {
+            await sleep(5000); // 5 segundos de intervalo entre chamadas
+          }
+        }
+      }
+
+      if (stepText2) {
+        stepText2.textContent = allSearchResults.length > 0 
+          ? `Coletadas ${allSearchResults.length} fontes e referências da web.`
+          : 'Busca na web concluída (sem novos dados adicionais).';
+      }
+      setStepCompleted(2, currentAgentId, '#9333ea');
+
+      // ETAPA 3: Compilar referências e estruturar design
+      setStepActive(3, currentAgentId);
+      const titleEl3 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl3) titleEl3.textContent = 'Compilando referências e design dos slides...';
+      
+      let searchContextText = "";
+      if (allSearchResults.length > 0) {
+        searchContextText = "Aqui estão fatos históricos/científicos reais e atualizados extraídos da web para fundamentar sua apresentação e garantir precisão factual absoluta (utilize estritamente estes dados de nomes, anos, personagens e eventos ao gerar os slides):\n\n";
+        // Limita a 6 fontes para economizar tokens de contexto
+        allSearchResults.slice(0, 6).forEach((res, index) => {
+          searchContextText += `--- FONTE [${index + 1}] ---\n`;
+          searchContextText += `Título: ${res.title}\n`;
+          searchContextText += `URL: ${res.url}\n`;
+          searchContextText += `Conteúdo: ${res.content.substring(0, 400)}\n\n`;
+        });
+      }
+
+      const stepText3 = document.getElementById(`stepText3_${currentAgentId}`);
+      if (stepText3) {
+        stepText3.textContent = allSearchResults.length > 0 
+          ? 'Referências compiladas e estruturadas com sucesso.'
+          : 'Preparando prompt de estruturação dos slides.';
+      }
+      setStepCompleted(3, currentAgentId, '#9333ea');
+
+      // ETAPA 4: Gerar slides didáticos
+      setStepActive(4, currentAgentId);
+      const titleEl4 = document.getElementById(`mainTitle_${currentAgentId}`);
+      if (titleEl4) titleEl4.textContent = 'Gerando slides didáticos com Llama 3.3 70B...';
+
       const systemInstruction = `Você é o Agent-slide (Agente de Apresentações premium de altíssimo nível).
 Sua tarefa é criar apresentações de slides impressionantes, profissionais, didáticas e auto-contidas usando Reveal.js em formato HTML completo.
 Regras críticas para evitar slides genéricos, amadores ou com erros:
@@ -4837,14 +4928,18 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
 1) PORTUGUÊS NATURAL, COESÃO E PRECISÃO HISTÓRICA/FATUAL:
    - Todo o conteúdo deve ser em português impecável, natural e fluído.
    - REVISÃO DE IDIOMA E GRAMÁTICA: Evite qualquer erro de tradução ou mistura de inglês e português nos títulos ou textos (use "Causas da Revolução" e nunca "Causes", use "Reino do Terror" e nunca "Reigno", use "Rei Luís XVI" e nunca "King Louis XVI").
-   - PRECISÃO HISTÓRICA ABSOLUTA: Faça uma checagem rigorosa de fatos. Nunca alucine datas ou eventos (ex: na Revolução Francesa, NÃO invente terremotos em 1795; lembre-se que Robespierre liderou de fato o Comitê de Salvação Pública de julho de 1793 até sua queda em julho de 1794). Se o tema for ciência, tecnologia ou qualquer área, use dados e cronologias reais e factuais.
+   - PRECISÃO HISTÓRICA E SEMÂNTICA RIGOROSA (CRÍTICO): Utilize estritamente os fatos e dados do contexto de busca fornecido. Nunca alucine ou simplifique erroneamente eventos e nomes históricos:
+     * Exemplo: Use "Maria Antonieta" (nunca "Maria Antônia"), "Terceiro Estado" (nunca "Terceiro Exílio"), "Tomada da Bastilha" (nunca "Toma da Bastilha").
+     * Exemplo: A Queda/Tomada da Bastilha e a Declaração dos Direitos do Homem e do Cidadão ocorreram em 1789 (nunca em 1791).
+     * Exemplo: A Execução do Rei Luís XVI ocorreu em 21 de janeiro de 1793 (nunca em 1792).
+     * Exemplo: Maximilien Robespierre liderou a fase do Terror Jacobino, mas ele não foi o executor físico/carrasco do Rei.
+     * Exemplo: Napoleão Bonaparte foi um líder militar que assumiu o poder em 1799 com o Golpe de 18 de Brumário (evite chamá-lo simplesmente de "ditador" de forma simplista).
 
 2) ESTRUTURA TÉCNICA OBRIGATÓRIA DO REVEAL.JS:
-   - Você DEVE obrigatoriamente incluir na <head> os arquivos CSS do Reveal.js e do FontAwesome para ícones:
+   - Você DEVE obrigatoriamente incluir na <head> os arquivos CSS do Reveal.js:
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/black.min.css" id="theme">
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
    - E no final do <body>, logo antes de fechar a tag html, carregue o script e inicialize:
      <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.js"><\/script>
      <script>
@@ -4855,11 +4950,13 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
    - IMPORTAÇÃO DE FONTES OBRIGATÓRIA: Adicione na primeira linha da sua tag <style> no <head> o import do Google Fonts:
      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
    - Use 'font-family: "Outfit", sans-serif;' para títulos normais/tecnologia e 'font-family: "Playfair Display", serif;' para temas históricos, literários ou humanísticos, gerando elegância.
+   - NUNCA declare propriedades CSS soltas diretamente na tag <style> sem um seletor válido. Todas as declarações CSS devem obrigatoriamente estar envelopadas dentro de seletores válidos (exemplo correto: "body { font-family: 'Outfit', sans-serif; }" em vez de colocar a regra solta no topo).
    - Use fundos modernos com gradientes CSS refinados usando a propriedade "background" ou "background-image" (ex: background: linear-gradient(135deg, #0f172a, #1e1b4b) para temas escuros). NUNCA use a propriedade "background-color" para gradientes, pois ela será ignorada pelo navegador.
 
 4) ORGANIZAÇÃO DOS LAYOUTS E HIERARQUIA VISUAL (MUITO IMPORTANTE):
    - NUNCA aplique a classe "fragment" em títulos principais do slide (como tags <h1> ou <h2> que dão nome ao slide). O título principal deve ficar visível imediatamente quando o slide carrega. Use "fragment" apenas em tópicos auxiliares (<li>) ou blocos de texto adicionais para que apareçam progressivamente.
    - NUNCA utilize tags <img> ou imagens nos slides. Focaremos o design 100% em layouts textuais e elementos visuais como grids, tabelas, destaques e linhas do tempo.
+   - NUNCA utilize ícones ou símbolos gráficos (como FontAwesome) nos slides. O design deve ser limpo e focado puramente em tipografia, diagramação e destaques textuais.
    - Utilize a classe ".split-layout" para fazer comparações ou criar destaques numéricos ou textuais. Por exemplo, divida a tela em duas colunas:
      * Lado Esquerdo: Um número ou ano gigante com cor de destaque, ou um termo-chave.
      * Lado Direito: A explicação conceitual clara e detalhada.
@@ -4871,26 +4968,30 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
    - Os parágrafos devem conter de 2 a 3 frases bem estruturadas.
    - Use tópicos (listas de bullets) com moderação e sempre explicando brevemente o que cada ponto representa, em vez de apenas listar palavras isoladas.
 
-6) RECURSOS VISUAIS TEXTUAIS (ÍCONES, TIMELINES E DESTAQUES):
+6) RECURSOS VISUAIS TEXTUAIS (TIMELINES E DESTAQUES):
    - TIMELINES: Crie cronologias usando estruturas de tabela ou blocos flex em CSS para ilustrar eventos cronológicos lado a lado de forma clara e visual.
-   - CAIXAS DE DESTAQUE (CALLOUTS): Use blocos de destaque para chamar atenção para frases marcantes, citações importantes ou fatos curiosos:
+   - CAIXAS DE DESTAQUE (CALLOUTS): Use blocos de destaque para chamar atenção para frases marcantes, citações importantes ou fatos curiosos (sem ícones, apenas formatação CSS):
      <div style="background: rgba(147, 51, 234, 0.05); border-left: 4px solid #9333ea; padding: 20px; border-radius: 8px; text-align: left;">
-       <i class="fa-solid fa-quote-left" style="color: #9333ea; font-size: 1.5rem; margin-bottom: 10px; display: block;"></i>
        <p style="font-style: italic; margin: 0;">"Liberdade, Igualdade, Fraternidade" — Lema de impacto global.</p>
      </div>
-   - ÍCONES: Utilize ícones do FontAwesome (ex: <i class="fa-solid fa-scale-balanced"></i>, <i class="fa-solid fa-hourglass-half"></i>, <i class="fa-solid fa-crown"></i>, <i class="fa-solid fa-book"></i>) antes de títulos ou tópicos para enriquecer visualmente os slides.
 
-7) ENTREGA:
+7) SLIDE DE FONTES DE PESQUISA (OBRIGATÓRIO):
+   - O último slide da apresentação deve ser obrigatoriamente um slide de referências intitulado "Fontes de Pesquisa".
+   - Nele, liste as fontes reais fornecidas no contexto da busca web como links clicáveis formatados em HTML, abrindo em nova guia:
+     <a href="URL" target="_blank" style="color: #9333ea; text-decoration: underline;">Nome do Site/Título da Fonte</a>.
+   - Liste apenas as fontes reais que foram fornecidas a você no contexto.
+
+8) ENTREGA:
    - Retorne APENAS o código HTML completo dentro de um bloco de código markdown (\`\`\`html ... \`\`\`). Sem explicações antes ou depois.`;
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             { role: 'system', content: systemInstruction },
-            { role: 'user', content: `Crie uma apresentação de slides profissional sobre o seguinte assunto: "${userPrompt}"` }
+            { role: 'user', content: `Utilizando os dados de busca abaixo como fonte de informação factual precisa, crie a apresentação de slides sobre: "${userPrompt}"\n\nContexto de Busca:\n${searchContextText}` }
           ],
           temperature: 0.6, max_tokens: 2500
         })
@@ -4909,6 +5010,11 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
       });
       saveSessions();
       renderHistoryList();
+
+      const stepText4 = document.getElementById(`stepText4_${currentAgentId}`);
+      if (stepText4) {
+        stepText4.textContent = 'Apresentação de slides gerada com sucesso.';
+      }
 
       await sleep(600);
       setStepCompleted(4, currentAgentId, '#9333ea');
