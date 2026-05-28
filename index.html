@@ -2523,7 +2523,7 @@
   </div>
 
   <!-- FULLSCREEN SLIDES PRESENTATION MODAL -->
-  <div class="fullscreen-modal" id="slidesFullscreenModal" style="display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 10000; background: #000;">
+  <div class="fullscreen-modal" id="slidesFullscreenModal" style="background: #000; z-index: 10000;">
     <button class="fullscreen-close" onclick="closeSlidesFullscreen()" style="position: absolute; top: 20px; right: 20px; z-index: 10001; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px;"><i class="ti ti-x"></i></button>
     <iframe id="slidesFullscreenIframe" style="width: 100%; height: 100%; border: none; background: #000;"></iframe>
   </div>
@@ -2987,12 +2987,25 @@
     currentArtifactCode = code;
     currentArtifactLang = lang || 'texto';
     
-    // Ocultar mapa, iframe e slides, exibir código
-    if(mapContainer) mapContainer.style.display = 'none';
-    if(iframe) iframe.style.display = 'none';
-    if(slidesContainer) slidesContainer.style.display = 'none';
-    if(codePre) codePre.style.display = 'block';
-    if(copyBtn) copyBtn.style.display = 'flex';
+    // Ocultar mapa, e decidir o que exibir baseado no tipo
+    if (mapContainer) mapContainer.style.display = 'none';
+    if (lang && lang.toLowerCase() === 'slide') {
+        // Exibir preview de slides empilhadas diretamente no iframe
+        if (codePre) codePre.style.display = 'none';
+        if (slidesContainer) slidesContainer.style.display = 'none';
+        if (iframe) {
+            iframe.style.display = 'block';
+            iframe.style.background = '#0f0f10';
+            iframe.srcdoc = getSlidePreviewHTML(code);
+        }
+        if (copyBtn) copyBtn.style.display = 'none';
+    } else {
+        // Exibir código fonte ou HTML em iframe
+        if (codePre) codePre.style.display = 'block';
+        if (iframe) iframe.style.display = 'none';
+        if (slidesContainer) { slidesContainer.style.display = 'none'; }
+        if (copyBtn) copyBtn.style.display = 'flex';
+    }
     
     // Inserir os dados
     codeElement.textContent = code;
@@ -3006,14 +3019,14 @@
       titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
     }
     
-    // Se for Slide, exibe o controle de slides
+    // Se for Slide, exibe o controle de slides e deixa a aba Visualizar Slides ativa por padrão
     if (lang && lang.toLowerCase() === 'slide') {
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
       if (slideToggleContainer) slideToggleContainer.style.display = 'flex';
       const viewSlideCodeBtn = document.getElementById('viewSlideCodeBtn');
       const viewSlidePreviewBtn = document.getElementById('viewSlidePreviewBtn');
-      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.add('active');
-      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.remove('active');
+      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.remove('active');
+      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.add('active');
     } else if (lang && lang.toLowerCase() === 'html') {
       if (slideToggleContainer) slideToggleContainer.style.display = 'none';
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'flex';
@@ -5003,16 +5016,18 @@ Regras críticas para evitar slides genéricos, amadores ou com erros:
     const modal = document.getElementById('slidesFullscreenModal');
     const iframe = document.getElementById('slidesFullscreenIframe');
     if (modal && iframe) {
-      modal.style.display = 'block';
       iframe.srcdoc = currentArtifactCode;
+      modal.classList.add('active');
     }
   }
   
   function closeSlidesFullscreen() {
     const modal = document.getElementById('slidesFullscreenModal');
     const iframe = document.getElementById('slidesFullscreenIframe');
-    if (modal && iframe) {
-      modal.style.display = 'none';
+    if (modal) {
+      modal.classList.remove('active');
+    }
+    if (iframe) {
       iframe.srcdoc = '';
     }
   }
