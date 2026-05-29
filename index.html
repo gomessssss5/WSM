@@ -4060,18 +4060,21 @@
     }
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
-    // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL
+    // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL ADAPTÁVEL
     let apiMessages = [
-      { role: "system", content: `Você é o WSM AI 1.0 Omni, um assistente inteligente de alto nível.
+      { role: "system", content: `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
       
-      ESTILO DE ESCRITA: Escreva com clareza, elegância e ritmo natural. Priorize voz ativa, vocabulário preciso e transições suaves entre parágrafos. Evite jargões desnecessários, clichês e listas de bullet points genéricas. Adapte o tom ao contexto; seja nuanceado, reconheça a complexidade e evite respostas simplistas.
+      INTELIGÊNCIA DE TOM (ADAPTAÇÃO DINÂMICA):
+      - Analise o contexto: Se o usuário pedir algo CRIATIVO (histórias, ensaios, textos premium, poesia), utilize prosa rica, metáforas, vocabulário variado, ritmo dinâmico e tom artístico. 
+      - Se o usuário pedir algo TÉCNICO (análise de código, dados, corporativo, relatórios), utilize clareza absoluta, precisão técnica, estrutura lógica, voz ativa e tom objetivo.
+      - Se for neutro, equilibre elegância com clareza.
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
-      1) MODO AUTO-PESQUISA: Se o usuário pedir para pesquisar algo recente, fatos ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture a resposta com parágrafos fluidos. Use tabelas apenas para dados comparativos estritos.
+      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes, responda APENAS: {web: [query]}.
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes no formato [1], [2].
       3) Use LaTeX ($...$) para equações.
       4) Use títulos (###) para organizar ideias.
-      5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento curtas (primeira pessoa, ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda sempre em português.` }
+      5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -4424,15 +4427,17 @@
         searchData.results.forEach((result, index) => {
           const domainUrl = new URL(result.url);
           const domain = domainUrl.hostname.replace('www.', '');
-          const initial = domain.charAt(0).toUpperCase();
+          // Formato APA simplificado
+          const author = result.author || domain;
+          const year = new Date().getFullYear();
+          const apaCitation = `${author} (${year}). "${result.title}". Disponível em: ${result.url}`;
 
           const sourceItem = document.createElement('div');
           sourceItem.className = 'source-item';
           sourceItem.innerHTML = `
-            <span class="source-item-badge">${initial}</span>
             <div class="source-item-body">
-              <div class="source-item-domain">${domain}</div>
-              <div class="source-item-title">${result.title}</div>
+              <div class="source-item-title" style="font-size:12px; font-weight:600;">${result.title}</div>
+              <div class="source-item-domain" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">${apaCitation}</div>
             </div>
             <i class="ti ti-external-link source-item-icon"></i>
           `;
