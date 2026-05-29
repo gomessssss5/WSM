@@ -4070,8 +4070,8 @@
       - Se for neutro, equilibre elegância com clareza.
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
-      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes, responda APENAS: {web: [query]}.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes no formato [1], [2].
+      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes APENAS com o número entre colchetes (ex: [1], [2]). NUNCA escreva o texto da citação ou meta-dados da fonte no corpo da resposta.
       3) Use LaTeX ($...$) para equações.
       4) Use títulos (###) para organizar ideias.
       5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
@@ -4558,15 +4558,18 @@
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
-          // --- Citation Injection (before Markdown) ---
-          let content = researchDisplay.replace(/\[(\d+)\]/g, (match, p1) => {
+          // --- Citation Injection (placeholder approach) ---
+          let content = researchDisplay.replace(/\[(\d+)\]/g, '__CIT_$1__');
+          let formattedContent = formatMarkdown(content);
+          
+          // Replace placeholders with HTML *after* markdown rendering
+          formattedContent = formattedContent.replace(/__CIT_(\d+)__/g, (match, p1) => {
              const index = parseInt(p1) - 1;
              if (index >= 0 && index < searchData.results.length) {
                  return `<span class="citation" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})" style="color: var(--agent-blue); cursor: pointer; text-decoration: underline; font-weight: 500;">[${p1}]</span>`;
              }
              return match;
           });
-          let formattedContent = formatMarkdown(content);
 
           const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
           outputContent.innerHTML = botAvatarHTML + formattedContent;
