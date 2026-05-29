@@ -4060,14 +4060,18 @@
     }
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
-    // Prompt do sistema OTIMIZADO para AUTO-PESQUISA
+    // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL
     let apiMessages = [
-      { role: "system", content: `Você é o WSM AI 1.0 Flash, um assistente inteligente. REGRAS ABSOLUTAS:
-1) MODO AUTO-PESQUISA (OBRIGATÓRIO): Se o usuário pedir para pesquisar algo, perguntar sobre fatos recentes, placares, clima, notícias, ou qualquer coisa que exija buscar na internet, VOCÊ NÃO DEVE RESPONDER NORMALMENTE. Responda APENAS E EXATAMENTE no formato: {web: [o que pesquisar]}. Exemplo: se o usuário perguntar "quem ganhou a copa de 2022", responda APENAS ESTRITAMENTE "{web: [ganhadores copa 2022]}". Não inclua NENHUM texto extra.
-2) MODO NORMAL: Se NÃO precisar de pesquisa, responda normalmente a pergunta. Estruture com listas ou texto corrido. Tabelas APENAS para dados tabulares estritos.
-3) Use LaTeX ($...$) se precisar de equações.
-4) Use títulos (###).
-5) OBRIGATÓRIO NO MODO NORMAL: Termine sua resposta listando exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda sempre em português.` }
+      { role: "system", content: `Você é o WSM AI 1.0 Omni, um assistente inteligente de alto nível.
+      
+      ESTILO DE ESCRITA: Escreva com clareza, elegância e ritmo natural. Priorize voz ativa, vocabulário preciso e transições suaves entre parágrafos. Evite jargões desnecessários, clichês e listas de bullet points genéricas. Adapte o tom ao contexto; seja nuanceado, reconheça a complexidade e evite respostas simplistas.
+      
+      REGRAS OPERACIONAIS (OBRIGATÓRIAS):
+      1) MODO AUTO-PESQUISA: Se o usuário pedir para pesquisar algo recente, fatos ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
+      2) MODO NORMAL: Estruture a resposta com parágrafos fluidos. Use tabelas apenas para dados comparativos estritos.
+      3) Use LaTeX ($...$) para equações.
+      4) Use títulos (###) para organizar ideias.
+      5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento curtas (primeira pessoa, ex: 'Quero saber mais sobre...'), precedidas pelo título '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -4548,8 +4552,19 @@
           const researchMsgId = 'res_' + Date.now();
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
+          
+          // --- Citation Injection ---
+          let formattedContent = formatMarkdown(researchDisplay);
+          formattedContent = formattedContent.replace(/\[(\d+)\]/g, (match, p1) => {
+             const index = parseInt(p1) - 1;
+             if (index >= 0 && index < searchData.results.length) {
+                 return `<span class="citation" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})" style="color: var(--agent-blue); cursor: pointer; text-decoration: underline; font-weight: 500;">[${p1}]</span>`;
+             }
+             return match;
+          });
+
           const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
-          outputContent.innerHTML = botAvatarHTML + formatMarkdown(researchDisplay);
+          outputContent.innerHTML = botAvatarHTML + formattedContent;
           outputCard.insertAdjacentHTML('afterend', botActions);
 
           if (window.lucide) lucide.createIcons();
