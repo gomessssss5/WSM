@@ -3718,11 +3718,11 @@
     // Corrige quebras de linha duplas no meio de tabelas geradas incorretamente pela IA
     let fixedText = text.replace(/\|\s*\n\s*\n\s*\|/g, '|\n|');
 
-    // Apenas a substituição de citações para o footer funcionar
-    const textWithCitations = fixedText.replace(/\[(\d+)\]/g, '<span class="citation" onclick="openSourcesSidebarFromText($1)">$1</span>');
+    // Apenas a substituição de citações para o footer funcionar (REMOVIDO PARA EVITAR CONFLITO COM AGENTE DE PESQUISA)
+    // const textWithCitations = fixedText.replace(/\[(\d+)\]/g, '<span class="citation" onclick="openSourcesSidebarFromText($1)">$1</span>');
 
     // Processar o markdown nativamente
-    let rendered = md.render(textWithCitations);
+    let rendered = md.render(fixedText);
 
     // Envolve as tabelas perfeitamente prontas com a nova div bonita customizada
     return rendered
@@ -4558,15 +4558,15 @@
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
-          // --- Citation Injection ---
-          let formattedContent = formatMarkdown(researchDisplay);
-          formattedContent = formattedContent.replace(/\[(\d+)\]/g, (match, p1) => {
+          // --- Citation Injection (before Markdown) ---
+          let content = researchDisplay.replace(/\[(\d+)\]/g, (match, p1) => {
              const index = parseInt(p1) - 1;
              if (index >= 0 && index < searchData.results.length) {
                  return `<span class="citation" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})" style="color: var(--agent-blue); cursor: pointer; text-decoration: underline; font-weight: 500;">[${p1}]</span>`;
              }
              return match;
           });
+          let formattedContent = formatMarkdown(content);
 
           const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
           outputContent.innerHTML = botAvatarHTML + formattedContent;
@@ -6195,10 +6195,14 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       const item = document.createElement('div');
       item.className = 'sources-list-item';
       const domain = (() => { try { return new URL(r.url).hostname.replace('www.', ''); } catch(e){ return r.url; }})();
+      const today = new Date().toLocaleDateString('pt-BR');
+      
       item.innerHTML = `
-        <div class="meta">[${i+1}] ${domain}</div>
-        <div class="title">${escapeHtml(r.title || domain)}</div>
-        <a href="${r.url}" target="_blank" rel="noopener noreferrer">Abrir fonte</a>
+        <div class="meta" style="font-size: 10px; color: #888;">[${i+1}] ${domain}</div>
+        <div class="title" style="font-weight: 600; margin-bottom: 5px;">${escapeHtml(r.title || domain)}</div>
+        <div class="abnt-citation" style="font-size: 12px; margin-bottom: 10px; font-family: monospace;">
+          ${escapeHtml(r.title)}. Disponível em: <a href="${r.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.url)}</a>. Acesso em: ${today}.
+        </div>
       `;
       body.appendChild(item);
     });
