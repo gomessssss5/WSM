@@ -4080,10 +4080,11 @@
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
       1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de *cada* parágrafo que usar uma fonte, no formato [n] (ex: [1]). NUNCA omita essas citações. NUNCA escreva nomes de fontes, URLs ou metadados no corpo do texto. 
-      3) Use LaTeX ($...$) para equações.
-      4) Use títulos (###) para organizar ideias.
-      5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo que usar uma fonte, no formato [n] (ex: [1]). 
+      3) PROIBIÇÃO ABSOLUTA: JAMAIS adicione listas de fontes, links, referências ou URLs no corpo da sua resposta. NUNCA crie seções "Referências" ou "Fontes" no final do texto. As fontes devem ser apenas as tags [n] no texto.
+      4) Use LaTeX ($...$) para equações.
+      5) Use títulos (###) para organizar ideias.
+      6) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -4567,10 +4568,19 @@
               });
           }).join('\n\n'); // Rejoin paragraphs
           outputContent.innerHTML = botAvatarHTML + formattedParagraphs;
-          outputCard.insertAdjacentHTML('afterend', botActions);
+          
+          if (searchData.results.length > 0) {
+              const sourcesBtn = document.createElement('button');
+              sourcesBtn.className = 'action-btn';
+              sourcesBtn.style.marginTop = '15px';
+              sourcesBtn.style.display = 'flex';
+              sourcesBtn.style.alignItems = 'center';
+              sourcesBtn.style.gap = '5px';
+              sourcesBtn.innerHTML = '<i data-lucide="book-open"></i> Fontes';
+              sourcesBtn.onclick = () => openSourcesSidebar(currentAgentId, searchData.results);
+              outputContent.appendChild(sourcesBtn);
+          }
 
-          const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
-          outputContent.innerHTML = botAvatarHTML + formattedContent;
           outputCard.insertAdjacentHTML('afterend', botActions);
 
           if (window.lucide) lucide.createIcons();
