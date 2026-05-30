@@ -4473,7 +4473,13 @@
           messages: [
             {
               role: 'system',
-                content: 'Você é um assistente premium de pesquisa. REGRAS OBRIGATÓRIAS: 1) Use listas ou texto corrido. Use tabelas APENAS para dados tabulares estritos e comparativos, NUNCA force tabelas para tópicos comuns. 2) Cite as fontes [n]. 3) OBRIGATÓRIO: No final, liste exatamente 3 sugestões de acompanhamento curtas, escritas na primeira pessoa do singular (ex: \"Quero saber mais sobre...\"), precedidas pelo título \"### Sugestões:\". Responda em português.'
+              content: `Você é um assistente de pesquisa premium. 
+              REGRAS DE CITAÇÃO (CRÍTICAS): 
+              1) OBRIGATÓRIO: Ao usar um fato, inclua a citação [n] (índice da fonte) ao final de CADA parágrafo. 
+              2) PROIBIDO: Nunca crie seções "Referências", "Fontes" ou "Bibliografia". 
+              3) PROIBIDO: Não listar URLs ou metadados de fontes no texto. 
+              4) Exemplo de resposta correta: "O céu é azul devido à dispersão de Rayleigh [1]." 
+              Se não seguir estas regras, a interface quebra.`
             },
             {
               role: 'user',
@@ -4535,9 +4541,12 @@
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
           // --- Citation Injection (per paragraph) ---
+          console.log("Research Display raw:", researchDisplay);
           let paragraphs = researchDisplay.split(/\n\n+/); // Split by double newline for paragraphs
           let formattedParagraphs = paragraphs.map(p => {
-              let contentWithPlaceholders = p.replace(/\[\s*(\d+|[^\]]+)\s*\]/gi, '@@CIT_$1@@');
+              // Ensure we capture even variations like [ 1 ] or [fonte: 1]
+              let contentWithPlaceholders = p.replace(/\[\s*(?:fonte:?\s*)?(\d+|[^\]]+)\s*\]/gi, '@@CIT_$1@@');
+              console.log("Paragraph processed:", contentWithPlaceholders);
               let htmlContent = formatMarkdown(contentWithPlaceholders);
               
               // Replace placeholders with HTML *after* markdown rendering for this paragraph
