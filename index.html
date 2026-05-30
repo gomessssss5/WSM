@@ -4079,12 +4079,12 @@
       - Se for neutro, equilibre elegância com clareza.
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
-      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo que usar uma fonte, no formato [n] (ex: [1]). 
-      3) PROIBIÇÃO ABSOLUTA: JAMAIS adicione listas de fontes, links, referências ou URLs no corpo da sua resposta. NUNCA crie seções "Referências" ou "Fontes" no final do texto. As fontes devem ser apenas as tags [n] no texto.
+      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa, responda APENAS: {web: [query]}.
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes EXCLUSIVAMENTE ao final de parágrafos usando [n]. 
+      3) PROIBIÇÃO CRÍTICA: NUNCA gere seções "Referências", "Fontes" ou qualquer lista de links no final do texto. NUNCA escreva URLs ou nomes de sites no corpo da resposta além das tags [n].
       4) Use LaTeX ($...$) para equações.
       5) Use títulos (###) para organizar ideias.
-      6) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
+      6) ENCERRAMENTO: Termine com exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -4522,11 +4522,13 @@
         if (outputCard && outputContent) {
           outputCard.style.display = 'block';
           
-          let researchDisplay = finalResponse;
+          // --- Cleanup: Remove list of URLs from the end of the response ---
+          let cleanedResponse = finalResponse.replace(/(?:https?:\/\/)?(?:[\w-]+\.)+[a-z]{2,}(?:\S*)\s+.*(?:\n|$)/gi, '');
+          let researchDisplay = cleanedResponse;
           let researchSuggestions = [];
           
           const suggestionsRegex = /(?:\[SUGESTOES\]|\*\*Sugestões\*\*|### Sugestões|Sugestões:|Sugestões para o usuário:)\s*\n([\s\S]*)$/i;
-          const match = finalResponse.match(suggestionsRegex);
+          const match = researchDisplay.match(suggestionsRegex);
 
           if (match) {
             researchDisplay = finalResponse.replace(suggestionsRegex, '').trim();
@@ -4572,11 +4574,22 @@
           if (searchData.results.length > 0) {
               const sourcesBtn = document.createElement('button');
               sourcesBtn.className = 'action-btn';
-              sourcesBtn.style.marginTop = '15px';
-              sourcesBtn.style.display = 'flex';
-              sourcesBtn.style.alignItems = 'center';
-              sourcesBtn.style.gap = '5px';
-              sourcesBtn.innerHTML = '<i data-lucide="book-open"></i> Fontes';
+              sourcesBtn.style.cssText = `
+                margin-top: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                background: var(--pill-bg);
+                border: 0.5px solid var(--border);
+                border-radius: var(--radius-md);
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s;
+              `;
+              sourcesBtn.innerHTML = '<i data-lucide="book-open"></i> Ver Fontes Utilizadas';
+              sourcesBtn.onmouseover = function() { this.style.background = 'var(--pill-hover)'; this.style.color = 'var(--text-primary)'; };
+              sourcesBtn.onmouseout = function() { this.style.background = 'var(--pill-bg)'; this.style.color = 'var(--text-secondary)'; };
               sourcesBtn.onclick = () => openSourcesSidebar(currentAgentId, searchData.results);
               outputContent.appendChild(sourcesBtn);
           }
