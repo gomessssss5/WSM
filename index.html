@@ -4087,11 +4087,13 @@
       6) ENCERRAMENTO: Termine com exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
     ];
 
-    // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
+    // Adiciona o histórico limpo e limitado
     if (currentSession.messages.length > 0) {
-      const recentHistory = currentSession.messages.slice(-10); // Envia apenas as 10 últimas mensagens para evitar excessos
+      const recentHistory = currentSession.messages.slice(-10);
       recentHistory.forEach(msg => {
-        apiMessages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text });
+        // Trunca mensagens muito longas para evitar erro 413 (Payload Too Large)
+        const text = (msg.text && msg.text.length > 2000) ? msg.text.substring(0, 2000) + "... [truncado]" : msg.text;
+        apiMessages.push({ role: msg.role === 'user' ? 'user' : 'assistant', content: text });
       });
     }
 
