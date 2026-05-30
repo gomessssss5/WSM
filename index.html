@@ -2439,13 +2439,22 @@
     backdrop-filter: blur(4px);
     font-family: 'Inter', sans-serif;
   }
-
-  .slide-card-content-wrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: auto;
+  .site-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: var(--pill-bg);
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 5px;
+    cursor: pointer;
+    border: 0.5px solid var(--border);
+    color: var(--text-secondary);
   }
+  .site-tag:hover { background: var(--pill-hover); }
+  .site-tag img { width: 12px; height: 12px; border-radius: 2px; }
 
   .slide-card-content-wrapper section {
     display: flex !important;
@@ -4071,7 +4080,7 @@
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
       1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE usando apenas o número entre colchetes (ex: [1], [2]). NUNCA escreva o nome da fonte ou meta-dados no corpo do texto.
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes EXCLUSIVAMENTE ao final dos parágrafos usando o formato [n]. JAMAIS escreva nomes de fontes, URLs ou metadados dentro do texto.
       3) Use LaTeX ($...$) para equações.
       4) Use títulos (###) para organizar ideias.
       5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
@@ -4566,7 +4575,10 @@
           formattedContent = formattedContent.replace(/@@CIT_(\d+)@@/g, (match, p1) => {
              const index = parseInt(p1) - 1;
              if (index >= 0 && index < searchData.results.length) {
-                 return `<span class="citation" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})" style="color: var(--agent-blue); cursor: pointer; text-decoration: underline; font-weight: 500;">[${p1}]</span>`;
+                 const result = searchData.results[index];
+                 const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
+                 const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
+                 return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${domain}</span>`;
              }
              return match;
           });
