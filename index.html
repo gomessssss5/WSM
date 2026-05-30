@@ -4080,7 +4080,7 @@
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
       1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo usando o formato [n] (ex: [1]). NUNCA omita essas citações. NUNCA escreva nomes de fontes ou URLs no corpo do texto.
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de *cada* parágrafo que usar uma fonte, no formato [n] (ex: [1]). NUNCA omita essas citações. NUNCA escreva nomes de fontes, URLs ou metadados no corpo do texto. 
       3) Use LaTeX ($...$) para equações.
       4) Use títulos (###) para organizar ideias.
       5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
@@ -4534,32 +4534,31 @@
           outputCard.id = researchMsgId;
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
-          // --- Citation Injection (placeholder approach) ---
-          console.log("Research Display content:", researchDisplay);
-          
-          // Captura "[fonte]" ou "[1]" e substitui por tag.
-          // Regex revisado para capturar tanto [1] quanto [Fonte X]
-          let content = researchDisplay.replace(/\[(?:fonte:?\s*)?(\d+|[^\]]+)\]/gi, '@@CIT_$1@@');
-          let formattedContent = formatMarkdown(content);
-          
-          // Replace placeholders com a lógica de buscar o índice ou o nome
-          formattedContent = formattedContent.replace(/@@CIT_(.*?)@@/g, (match, p1) => {
-             const idx = parseInt(p1) - 1;
-             // Se for número, tenta usar o índice
-             if (!isNaN(idx) && idx >= 0 && idx < searchData.results.length) {
-                 const result = searchData.results[idx];
-                 const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
-                 const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
-                 return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${domain}</span>`;
-             }
-             // Se for texto (caso a IA escreva [Nome do Site])
-             const found = searchData.results.find(r => r.title.toLowerCase().includes(p1.toLowerCase()) || r.url.toLowerCase().includes(p1.toLowerCase()));
-             if (found) {
-                 const icon = `https://www.google.com/s2/favicons?domain=${found.url}`;
-                 return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${p1.substring(0,15)}</span>`;
-             }
-             return match;
-          });
+          // --- Citation Injection (per paragraph) ---
+          let paragraphs = researchDisplay.split(/\n\n+/); // Split by double newline for paragraphs
+          let formattedParagraphs = paragraphs.map(p => {
+              let contentWithPlaceholders = p.replace(/\[\s*(\d+|[^\]]+)\s*\]/gi, '@@CIT_$1@@');
+              let htmlContent = formatMarkdown(contentWithPlaceholders);
+              
+              // Replace placeholders with HTML *after* markdown rendering for this paragraph
+              return htmlContent.replace(/@@CIT_(.*?)@@/g, (match, p1) => {
+                 const idx = parseInt(p1) - 1;
+                 if (!isNaN(idx) && idx >= 0 && idx < searchData.results.length) {
+                     const result = searchData.results[idx];
+                     const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
+                     const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
+                     return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${domain}</span>`;
+                 }
+                 const found = searchData.results.find(r => r.title.toLowerCase().includes(p1.toLowerCase()) || r.url.toLowerCase().includes(p1.toLowerCase()));
+                 if (found) {
+                     const icon = `https://www.google.com/s2/favicons?domain=${found.url}`;
+                     return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${p1.substring(0,15)}</span>`;
+                 }
+                 return match;
+              });
+          }).join('\n\n'); // Rejoin paragraphs
+          outputContent.innerHTML = botAvatarHTML + formattedParagraphs;
+          outputCard.insertAdjacentHTML('afterend', botActions);
 
           const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
           outputContent.innerHTML = botAvatarHTML + formattedContent;
@@ -4610,14 +4609,11 @@
           outputCard.classList.add('visible');
         }
 
-        if (sourcesFooter && sourcesFooter.children.length > 0) {
-          sourcesFooter.style.display = 'block';
-          sourcesFooter.style.opacity = '0';
-          sourcesFooter.style.transform = 'translateY(8px)';
-          sourcesFooter.offsetHeight;
-          sourcesFooter.style.transition = 'all var(--transition)';
+        if (sourcesFooter && searchData.results.length > 0) {
+          sourcesFooter.style.display = 'flex'; 
           sourcesFooter.style.opacity = '1';
           sourcesFooter.style.transform = 'translateY(0)';
+          sourcesFooter.style.transition = 'none';
         }
 
         setTimeout(scrollToBottom, 50);
