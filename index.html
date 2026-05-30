@@ -4080,11 +4080,10 @@
       
       REGRAS OPERACIONAIS (OBRIGATÓRIAS):
       1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes EXCLUSIVAMENTE ao final dos parágrafos usando o formato [n] (ex: [1]). 
-      3) PROIBIÇÃO: NUNCA crie seções de "Referências", "Fontes" ou "Bibliografia" ao final da resposta. NUNCA liste URLs ou meta-dados no corpo do texto. 
-      4) Use LaTeX ($...$) para equações.
-      5) Use títulos (###) para organizar ideias.
-      6) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
+      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo usando o formato [n] (ex: [1]). NUNCA omita essas citações. NUNCA escreva nomes de fontes ou URLs no corpo do texto.
+      3) Use LaTeX ($...$) para equações.
+      4) Use títulos (###) para organizar ideias.
+      5) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
     ];
 
     // Adiciona o histórico limpo e limitado (Apenas Texto e as ultimas mensagens) ao payload
@@ -4536,7 +4535,8 @@
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
           // --- Citation Injection (placeholder approach) ---
-          let content = researchDisplay.replace(/\[(\d+)\]/g, '@@CIT_$1@@');
+          console.log("Research Display content:", researchDisplay);
+          let content = researchDisplay.replace(/\[\s*(\d+)\s*\]/g, '@@CIT_$1@@');
           let formattedContent = formatMarkdown(content);
           
           // Replace placeholders with HTML *after* markdown rendering
