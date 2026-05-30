@@ -4559,11 +4559,11 @@
           outputCard.setAttribute('data-raw-content', researchDisplay);
           
           // --- Citation Injection (placeholder approach) ---
-          let content = researchDisplay.replace(/\[(\d+)\]/g, '__CIT_$1__');
+          let content = researchDisplay.replace(/\[(\d+)\]/g, '@@CIT_$1@@');
           let formattedContent = formatMarkdown(content);
           
           // Replace placeholders with HTML *after* markdown rendering
-          formattedContent = formattedContent.replace(/__CIT_(\d+)__/g, (match, p1) => {
+          formattedContent = formattedContent.replace(/@@CIT_(\d+)@@/g, (match, p1) => {
              const index = parseInt(p1) - 1;
              if (index >= 0 && index < searchData.results.length) {
                  return `<span class="citation" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})" style="color: var(--agent-blue); cursor: pointer; text-decoration: underline; font-weight: 500;">[${p1}]</span>`;
