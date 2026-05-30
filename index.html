@@ -4536,17 +4536,27 @@
           
           // --- Citation Injection (placeholder approach) ---
           console.log("Research Display content:", researchDisplay);
-          let content = researchDisplay.replace(/\[\s*(\d+)\s*\]/g, '@@CIT_$1@@');
+          
+          // Captura "[fonte]" ou "[1]" e substitui por tag.
+          // Regex revisado para capturar tanto [1] quanto [Fonte X]
+          let content = researchDisplay.replace(/\[(?:fonte:?\s*)?(\d+|[^\]]+)\]/gi, '@@CIT_$1@@');
           let formattedContent = formatMarkdown(content);
           
-          // Replace placeholders with HTML *after* markdown rendering
-          formattedContent = formattedContent.replace(/@@CIT_(\d+)@@/g, (match, p1) => {
-             const index = parseInt(p1) - 1;
-             if (index >= 0 && index < searchData.results.length) {
-                 const result = searchData.results[index];
+          // Replace placeholders com a lógica de buscar o índice ou o nome
+          formattedContent = formattedContent.replace(/@@CIT_(.*?)@@/g, (match, p1) => {
+             const idx = parseInt(p1) - 1;
+             // Se for número, tenta usar o índice
+             if (!isNaN(idx) && idx >= 0 && idx < searchData.results.length) {
+                 const result = searchData.results[idx];
                  const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
                  const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
                  return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${domain}</span>`;
+             }
+             // Se for texto (caso a IA escreva [Nome do Site])
+             const found = searchData.results.find(r => r.title.toLowerCase().includes(p1.toLowerCase()) || r.url.toLowerCase().includes(p1.toLowerCase()));
+             if (found) {
+                 const icon = `https://www.google.com/s2/favicons?domain=${found.url}`;
+                 return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${p1.substring(0,15)}</span>`;
              }
              return match;
           });
