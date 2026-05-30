@@ -4518,7 +4518,10 @@
           outputCard.style.display = 'block';
           
           // --- Cleanup: Remove list of URLs from the end of the response ---
-          let cleanedResponse = finalResponse.replace(/(?:https?:\/\/)?(?:[\w-]+\.)+[a-z]{2,}(?:\S*)\s+.*(?:\n|$)/gi, '');
+          // Regex agressivo para remover seções de fontes/referências
+          let cleanedResponse = finalResponse
+            .replace(/(?:Referências|Fontes|Links):\s*(?:\n.*)+/gi, '')
+            .replace(/(?:https?:\/\/)?(?:[\w-]+\.)+[a-z]{2,}(?:\S*)\s+.*(?:\n|$)/gi, '');
           let researchDisplay = cleanedResponse;
           let researchSuggestions = [];
           
