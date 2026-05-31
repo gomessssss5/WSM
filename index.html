@@ -4635,9 +4635,7 @@
               outputContent.appendChild(sourcesBtn);
           }
 
-          const researchMsgId = 'research_' + Date.now();
           const botActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${researchMsgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="regenerateAI()" title="Regenerar"><i data-lucide="refresh-cw"></i></button></div>`;
-          outputCard.id = researchMsgId;
           outputCard.insertAdjacentHTML('afterend', botActions);
 
           if (window.lucide) lucide.createIcons();
