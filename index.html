@@ -3309,6 +3309,7 @@
         mapMode = false;
         webReaderMode = false;
         slideMode = false;
+        codeMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta todos os botões não ativos
         searchBtn.classList.add('is-active', 'search-active'); // Deixa o Pesquisar vísivel e pintado
         mapBtn.classList.remove('is-active', 'map-active');
@@ -3316,14 +3317,27 @@
         if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
         const slideActiveBtn = document.getElementById('slideActiveBtn');
         if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
+        const codeActiveBtn = document.getElementById('codeActiveBtn');
+        if (codeActiveBtn) codeActiveBtn.classList.remove('is-active', 'code-active');
         if (field) field.placeholder = 'Pesquisar na web estruturada...';
     } else {
-        toolsContainer.classList.remove('has-active-mode'); // Volta todos os botões
-        searchBtn.classList.remove('is-active', 'search-active');
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        deactivateSearchMode();
     }
     
     if (field) field.focus();
+  }
+
+  // Força a desativação do modo pesquisa
+  function deactivateSearchMode() {
+    searchMode = false;
+    const searchBtn = document.getElementById('searchBtn');
+    const toolsContainer = document.querySelector('.input-tools');
+    const field = document.getElementById('inputField');
+    
+    toolsContainer.classList.remove('has-active-mode');
+    if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
+    if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+    console.log("Debug: Modo pesquisa desativado.");
   }
 
   // Ativa e desativa o agente de Mapas
@@ -4672,7 +4686,7 @@
         }
 
           setTimeout(scrollToBottom, 50);
-          if (searchMode) toggleSearchMode();
+          deactivateSearchMode();
       }, 1100);
 
     } catch (error) {
@@ -4687,7 +4701,7 @@
         outputCard.classList.add('visible');
       }
       scrollToBottom();
-      if (searchMode) toggleSearchMode();
+      deactivateSearchMode();
     }
   }
 
