@@ -3329,15 +3329,19 @@
 
   // Força a desativação do modo pesquisa
   function deactivateSearchMode() {
+    console.log("DEBUG: Deactivating search mode. Previous state:", searchMode);
     searchMode = false;
     const searchBtn = document.getElementById('searchBtn');
     const toolsContainer = document.querySelector('.input-tools');
     const field = document.getElementById('inputField');
     
-    toolsContainer.classList.remove('has-active-mode');
+    if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
     if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
-    if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
-    console.log("Debug: Modo pesquisa desativado.");
+    if (field) {
+        field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        field.focus();
+    }
+    console.log("DEBUG: Search mode UI reset.");
   }
 
   // Ativa e desativa o agente de Mapas
@@ -4778,6 +4782,7 @@
     }, 100);
 
     try {
+      console.log("DEBUG: Research started. searchMode:", searchMode);
       // ETAPA 1: Planejamento via Groq para OpenStreetMap Nominatim
       setStepActive(1, currentAgentId);
       let groqApiKey = localStorage.getItem('GROQ_API_KEY');
