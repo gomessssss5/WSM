@@ -2597,7 +2597,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="logo">
       <img src="logo.png" alt="WSM AI Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" style="width: 64px; height: 64px; border-radius: 12px; object-fit: cover;">
-      <div class="logo-name">WSM AI 1.0 Flash</div>
+      <div class="logo-name">WSM AI 1.0 Omni</div>
     </div>
 
     <button class="new-chat-btn" onclick="startNewChat()">
@@ -2642,7 +2642,7 @@
         </button>
         <button class="model-selector">
           <span class="dot"></span>
-          WSM AI 1.0 Flash
+          WSM AI 1.0 Omni
           <i class="ti ti-chevron-down" aria-hidden="true"></i>
         </button>
       </div>
@@ -2685,7 +2685,7 @@
 
               <textarea
                 class="input-field"
-                placeholder="Pergunte qualquer coisa ao WSM AI 1.0 Flash..."
+                placeholder="Pergunte qualquer coisa ao WSM AI 1.0 Omni..."
                 rows="1"
                 id="inputField"
                 oninput="autoResize(this)"
@@ -3130,7 +3130,7 @@
 
     if (field) {
       field.value = '';
-      field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+      field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
       autoResize(field);
       field.focus();
     }
@@ -3338,7 +3338,7 @@
     if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
     if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
     if (field) {
-        field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
         field.focus();
     }
     console.log("DEBUG: Search mode UI reset.");
@@ -3375,7 +3375,7 @@
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente (incluindo Agentes)
         mapBtn.classList.remove('is-active', 'map-active'); // Esconde o mapa dedicado
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
         // Remove glowing border
         inputBox?.classList.remove('agent-map-active');
     }
@@ -3414,7 +3414,7 @@
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
         webReaderBtn.classList.remove('is-active', 'web-reader-active'); // Esconde o botão
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
         // Remove glowing border
         inputBox?.classList.remove('agent-web-active');
     }
@@ -3453,7 +3453,7 @@
     } else {
         toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
         slideActiveBtn.classList.remove('is-active', 'slide-active'); // Esconde o botão
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Flash...';
+        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
         // Remove glowing border
         inputBox?.classList.remove('agent-slide-active');
     }
@@ -4241,7 +4241,7 @@
 
     } catch (error) {
       removeTypingIndicator();
-      appendMessage(`Lamento, ocorreu um erro ao chamar o WSM AI 1.0 Flash: **${error.message}**.`, "bot");
+      appendMessage(`Lamento, ocorreu um erro ao chamar o WSM AI 1.0 Omni: **${error.message}**.`, "bot");
     }
   }
 
@@ -5173,7 +5173,7 @@
           messages: [
             {
               role: 'system',
-              content: 'Você é o WSM AI 1.0 Flash, atuando como um Agente Leitor de Web premium. Analise o conteúdo do site fornecido e responda de forma estruturada. REGRAS: 1) Responda sempre em português. 2) Se baseie estritamente nas informações contidas na página lida. 3) Use títulos e listas para melhorar a legibilidade. 4) No final, liste exatamente 3 sugestões curtas de acompanhamento na primeira pessoa do singular (ex: "Gostaria de ver um resumo de...", "Explique o ponto X..."), sob o título "### Sugestões:"'
+              content: 'Você é o WSM AI 1.0 Omni, atuando como um Agente Leitor de Web premium. Analise o conteúdo do site fornecido e responda de forma estruturada. REGRAS: 1) Responda sempre em português. 2) Se baseie estritamente nas informações contidas na página lida. 3) Use títulos e listas para melhorar a legibilidade. 4) No final, liste exatamente 3 sugestões curtas de acompanhamento na primeira pessoa do singular (ex: "Gostaria de ver um resumo de...", "Explique o ponto X..."), sob o título "### Sugestões:"'
             },
             {
               role: 'user',
