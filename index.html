@@ -4671,7 +4671,8 @@
           sourcesFooter.style.transition = 'none';
         }
 
-        setTimeout(scrollToBottom, 50);
+          setTimeout(scrollToBottom, 50);
+          if (searchMode) toggleSearchMode();
       }, 1100);
 
     } catch (error) {
@@ -4686,6 +4687,7 @@
         outputCard.classList.add('visible');
       }
       scrollToBottom();
+      if (searchMode) toggleSearchMode();
     }
   }
 
