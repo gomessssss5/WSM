@@ -60,6 +60,21 @@
   };
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  // Ajusta altura do campo de escrita dinamicamente
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+  }
+
+  // Manipula teclas no campo de input
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -3289,12 +3304,6 @@
     }
   }
 
-  // Ajusta altura do campo de escrita dinamicamente
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
-  }
-
   // Ativa e desativa modo de pesquisa web
   function toggleSearchMode() {
     const searchBtn = document.getElementById('searchBtn');
@@ -4130,25 +4139,7 @@ REGRAS OPERACIONAIS (OBRIGATÓRIAS):
 
     apiMessages.push({ role: "user", content: userContent });
 
-    let apiKey = localStorage.getItem('GROQ_API_KEY');
-    
-    if (!apiKey && typeof window !== 'undefined' && window.GROQ_API_KEY) {
-      apiKey = window.GROQ_API_KEY;
-    }
-
-    if (!apiKey) {
-      try {
-        const response = await fetch('/api/config', { 
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          apiKey = data.groqApiKey;
-        }
-      } catch (err) {}
-    }
-
+    // Verificação de apiKey já obtida na linha anterior
     if (!apiKey) {
       removeTypingIndicator();
       appendMessage("Ops! A chave de API do Groq não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro.", "bot");
@@ -6349,13 +6340,6 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
           callGroqAPI(text, currentAttachments);
         }
     }, 450);
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
   }
 
 </script>
