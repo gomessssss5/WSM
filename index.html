@@ -4221,8 +4221,9 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
 
       removeTypingIndicator();
       // O setTimeout garante que a nova mensagem seja adicionada enquanto o indicador vai encolhendo
-      const reasoning = data.choices[0].message.reasoning || data.choices[0].message.thinking || null;
-      appendMessage(assistantResponse, 'bot', [], false, null, null, null, false, reasoning);
+      const reasoning = data.choices[0].message.reasoning || data.choices[0].message.content.split('<think>')[1]?.split('</think>')[0] || null;
+      const cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
 
     } catch (error) {
       removeTypingIndicator();
