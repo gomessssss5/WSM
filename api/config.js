@@ -30,7 +30,8 @@ export default function handler(req, res) {
   console.log(`✅ ${keys.length} GROQ_API_KEY(s) carregadas com sucesso`);
   return res.status(200).json({
     groqApiKeys: keys,
-    groqApiKey: keys[0], // Mantém compatibilidade com versões antigas
+    groqApiKey: keys[0],
+    openRouterApiKey: process.env.OPENROUTER_API_KEY || null,
     message: 'Chaves carregadas da Vercel com sucesso'
   });
 }

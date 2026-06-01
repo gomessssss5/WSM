@@ -4064,7 +4064,8 @@
       : (window.currentChatModel === 'WSM 1.0 R1' ? 'openai/gpt-oss-120b:free' : 'llama-3.1-8b-instant');
     
     const isR1 = window.currentChatModel === 'WSM 1.0 R1';
-    const apiKey = isR1 ? localStorage.getItem('openrouter_api_key') : (await (await fetch('/api/config')).json()).groqApiKey;
+    const configData = await (await fetch('/api/config')).json();
+    const apiKey = isR1 ? configData.openRouterApiKey : configData.groqApiKey;
     const apiUrl = isR1 ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
     // Obter sessão atual ou criar uma nova se for a primeira mensagem
     if (!currentSessionId) {
