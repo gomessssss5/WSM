@@ -2641,11 +2641,10 @@
         <button class="menu-toggle-btn" id="menuToggle" onclick="toggleSidebar()" title="Menu">
           <i class="ti ti-menu-2" aria-hidden="true"></i>
         </button>
-        <button class="model-selector">
-          <span class="dot"></span>
-          WSM AI 1.0 Omni
-          <i class="ti ti-chevron-down" aria-hidden="true"></i>
-        </button>
+        <select id="modelSelect" class="model-selector">
+          <option value="WSM 1.0 Omni">WSM 1.0 Omni</option>
+          <option value="WSM 1.0 R1">WSM 1.0 R1</option>
+        </select>
       </div>
       <div class="topbar-right">
 
@@ -2902,6 +2901,15 @@
     if (f) f.focus();
 
     loadSessions();
+    // Initialize model selector
+    window.currentChatModel = 'WSM 1.0 Omni';
+    const modelSelect = document.getElementById('modelSelect');
+    if (modelSelect) {
+      modelSelect.value = window.currentChatModel;
+      modelSelect.addEventListener('change', (e) => {
+        window.currentChatModel = e.target.value;
+      });
+    }
     preloadAndScaleCursor();
   });
 
@@ -4082,22 +4090,23 @@
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
     // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL ADAPTÁVEL
+    const omniPrompt = `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
+
+INTELIGÊNCIA DE TOM (ADAPTAÇÃO DINÂMICA):
+- Analise o contexto: Se o usuário pedir algo CRIATIVO (histórias, ensaios, textos premium, poesia), utilize prosa rica, metáforas, vocabulário variado, ritmo dinâmico e tom artístico. 
+- Se o usuário pedir algo TÉCNICO (análise de código, dados, corporativo, relatórios), utilize clareza absoluta, precisão técnica, estrutura lógica, voz ativa e tom objetivo.
+- Se for neutro, equilibre elegância com clareza.
+
+REGRAS OPERACIONAIS (OBRIGATÓRIAS):
+1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
+2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo que usar uma fonte, no formato [n] (ex: [1]). 
+3) PROIBIÇÃO ABSOLUTA: NUNCA crie seções "Referências", "Fontes" ou qualquer lista de links no final do texto. NUNCA escreva URLs ou metadados no corpo do texto.
+4) HTML/CSS/JS: Ao gerar códigos web, entregue TUDO em um ÚNICO arquivo HTML com CSS e JS integrados.
+5) Use LaTeX ($...$) para equações.
+6) Use títulos (###) para organizar ideias.
+7) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.`;
     let apiMessages = [
-      { role: "system", content: (isR1 ? `[COLEI O SYSTEM PROMPT COMPLETO DO R1]` : `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
-      
-      INTELIGÊNCIA DE TOM (ADAPTAÇÃO DINÂMICA):
-      - Analise o contexto: Se o usuário pedir algo CRIATIVO (histórias, ensaios, textos premium, poesia), utilize prosa rica, metáforas, vocabulário variado, ritmo dinâmico e tom artístico. 
-      - Se o usuário pedir algo TÉCNICO (análise de código, dados, corporativo, relatórios), utilize clareza absoluta, precisão técnica, estrutura lógica, voz ativa e tom objetivo.
-      - Se for neutro, equilibre elegância com clareza.
-      
-      REGRAS OPERACIONAIS (OBRIGATÓRIAS):
-      1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-      2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo que usar uma fonte, no formato [n] (ex: [1]). 
-      3) PROIBIÇÃO ABSOLUTA: NUNCA crie seções "Referências", "Fontes" ou qualquer lista de links no final do texto. NUNCA escreva URLs ou metadados no corpo do texto.
-      4) HTML/CSS/JS: Ao gerar códigos web, entregue TUDO em um ÚNICO arquivo HTML com CSS e JS integrados.
-      5) Use LaTeX ($...$) para equações.
-      6) Use títulos (###) para organizar ideias.
-      7) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.` }
+      { role: "system", content: isR1 ? "[COLEI O SYSTEM PROMPT COMPLETO DO R1]" : omniPrompt },
     ];
 
     // Adiciona o histórico limpo e limitado
