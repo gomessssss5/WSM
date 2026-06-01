@@ -2648,15 +2648,7 @@
         </button>
       </div>
       <div class="topbar-right">
-        <div id="memoryTracker" style="width: 120px; font-size: 11px; margin-right: 15px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
-                <span>Memória</span>
-                <span id="memoryText">0%</span>
-            </div>
-            <div style="height: 6px; background: var(--pill-bg); border-radius: 3px; overflow: hidden;">
-                <div id="memoryBar" style="height: 100%; width: 0%; background: var(--agent-green); transition: width 0.3s ease, background 0.3s ease;"></div>
-            </div>
-        </div>
+
       </div>
     </div>
 
@@ -3070,7 +3062,6 @@
     });
     
     localStorage.removeItem('wsm_tokens_consumed');
-    updateMemory(0);
     
     renderHistoryList();
     scrollToBottom();
@@ -3088,8 +3079,7 @@
     const composerTitle = document.getElementById('composerTitle');
     
     localStorage.removeItem('wsm_tokens_consumed');
-    updateMemory(0);
-
+    
     // Ferramentas da barra inferior
     const toolsContainer = document.querySelector('.input-tools');
     const searchBtn = document.getElementById('searchBtn');
@@ -4186,7 +4176,6 @@
       }
 
       const data = await response.json();
-      if (data.usage) updateMemory(data.usage.total_tokens);
       const assistantResponse = data.choices[0].message.content.trim();
 
       if (assistantResponse.includes('{jogo-velha}')) {
@@ -6594,32 +6583,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
   animate();
   })();
 
-  // --- WSM AI Memory Tracker & Tic-Tac-Toe ---
-  function updateMemory(tokens) {
-    let consumed = parseInt(localStorage.getItem('wsm_tokens_consumed') || '0');
-    consumed += tokens;
-    localStorage.setItem('wsm_tokens_consumed', consumed.toString());
-    const limit = 32000;
-    const percent = Math.min(Math.round((consumed / limit) * 100), 100);
-    
-    const bar = document.getElementById('memoryBar');
-    const text = document.getElementById('memoryText');
-    if (bar && text) {
-        bar.style.width = `${percent}%`;
-        text.innerText = `${percent}%`;
-        
-        // Color logic
-        if (percent < 70) bar.style.backgroundColor = 'var(--agent-green)';
-        else if (percent < 90) bar.style.backgroundColor = 'var(--agent-amber)';
-        else bar.style.backgroundColor = 'red';
-    }
-    
-    if (percent >= 100) {
-        document.getElementById('memoryOverlay').style.display = 'flex';
-        const chatInput = document.querySelector('textarea');
-        if (chatInput) chatInput.disabled = true;
-    }
-  }
+  // --- Tic-Tac-Toe ---
 
   function exportChat() {
     const messages = Array.from(document.querySelectorAll('.message')).map(m => m.innerText).join('\n\n');
@@ -6708,14 +6672,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
   });
 </script>
 
-<div id="memoryOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; flex-direction:column; align-items:center; justify-content:center; color:white;">
-  <h2>A memória desse chat chegou em seu limite.</h2>
-  <div style="display:flex; gap:10px; margin-top:20px;">
-    <button onclick="window.location.reload()">Iniciar outro chat</button>
-    <button onclick="exportChat()">Exportar conversa</button>
-    <button onclick="document.getElementById('memoryOverlay').style.display='none'">Continuar no chat</button>
-  </div>
-</div>
+
 
 </body>
 </html>
