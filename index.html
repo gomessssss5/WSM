@@ -27,12 +27,12 @@
   (function() {
     const originalFetch = window.fetch;
     window.fetch = async (url, options) => {
-      if (url === 'https://api.groq.com/openai/v1/chat/completions') {
+      if (url === 'https://api.groq.com/openai/v1/chat/completions' || url === 'https://openrouter.ai/api/v1/chat/completions') {
         let response = await originalFetch(url, options);
         if (!response.ok) {
           try {
             const config = await (await originalFetch('/api/config')).json();
-            const keys = config.groqApiKeys;
+            const keys = (url === 'https://api.groq.com/openai/v1/chat/completions') ? config.groqApiKeys : [config.openRouterApiKey];
             for (const key of keys) {
               const newOptions = { ...options, headers: { ...options.headers, 'Authorization': `Bearer ${key}` } };
               response = await originalFetch(url, newOptions);
