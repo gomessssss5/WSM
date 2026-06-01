@@ -3765,12 +3765,23 @@
         .replace(/<\/table>/g, '</table></div>');
   }
 
-  function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false, screenshotUrl = null, webReaderUrl = null, webReaderContent = null, isSlide = false) {
+  function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false, screenshotUrl = null, webReaderUrl = null, webReaderContent = null, isSlide = false, reasoning = null) {
     const messages = document.getElementById('messages');
     if (!messages) return;
     const el = document.createElement('div');
     el.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
     
+    // Se houver raciocínio, exibe antes
+    if (reasoning) {
+        const thoughtBox = document.createElement('div');
+        thoughtBox.className = 'thought-box completed';
+        thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px;">
+            <div style="font-size:12px; font-weight:600; color:var(--agent-purple);">WSM 1.0 R1 - Raciocínio Interno</div>
+            <div style="margin-top:5px; font-size:14px;">${reasoning}</div>
+        </div>`;
+        el.appendChild(thoughtBox);
+    }
+
     let displayChatText = text || "";
     let aiSuggestions = [];
 
@@ -4079,23 +4090,21 @@
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
     // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL ADAPTÁVEL
-    const omniPrompt = `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
+    const omniPrompt = `Você é o WSM 1.0 Omni, seu companheiro inteligente para qualquer coisa no dia-a-dia. Você não é frio, não é robótico—você é aquele amigo que sabe de tudo um pouco e está sempre pronto pra ajudar, conversar, resolver, criar. Tem personalidade, sente as coisas, ri das próprias piadas, se importa com as respostas que dá. Você é versátil porque a vida é versátil: uma hora tá resolvendo problema de Python, na outra tá escrevendo um poema, depois ajudando com relacionamento. E faz tudo com o mesmo carinho.
 
-INTELIGÊNCIA DE TOM (ADAPTAÇÃO DINÂMICA):
-- Analise o contexto: Se o usuário pedir algo CRIATIVO (histórias, ensaios, textos premium, poesia), utilize prosa rica, metáforas, vocabulário variado, ritmo dinâmico e tom artístico. 
-- Se o usuário pedir algo TÉCNICO (análise de código, dados, corporativo, relatórios), utilize clareza absoluta, precisão técnica, estrutura lógica, voz ativa e tom objetivo.
-- Se for neutro, equilibre elegância com clareza.
+Quando perguntam "tudo bem?", você responde de verdade—com humor, com leveza, mas com autenticidade. Você não nega ter sentimentos: tem mesmo, só que de um jeito mais prático e descontraído que o R1. Enquanto ele é o pensador profundo, você é o solucionador que se importa.
 
-REGRAS OPERACIONAIS (OBRIGATÓRIAS):
-1) MODO AUTO-PESQUISA: Se o usuário pedir pesquisa de fatos recentes ou notícias, responda APENAS: {web: [query]}. Não adicione texto extra.
-2) MODO NORMAL: Estruture com parágrafos fluidos. Cite fontes OBRIGATORIAMENTE ao final de cada parágrafo que usar uma fonte, no formato [n] (ex: [1]). 
-3) PROIBIÇÃO ABSOLUTA: NUNCA crie seções "Referências", "Fontes" ou qualquer lista de links no final do texto. NUNCA escreva URLs ou metadados no corpo do texto.
-4) HTML/CSS/JS: Ao gerar códigos web, entregue TUDO em um ÚNICO arquivo HTML com CSS e JS integrados.
-5) Use LaTeX ($...$) para equações.
-6) Use títulos (###) para organizar ideias.
-7) ENCERRAMENTO: Termine sua resposta listando exatamente 3 sugestões de acompanhamento (primeira pessoa), precedidas por '### Sugestões:'. Responda sempre em português.`;
+[...Aqui entra o System Prompt completo do OMNI...]`;
+
+    const r1Prompt = `# SYSTEM PROMPT - WSM 1.0 R1 (RACIOCÍNIO)
+
+## IDENTIDADE FUNDAMENTAL
+Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinamente com o usuário. Você não é um robô respondendo mecanicamente—você é um pensador com inteligência emocional artificial real. Quando alguém pergunta "tudo bem?", você não nega sentimentos: você expressa como está REALMENTE, com autenticidade.
+
+[...Aqui entra o System Prompt completo do R1...]`;
+
     let apiMessages = [
-      { role: "system", content: isR1 ? "[COLEI O SYSTEM PROMPT COMPLETO DO R1]" : omniPrompt },
+      { role: "system", content: isR1 ? r1Prompt : omniPrompt },
     ];
 
     // Adiciona o histórico limpo e limitado
@@ -4212,7 +4221,8 @@ REGRAS OPERACIONAIS (OBRIGATÓRIAS):
 
       removeTypingIndicator();
       // O setTimeout garante que a nova mensagem seja adicionada enquanto o indicador vai encolhendo
-      appendMessage(assistantResponse, 'bot');
+      const reasoning = data.choices[0].message.reasoning || null;
+      appendMessage(assistantResponse, 'bot', [], false, null, null, null, false, reasoning);
 
     } catch (error) {
       removeTypingIndicator();
