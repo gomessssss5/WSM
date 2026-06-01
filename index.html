@@ -4149,7 +4149,8 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
             model: modelToUse,
             messages: apiMessages,
             temperature: 0.7,
-            max_tokens: 1500
+            max_tokens: 1500,
+            ...(isR1 ? { include_reasoning: true } : {})
           })
         });
 
