@@ -4180,6 +4180,12 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
       console.log("DEBUG API RESPONSE:", data); // Debugging
       const message = data.choices[0].message;
       const assistantResponse = (message.content || "").trim();
+
+      if (assistantResponse.includes('{jogo-velha}')) {
+          startTicTacToe();
+          return;
+      }
+
       const reasoning = message.reasoning || message.thinking || null;
       const cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
       appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
