@@ -3892,26 +3892,7 @@
 
         el.appendChild(tempDiv);
         
-        // Se houver webReaderContent, adiciona o card de visualização do texto bruto
-        if (webReaderContent && webReaderUrl) {
-          const viewRawCard = document.createElement('div');
-          viewRawCard.className = 'artifact-trigger-card';
-          viewRawCard.style.maxWidth = '100%';
-          viewRawCard.style.marginTop = '12px';
-          viewRawCard.innerHTML = `
-            <div class="artifact-card-icon"><i class="ti ti-file-text"></i></div>
-            <div class="artifact-card-info">
-              <span class="title">Visualizar Conteúdo Textual Lido</span>
-              <span class="meta">Texto Bruto Extraído (${webReaderContent.length} caracteres)</span>
-            </div>
-            <button class="artifact-card-btn">Abrir Conteúdo</button>
-          `;
-          viewRawCard.addEventListener('click', () => {
-            openArtifact(webReaderContent, 'txt');
-            const artifactTitle = document.getElementById('artifactTitle');
-            if (artifactTitle) {
-              artifactTitle.innerHTML = `<i class="ti ti-file-text" style="color:var(--agent-blue)"></i><span>Texto lido de ${webReaderUrl.replace('https://', '').replace('http://', '').split('/')[0]}</span>`;
-            }
+
           });
           el.appendChild(viewRawCard);
         }
