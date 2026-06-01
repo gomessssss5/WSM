@@ -4065,8 +4065,11 @@
     
     const modelToUse = (attachments.length > 0) 
       ? "meta-llama/llama-4-scout-17b-16e-instruct" 
-      : "llama-3.1-8b-instant";
+      : (window.currentChatModel === 'WSM 1.0 R1' ? 'openai/gpt-oss-120b:free' : 'llama-3.1-8b-instant');
     
+    const isR1 = window.currentChatModel === 'WSM 1.0 R1';
+    const apiKey = isR1 ? localStorage.getItem('openrouter_api_key') : (await (await fetch('/api/config')).json()).groqApiKey;
+    const apiUrl = isR1 ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
     // Obter sessão atual ou criar uma nova se for a primeira mensagem
     if (!currentSessionId) {
       currentSessionId = Date.now().toString();
@@ -4080,7 +4083,7 @@
 
     // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL ADAPTÁVEL
     let apiMessages = [
-      { role: "system", content: `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
+      { role: "system", content: (isR1 ? `[COLEI O SYSTEM PROMPT COMPLETO DO R1]` : `Você é o WSM AI 1.0 Omni, um assistente inteligente versátil.
       
       INTELIGÊNCIA DE TOM (ADAPTAÇÃO DINÂMICA):
       - Analise o contexto: Se o usuário pedir algo CRIATIVO (histórias, ensaios, textos premium, poesia), utilize prosa rica, metáforas, vocabulário variado, ritmo dinâmico e tom artístico. 
