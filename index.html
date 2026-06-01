@@ -3825,8 +3825,8 @@
               lang = 'slide';
             }
 
-            // Se for um bloco considerável (mais de 5 linhas), substitui pelo Botão Bonito
-            if (isThisSlide || lines > 5 || rawCode.length > 250) {
+            // Se for um bloco considerável (mais de 50 linhas), substitui pelo Botão Bonito
+            if (isThisSlide || lines > 50 || rawCode.length > 5000) {
                 const preNode = codeNode.parentNode;
                 
                 const card = document.createElement('div');
