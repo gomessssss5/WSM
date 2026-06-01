@@ -4148,9 +4148,15 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
           body: JSON.stringify({
             model: modelToUse,
             messages: apiMessages,
-            temperature: 0.7,
-            max_tokens: 1500,
-            ...(isR1 ? { include_reasoning: true } : {})
+            temperature: 0.1,
+            top_p: 0.9,
+            max_tokens: 3500,
+            presence_penalty: 0,
+            frequency_penalty: 0,
+            ...(isR1 ? { 
+                include_reasoning: true, 
+                extra_body: { reasoning_effort: "medium" } 
+            } : {})
           })
         });
 
@@ -4171,58 +4177,10 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
       }
 
       const data = await response.json();
-      const assistantResponse = data.choices[0].message.content.trim();
-
-      if (assistantResponse.includes('{jogo-velha}')) {
-          startTicTacToe();
-          return;
-      }
-
-      // -- Artifact for long documents --
-      if (assistantResponse.length > 1000) {
-          const docId = 'doc_' + Date.now();
-          window[docId] = assistantResponse;
-          
-          const summary = assistantResponse.substring(0, 400) + "...";
-          const buttonHtml = `<br><button class="action-btn" style="margin-top:10px; padding:8px 16px; background:var(--pill-bg); border:0.5px solid var(--border); border-radius:var(--radius-md); color:var(--text-secondary); cursor:pointer;" onclick="openArtifact(window['${docId}'], 'txt')">Abrir Documento Completo</button>`;
-          
-          currentSession.messages.push({ role: 'user', text: userPrompt || "" });
-          currentSession.messages.push({ role: 'bot', text: summary + " [Documento aberto no card lateral]" });
-          saveSessions();
-          renderHistoryList();
-
-          removeTypingIndicator();
-          appendMessage(summary + buttonHtml, 'bot');
-          return;
-      }
-
-      // MÁGICA DO AUTO-SEARCH AQUI: Identifica se a IA devolveu a tag exclusiva de Pesquisa Web
-      const webMatch = assistantResponse.match(/\{web:\s*\[?([^}\]]+)/i);
-      
-      if (webMatch) {
-        // Pega a palavra-chave que a IA gerou e limpa. Exclui e não exibe o texto ao usuário.
-        const searchQuery = webMatch[1].trim(); 
-        
-        removeTypingIndicator(); // Esconde o balãozinho suavemente
-        
-        // Aguarda a transição de saída do balão concluir antes de invocar a interface de deep research!
-        setTimeout(() => {
-          executeDeepResearch(userPrompt, attachments, searchQuery);
-        }, 200); 
-        
-        return; // ABORTA O FLUXO NORMAL! A IA não mandará nenhuma mensagem normal agora.
-      }
-
-      // -- Se for fluxo normal (IA não mandou {web:}) --
-      // Salva histórico na Sessão da UI apenas em TEXTO para manter armazenamento leve
-      currentSession.messages.push({ role: 'user', text: userPrompt || "" });
-      currentSession.messages.push({ role: 'bot', text: assistantResponse });
-      saveSessions();
-      renderHistoryList();
-
-      removeTypingIndicator();
-      // O setTimeout garante que a nova mensagem seja adicionada enquanto o indicador vai encolhendo
-      const reasoning = data.choices[0].message.reasoning || data.choices[0].message.content.split('<think>')[1]?.split('</think>')[0] || null;
+      console.log("DEBUG API RESPONSE:", data); // Debugging
+      const message = data.choices[0].message;
+      const assistantResponse = (message.content || "").trim();
+      const reasoning = message.reasoning || message.thinking || null;
       const cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
       appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
 
