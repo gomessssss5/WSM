@@ -4138,8 +4138,16 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
 
 [...Aqui entra o System Prompt completo do R1...]`;
 
+    // Obter contexto dinâmico
+    let locationText = "Não disponível";
+    try {
+        const pos = await new Promise(resolve => navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), {timeout: 3000}));
+        if (pos) locationText = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+    } catch(e) {}
+    const dateTime = new Date().toLocaleString();
+
     let apiMessages = [
-      { role: "system", content: isR1 ? r1Prompt : omniPrompt },
+      { role: "system", content: (isR1 ? r1Prompt : omniPrompt) + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.` },
     ];
 
     // Adiciona o histórico limpo e limitado
@@ -4190,7 +4198,7 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
             frequency_penalty: 0,
             ...(isR1 ? { 
                 include_reasoning: true, 
-                extra_body: { reasoning_effort: window.currentReasoningEffort || "medium" } 
+                extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } } 
             } : {})
           })
         });
