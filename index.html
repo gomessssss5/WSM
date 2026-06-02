@@ -3770,26 +3770,6 @@
     if (!messages) return;
     const el = document.createElement('div');
     el.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
-    
-    // Se houver raciocínio, exibe antes
-    if (reasoning) {
-        const thoughtBox = document.createElement('div');
-        thoughtBox.className = 'thought-box'; // Inicialmente aberto
-        thoughtBox.style.display = 'block';
-        thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px; display:block;">
-            <div style="font-size:12px; font-weight:600; color:var(--agent-purple);">WSM 1.0 R1 - Raciocínio Interno</div>
-            <div style="margin-top:5px; font-size:14px; color:var(--text-primary);">${reasoning}</div>
-        </div>`;
-        el.prepend(thoughtBox);
-
-        // Animação de fechamento igual aos agentes
-        setTimeout(() => {
-            thoughtBox.classList.add('completed');
-            setTimeout(() => {
-                thoughtBox.classList.add('collapsed');
-            }, 800);
-        }, 1000);
-    }
 
     let displayChatText = text || "";
     let aiSuggestions = [];
@@ -3908,6 +3888,26 @@
           imgContainer.appendChild(imgEl);
           imgContainer.appendChild(infoSpan);
           el.appendChild(imgContainer);
+        }
+
+        // Se houver raciocínio, exibe antes do conteúdo de texto
+        if (reasoning) {
+            const thoughtBox = document.createElement('div');
+            thoughtBox.className = 'thought-box'; // Inicialmente aberto
+            thoughtBox.style.display = 'block';
+            thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px; display:block;">
+                <div style="font-size:12px; font-weight:600; color:var(--agent-purple);">WSM 1.0 R1 - Raciocínio Interno</div>
+                <div style="margin-top:5px; font-size:14px; color:var(--text-primary);">${reasoning}</div>
+            </div>`;
+            el.appendChild(thoughtBox);
+
+            // Animação de fechamento igual aos agentes
+            setTimeout(() => {
+                thoughtBox.classList.add('completed');
+                setTimeout(() => {
+                    thoughtBox.classList.add('collapsed');
+                }, 800);
+            }, 1000);
         }
 
         el.appendChild(tempDiv);
