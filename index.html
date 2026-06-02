@@ -4047,6 +4047,7 @@
   // Nova lógica de remoção suave para o indicador de digitação
   function removeTypingIndicator() {
     const indicator = document.getElementById('typingIndicator');
+    console.log("Removing indicator:", indicator);
     if (indicator) {
       indicator.classList.add('fade-out'); // Adiciona a classe que reduz tamanho/opacidade
       setTimeout(() => {
@@ -4177,7 +4178,8 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
       }
 
       const data = await response.json();
-      console.log("DEBUG API RESPONSE:", data); // Debugging
+      console.log("DEBUG API RESPONSE:", data); 
+      console.log("FULL MESSAGE OBJECT:", data.choices[0].message);
       const message = data.choices[0].message;
       const assistantResponse = (message.content || "").trim();
 
