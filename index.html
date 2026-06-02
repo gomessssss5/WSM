@@ -3890,25 +3890,37 @@
           el.appendChild(imgContainer);
         }
 
-        // Se houver raciocínio, exibe antes do conteúdo de texto
-        if (reasoning) {
-            const thoughtBox = document.createElement('div');
-            thoughtBox.className = 'thought-box'; // Inicialmente aberto
-            thoughtBox.style.display = 'block';
-            thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px; display:block;">
-                <div style="font-size:12px; font-weight:600; color:var(--agent-purple);">WSM 1.0 R1 - Raciocínio Interno</div>
-                <div style="margin-top:5px; font-size:14px; color:var(--text-primary);">${reasoning}</div>
-            </div>`;
-            el.appendChild(thoughtBox);
+    // Se houver raciocínio, exibe antes do conteúdo de texto
+    if (reasoning) {
+        const thoughtBox = document.createElement('div');
+        thoughtBox.className = 'thought-box';
+        thoughtBox.id = `thoughtBox_r1_${msgId}`;
+        thoughtBox.innerHTML = `
+            <div class="thought-header" onclick="toggleAgentThoughtBox('r1_${msgId}')">
+              <div class="thought-status">
+                <div class="spinner" id="mainSpinner_r1_${msgId}"></div>
+                <i class="ti ti-circle-check-filled success-icon" id="mainCheck_r1_${msgId}" style="color:var(--agent-green);"></i>
+                <span class="thought-title" id="mainTitle_r1_${msgId}">WSM 1.0 R1 está pensando...</span>
+              </div>
+              <i class="ti ti-chevron-down thought-toggle"></i>
+            </div>
+            <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005);">
+                <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary);">${reasoning}</div>
+            </div>
+        `;
+        el.prepend(thoughtBox);
 
-            // Animação de fechamento igual aos agentes
+        // Animação: marca como completado após breve delay e depois colapsa
+        setTimeout(() => {
+            thoughtBox.classList.add('completed');
+            const titleEl = document.getElementById(`mainTitle_r1_${msgId}`);
+            if (titleEl) titleEl.textContent = "Raciocínio concluído";
+            
             setTimeout(() => {
-                thoughtBox.classList.add('completed');
-                setTimeout(() => {
-                    thoughtBox.classList.add('collapsed');
-                }, 800);
-            }, 1000);
-        }
+                thoughtBox.classList.add('collapsed');
+            }, 800);
+        }, 1200);
+    }
 
         el.appendChild(tempDiv);
         
