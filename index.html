@@ -4056,6 +4056,7 @@
   // Nova lógica de remoção suave para o indicador de digitação
   function removeTypingIndicator() {
     const indicators = document.querySelectorAll('#typingIndicator, .typing-indicator');
+    console.log("Removendo indicadores encontrados:", indicators.length);
     indicators.forEach(indicator => {
       indicator.remove();
     });
@@ -4194,7 +4195,10 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
       }
 
       const reasoning = message.reasoning || message.thinking || null;
+      console.log("DEBUG REASONING:", reasoning); // Debugging
       const cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      
+      removeTypingIndicator(); // Ensure indicator is removed
       appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
 
     } catch (error) {
