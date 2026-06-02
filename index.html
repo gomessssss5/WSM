@@ -2656,9 +2656,14 @@
         <button class="menu-toggle-btn" id="menuToggle" onclick="toggleSidebar()" title="Menu">
           <i class="ti ti-menu-2" aria-hidden="true"></i>
         </button>
-        <select id="modelSelect" class="model-selector">
+        <select id="modelSelect" class="model-selector" onchange="toggleEffortSelector(this.value)">
           <option value="WSM 1.0 Omni">WSM 1.0 Omni</option>
           <option value="WSM 1.0 R1">WSM 1.0 R1</option>
+        </select>
+        <select id="effortSelect" class="model-selector" style="display:none; margin-left: 8px;">
+          <option value="low">Esforço: Baixo</option>
+          <option value="medium" selected>Esforço: Médio</option>
+          <option value="high">Esforço: Alto</option>
         </select>
       </div>
       <div class="topbar-right">
@@ -2918,17 +2923,32 @@
     loadSessions();
     // Initialize model selector
     window.currentChatModel = 'WSM 1.0 Omni';
+    window.currentReasoningEffort = 'medium';
     const modelSelect = document.getElementById('modelSelect');
+    const effortSelect = document.getElementById('effortSelect');
+    
     if (modelSelect) {
       modelSelect.value = window.currentChatModel;
       modelSelect.addEventListener('change', (e) => {
         window.currentChatModel = e.target.value;
       });
     }
+    if (effortSelect) {
+      effortSelect.value = window.currentReasoningEffort;
+      effortSelect.addEventListener('change', (e) => {
+        window.currentReasoningEffort = e.target.value;
+      });
+    }
     preloadAndScaleCursor();
   });
 
-  // Fechar o menu dropdown de agentes se clicar fora dele
+  function toggleEffortSelector(model) {
+    const effort = document.getElementById('effortSelect');
+    if (effort) {
+      effort.style.display = (model === 'WSM 1.0 R1') ? 'inline-block' : 'none';
+      window.currentChatModel = model;
+    }
+  }
   document.addEventListener('click', function(e) {
     const wrapper = document.querySelector('.agents-dropdown-wrapper');
     const menu = document.getElementById('agentsMenu');
@@ -3910,15 +3930,11 @@
         `;
         el.prepend(thoughtBox);
 
-        // Animação: marca como completado após breve delay e depois colapsa
+        // Animação: marca como completado após breve delay (apenas troca o ícone/título, não colapsa)
         setTimeout(() => {
             thoughtBox.classList.add('completed');
             const titleEl = document.getElementById(`mainTitle_r1_${msgId}`);
             if (titleEl) titleEl.textContent = "Raciocínio concluído";
-            
-            setTimeout(() => {
-                thoughtBox.classList.add('collapsed');
-            }, 800);
         }, 1200);
     }
 
@@ -4174,7 +4190,7 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
             frequency_penalty: 0,
             ...(isR1 ? { 
                 include_reasoning: true, 
-                extra_body: { reasoning_effort: "medium" } 
+                extra_body: { reasoning_effort: window.currentReasoningEffort || "medium" } 
             } : {})
           })
         });
