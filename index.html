@@ -3775,11 +3775,12 @@
     if (reasoning) {
         const thoughtBox = document.createElement('div');
         thoughtBox.className = 'thought-box completed';
-        thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px;">
+        thoughtBox.style.display = 'block';
+        thoughtBox.innerHTML = `<div class="thought-content" style="padding:10px; border-left: 2px solid var(--agent-purple); background:var(--pill-bg); margin-bottom:10px; display:block;">
             <div style="font-size:12px; font-weight:600; color:var(--agent-purple);">WSM 1.0 R1 - Raciocínio Interno</div>
-            <div style="margin-top:5px; font-size:14px;">${reasoning}</div>
+            <div style="margin-top:5px; font-size:14px; color:var(--text-primary);">${reasoning}</div>
         </div>`;
-        el.appendChild(thoughtBox);
+        el.prepend(thoughtBox);
     }
 
     let displayChatText = text || "";
@@ -4046,14 +4047,10 @@
 
   // Nova lógica de remoção suave para o indicador de digitação
   function removeTypingIndicator() {
-    const indicator = document.getElementById('typingIndicator');
-    console.log("Removing indicator:", indicator);
-    if (indicator) {
-      indicator.classList.add('fade-out'); // Adiciona a classe que reduz tamanho/opacidade
-      setTimeout(() => {
-        if (indicator.parentNode) indicator.remove(); // Remove definitivamente após transição
-      }, 300);
-    }
+    const indicators = document.querySelectorAll('#typingIndicator, .typing-indicator');
+    indicators.forEach(indicator => {
+      indicator.remove();
+    });
   }
 
   function scrollToBottom() {
