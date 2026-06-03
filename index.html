@@ -808,6 +808,184 @@
   .artifact-btn:hover {
     background: rgba(255,255,255,0.1); color: #fff;
   }
+
+  /* From Uiverse.io by Na3ar-17 - Botão Download/Open */
+  .download-container {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .download-label {
+    background-color: transparent;
+    border: 2px solid #8b949e;
+    display: flex;
+    align-items: center;
+    border-radius: 50px;
+    width: 150px;
+    height: 40px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    padding: 3px;
+    position: relative;
+  }
+
+  .download-label::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    width: 8px;
+    height: 8px;
+    transition: all 0.4s ease;
+    border-radius: 100%;
+    margin: auto;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .download-label .download-input {
+    display: none;
+  }
+
+  .download-label .download-title {
+    font-size: 15px;
+    color: #fff;
+    transition: all 0.4s ease;
+    position: absolute;
+    right: 20px;
+    margin: 0;
+    line-height: 40px;
+    text-align: center;
+  }
+
+  .download-label .download-title:last-child {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .download-label .download-circle {
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    background-color: #8b949e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.4s ease;
+    position: relative;
+    box-shadow: 0 0 0 0 rgb(255, 255, 255);
+    overflow: hidden;
+  }
+
+  .download-label .download-circle .download-icon {
+    color: #fff;
+    width: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.4s ease;
+  }
+
+  .download-label .download-circle .download-square {
+    aspect-ratio: 1;
+    width: 12px;
+    border-radius: 2px;
+    background-color: #fff;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.4s ease;
+  }
+
+  .download-label .download-circle::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #555;
+    width: 100%;
+    height: 0;
+    transition: all 0.4s ease;
+  }
+
+  .download-label:has(.download-input:checked) {
+    width: 50px;
+    animation: dnl-installed 0.4s ease 3.5s forwards;
+  }
+
+  .download-label:has(.download-input:checked)::before {
+    animation: dnl-rotate 3s ease-in-out 0.4s forwards;
+  }
+
+  .download-label .download-input:checked + .download-circle {
+    animation: dnl-pulse 1s forwards, dnl-circleDelete 0.2s ease 3.5s forwards;
+    rotate: 180deg;
+  }
+
+  .download-label .download-input:checked + .download-circle::before {
+    animation: dnl-installing 3s ease-in-out forwards;
+  }
+
+  .download-label .download-input:checked + .download-circle .download-icon {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .download-label .download-input:checked ~ .download-circle .download-square {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .download-label .download-input:checked ~ .download-title {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .download-label .download-input:checked ~ .download-title:last-child {
+    animation: dnl-showInstalledMessage 0.4s ease 3.5s forwards;
+  }
+
+  @keyframes dnl-pulse {
+    0% { scale: 0.95; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+    70% { scale: 1; box-shadow: 0 0 0 16px rgba(255, 255, 255, 0); }
+    100% { scale: 0.95; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  }
+
+  @keyframes dnl-installing {
+    from { height: 0; }
+    to { height: 100%; }
+  }
+
+  @keyframes dnl-rotate {
+    0% { transform: rotate(-90deg) translate(22px) rotate(0); opacity: 1; visibility: visible; }
+    99% { transform: rotate(270deg) translate(22px) rotate(270deg); opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  @keyframes dnl-installed {
+    100% { width: 140px; border-color: rgb(35, 174, 35); }
+  }
+
+  @keyframes dnl-circleDelete {
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  @keyframes dnl-showInstalledMessage {
+    100% { opacity: 1; visibility: visible; right: 52px; }
+  }
+
   .artifact-body {
     flex: 1;
     display: flex;
@@ -2813,7 +2991,31 @@
             </div>
             
             <button class="artifact-btn" id="copyArtifactBtn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
-            <button class="artifact-btn" id="downloadArtifactBtn" onclick="downloadArtifact()" title="Baixar Arquivo"><i class="ti ti-download"></i></button>
+            <div class="download-container" id="downloadBtnContainer">
+              <label class="download-label" id="downloadLabel">
+                <input type="checkbox" class="download-input" id="downloadCheckbox" />
+                <span class="download-circle"
+                  ><svg
+                    class="download-icon"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M12 19V5m0 14-4-4m4 4 4-4"
+                    ></path>
+                  </svg>
+                  <div class="download-square"></div>
+                </span>
+                <p class="download-title">Download</p>
+                <p class="download-title">Open</p>
+              </label>
+            </div>
             <button class="artifact-btn" onclick="closeArtifact()" title="Fechar Prévia"><i class="ti ti-x"></i></button>
           </div>
         </div>
@@ -3504,8 +3706,31 @@
   let currentArtifactCode = '';
   let currentArtifactLang = '';
 
+  // Variáveis para o botão toggle Download/Open
+  let artifactDownloadUrl = null;
+  let artifactDownloadFilename = 'download.txt';
+  let artifactDownloadReady = false;
+  let artifactDownloadTimeout = null;
+
+  function resetDownloadBtn() {
+    const checkbox = document.getElementById('downloadCheckbox');
+    if (checkbox && checkbox.checked) {
+      checkbox.checked = false;
+    }
+    artifactDownloadReady = false;
+    if (artifactDownloadTimeout) {
+      clearTimeout(artifactDownloadTimeout);
+      artifactDownloadTimeout = null;
+    }
+    if (artifactDownloadUrl) {
+      URL.revokeObjectURL(artifactDownloadUrl);
+      artifactDownloadUrl = null;
+    }
+  }
+
   // Funções do Artifact (Painel de Código Lateral ou Mapas)
   function openArtifact(code, lang) {
+    resetDownloadBtn();
     const mainContent = document.getElementById('mainContent');
     const codePre = document.getElementById('artifactCodePre');
     const codeElement = document.getElementById('artifactCodeContent');
@@ -3633,11 +3858,11 @@
     }
   }
 
-  // NOVA FUNÇÃO: Baixar o código/arquivo atual
+  // Função de download chamada pelo toggle
   function downloadArtifact() {
     if (!currentArtifactCode) {
       showToast("Nenhum conteúdo para baixar!", "info");
-      return;
+      return false;
     }
     
     const titleEl = document.querySelector('#artifactTitle span');
@@ -3646,7 +3871,7 @@
     
     if (lang === 'slide') {
       downloadSlidesAsPDF();
-      return;
+      return false;
     }
     
     if (titleEl) {
@@ -3655,35 +3880,61 @@
         const domain = titleText.replace('texto lido de', '').trim();
         filename = `texto_${domain}.txt`;
       } else {
-        if (lang === 'html') {
-          filename = 'index.html';
-        } else if (lang === 'javascript' || lang === 'js') {
-          filename = 'script.js';
-        } else if (lang === 'css') {
-          filename = 'style.css';
-        } else if (lang === 'python' || lang === 'py') {
-          filename = 'script.py';
-        } else if (lang === 'json') {
-          filename = 'data.json';
-        } else if (lang === 'markdown' || lang === 'md') {
-          filename = 'document.md';
-        } else {
-          filename = `arquivo.${lang}`;
-        }
+        if (lang === 'html') filename = 'index.html';
+        else if (lang === 'javascript' || lang === 'js') filename = 'script.js';
+        else if (lang === 'css') filename = 'style.css';
+        else if (lang === 'python' || lang === 'py') filename = 'script.py';
+        else if (lang === 'json') filename = 'data.json';
+        else if (lang === 'markdown' || lang === 'md') filename = 'document.md';
+        else filename = `arquivo.${lang}`;
       }
     }
     
+    artifactDownloadFilename = filename;
+    
     const blob = new Blob([currentArtifactCode], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
+    artifactDownloadUrl = url;
+    
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast(`Arquivo ${filename} baixado!`, "info");
+    
+    showToast(`Arquivo ${filename} baixado!`, "success");
+    return true;
   }
+
+  // Inicializa o evento do toggle Download/Open
+  (function() {
+    const checkbox = document.getElementById('downloadCheckbox');
+    if (checkbox) {
+      checkbox.addEventListener('change', function() {
+        if (this.checked && !artifactDownloadReady) {
+          const ok = downloadArtifact();
+          if (!ok) {
+            this.checked = false;
+            return;
+          }
+          artifactDownloadTimeout = setTimeout(function() {
+            artifactDownloadReady = true;
+            artifactDownloadTimeout = null;
+          }, 3800);
+        } else if (!this.checked && artifactDownloadReady) {
+          if (artifactDownloadUrl) {
+            window.open(artifactDownloadUrl, '_blank');
+          }
+          if (artifactDownloadUrl) {
+            URL.revokeObjectURL(artifactDownloadUrl);
+            artifactDownloadUrl = null;
+          }
+          artifactDownloadReady = false;
+        }
+      });
+    }
+  })();
 
   // NOVA FUNÇÃO: Abrir o Painel Lateral no modo MAPA
   function openMapArtifact(places, searchKeywords) {
