@@ -1852,6 +1852,8 @@
     transition: opacity var(--transition), transform var(--transition);
     box-shadow: var(--shadow-btn);
     flex-shrink: 0;
+    position: relative;
+    z-index: 1;
   }
 
   .send-btn:hover {
@@ -1864,6 +1866,44 @@
   }
 
   .send-btn i { font-size: 16px; }
+
+  /* From Uiverse.io by xXJollyHAKERXx - Spinner atrás do botão enviar */
+  .send-spinner-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .send-spinner {
+    position: absolute;
+    background-image: linear-gradient(rgb(186, 66, 255) 35%, rgb(0, 225, 255));
+    width: 46px;
+    height: 46px;
+    animation: sendSpin 1.7s linear infinite;
+    text-align: center;
+    border-radius: 50%;
+    filter: blur(1px);
+    box-shadow: 0px -5px 20px 0px rgb(186, 66, 255), 0px 5px 20px 0px rgb(0, 225, 255);
+    pointer-events: none;
+  }
+
+  .send-spinner1 {
+    background-color: rgb(36, 36, 36);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: blur(10px);
+  }
+
+  @keyframes sendSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .chat-panel:not(.centered) .send-spinner-wrapper .send-spinner {
+    display: none;
+  }
 
   /* SUGGESTIONS / AGENTS PROMO CARD */
   .suggestions {
@@ -2932,7 +2972,10 @@
                 </div>
 
                 <button class="tool-btn icon-only-btn" id="micBtn" type="button" onclick="toggleSpeechRecognition()" title="Gravar voz"><i class="ti ti-microphone" aria-hidden="true"></i></button>
-                <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+                <div class="send-spinner-wrapper">
+                  <div class="send-spinner"><div class="send-spinner1"></div></div>
+                  <button class="send-btn" title="Enviar" id="sendBtn" onclick="sendMessage()"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+                </div>
               </div>
             </div>
           </div>
@@ -6609,47 +6652,34 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
+    function getChatCenter() {
+      const sidebar = document.getElementById('sidebar');
+      const sidebarW = sidebar ? sidebar.offsetWidth : 260;
+      return {
+        x: sidebarW + (window.innerWidth - sidebarW) / 2,
+        y: window.innerHeight / 2
+      };
+    }
+    
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+    let center = getChatCenter();
     
     window.addEventListener('resize', () => {
       width = (canvas.width = window.innerWidth);
       height = (canvas.height = window.innerHeight);
+      center = getChatCenter();
+      targetX = center.x;
+      targetY = center.y;
     });
     
-    // Posição central do rastreamento (easing)
-    let blobX = width / 2;
-    let blobY = height / 2;
-    let targetX = width / 2;
-    let targetY = height / 2;
+    // Posição centralizada na área do chat
+    let blobX = center.x;
+    let blobY = center.y;
+    let targetX = center.x;
+    let targetY = center.y;
     
-    let velocity = 0;
-    let targetVelocity = 0;
-    let lastX = 0;
-    let lastY = 0;
-    let lastTime = Date.now();
     let exploded = false;
-    
-    // Rastreamento do mouse
-    window.addEventListener('mousemove', (e) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
-      
-      const now = Date.now();
-      const dt = now - lastTime;
-      if (dt > 0) {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        const speed = dist / dt;
-        targetVelocity += speed * 0.9;
-        if (targetVelocity > 90) targetVelocity = 90;
-      }
-      lastX = e.clientX;
-      lastY = e.clientY;
-      lastTime = now;
-    });
 
     const baseRadius = Math.min(width, height) * 0.22;
     const particles = [];
@@ -6743,22 +6773,24 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       // Restaura a bola caso o chat seja reiniciado
       if (!isChatActive && exploded) {
         exploded = false;
+        center = getChatCenter();
         particles.forEach(p => {
-          p.x = width / 2;
-          p.y = height / 2;
+          p.x = center.x;
+          p.y = center.y;
           p.vx = 0;
           p.vy = 0;
         });
+        blobX = center.x;
+        blobY = center.y;
+        targetX = center.x;
+        targetY = center.y;
       }
       
       ctx.clearRect(0, 0, width, height);
       
-      // Easing de movimento do centro da bola
+      // Centro fixo da bola
       blobX += (targetX - blobX) * 0.08;
       blobY += (targetY - blobY) * 0.08;
-      
-      targetVelocity *= 0.94;
-      velocity += (targetVelocity - velocity) * 0.1;
       
       // Física e renderização das partículas
       particles.forEach(p => {
@@ -6780,14 +6812,6 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         p.vx = (p.vx + ax) * 0.91;
         p.vy = (p.vy + ay) * 0.91;
         
-        // Deformação por velocidade do mouse (efeito de "se desmanchar" caoticamente)
-        if (!exploded && velocity > 1.5) {
-          const noise = velocity * 0.65;
-          const noiseAngle = Math.random() * Math.PI * 2;
-          p.vx += Math.cos(noiseAngle) * noise;
-          p.vy += Math.sin(noiseAngle) * noise;
-        }
-
         // Turbulência fluida orgânica (efeito de gema líquida constante)
         if (!exploded) {
           const timeCoeff = Date.now() * 0.0025;
@@ -6829,13 +6853,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
       requestAnimationFrame(animate);
     }
     
-    window.addEventListener('mouseenter', (e) => {
-      lastX = e.clientX;
-      lastY = e.clientY;
-      lastTime = Date.now();
-    });
-    
-  animate();
+    animate();
   })();
 
   // --- Tic-Tac-Toe ---
