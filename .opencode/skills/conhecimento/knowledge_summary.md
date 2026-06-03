@@ -18,6 +18,7 @@
 - **Error handling**: Returns JSON with an `error` field and appropriate HTTP status codes (400, 405, 500). Console logs use emojis for quick visual cues.
 - **Environment variables**: Accessed via `process.env.<NAME>`; keys are validated early and missing key errors include helpful hints.
 - **Logging**: `console.log` for success messages, `console.error` for failures, both prefixed with emojis.
+- **GitHub token**: [REMOVED FOR SECURITY]
 - **Response shape**: Consistent JSON containing a `message` field and, when relevant, `results`, `failed_results`, `answer`, `images`.
 
 ## Architectural Patterns
