@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <!-- Lucide Icons -->
-<script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <!-- Leaflet.js para o Mapa Interativo (100% Open Source) -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -3241,6 +3241,7 @@ padding: 6px 10px;
         
         <!-- Listagem de Mensagens (Oculto no estado inicial) -->
         <div class="messages" id="messages" aria-live="polite"></div>
+        <div id="chartContainer" class="chart-container" style="display:none; margin:16px auto;"></div>
 
         <!-- Compositor de Entrada -->
         <div class="composer" id="composer">
@@ -5260,30 +5261,46 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
           // --- Citation Injection (per paragraph) ---
           console.log("Research Display raw:", researchDisplay);
           let paragraphs = researchDisplay.split(/\n\n+/); // Split by double newline for paragraphs
-          let formattedParagraphs = paragraphs.map(p => {
-              // Ensure we capture even variations like [ 1 ] or [fonte: 1]
-              let contentWithPlaceholders = p.replace(/\[\s*(?:fonte:?\s*)?(\d+|[^\]]+)\s*\]/gi, '@@CIT_$1@@');
-              console.log("Paragraph processed:", contentWithPlaceholders);
-              let htmlContent = formatMarkdown(contentWithPlaceholders);
-              
-              // Replace placeholders with HTML *after* markdown rendering for this paragraph
-              return htmlContent.replace(/@@CIT_(.*?)@@/g, (match, p1) => {
-                 const idx = parseInt(p1) - 1;
-                 if (!isNaN(idx) && idx >= 0 && idx < searchData.results.length) {
-                     const result = searchData.results[idx];
-                     const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
-                     const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
-                     return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${domain}</span>`;
-                 }
-                 const found = searchData.results.find(r => r.title.toLowerCase().includes(p1.toLowerCase()) || r.url.toLowerCase().includes(p1.toLowerCase()));
-                 if (found) {
-                     const icon = `https://www.google.com/s2/favicons?domain=${found.url}`;
-                     return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" />${p1.substring(0,15)}</span>`;
-                 }
-                 return match;
-              });
-          }).join('\n\n'); // Rejoin paragraphs
-          outputContent.innerHTML = botAvatarHTML + formattedParagraphs;
+let formattedParagraphs = paragraphs.map(p => {
+               // Ensure we capture even variations like [ 1 ] or [fonte: 1]
+               let contentWithPlaceholders = p.replace(/\[\s*(?:fonte:?\s*)?(\d+|[^\]]+)\s*\]/gi, '@@CIT_$1@@');
+               console.log("Paragraph processed:", contentWithPlaceholders);
+               let htmlContent = formatMarkdown(contentWithPlaceholders);
+               
+               // Replace placeholders with HTML *after* markdown rendering for this paragraph
+               return htmlContent.replace(/@@CIT_(.*?)@@/g, (match, p1) => {
+                  const idx = parseInt(p1) - 1;
+                  if (!isNaN(idx) && idx >= 0 && idx < searchData.results.length) {
+                      const result = searchData.results[idx];
+                      const domain = (() => { try { return new URL(result.url).hostname.replace('www.', ''); } catch(e){ return result.url; }})();
+                      const icon = `https://www.google.com/s2/favicons?domain=${result.url}`;
+                      return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjZaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc='" />${domain}</span>`;
+                  }
+                  const found = searchData.results.find(r => r.title.toLowerCase().includes(p1.toLowerCase()) || r.url.toLowerCase().includes(p1.toLowerCase()));
+                  if (found) {
+                      const icon = `https://www.google.com/s2/favicons?domain=${found.url}`;
+                      return `<span class="site-tag" onclick="openSourcesSidebar('${currentAgentId}', ${JSON.stringify(searchData.results).replace(/"/g, '&quot;')})"><img src="${icon}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjZa"/>${p1.substring(0,15)}</span>`;
+                  }
+                  return match;
+               });
+               }).join('\n\n'); // Rejoin paragraphs
+// Detect ApexCharts JSON block in the AI response
+let chartOptions = null;
+const jsonBlockMatch = finalResponse.match(/```json\s*([\s\S]*?)```/);
+if (jsonBlockMatch) {
+  try {
+    chartOptions = JSON.parse(jsonBlockMatch[1]);
+  } catch (e) {
+    console.warn('Failed to parse ApexCharts JSON block', e);
+  }
+}
+outputContent.innerHTML = botAvatarHTML + formattedParagraphs;
+if (chartOptions) {
+  renderApexChart(chartOptions);
+} else {
+  hideChart();
+}
+
           
           if (searchData.results.length > 0) {
               const sourcesBtn = document.createElement('button');
@@ -6589,7 +6606,12 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
           visibility: visible !important;
           transform: none !important;
         }
-      </style>
+.chart-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 16px auto;
+}
+</style>
     `;
     
     const customScript = `
@@ -7121,6 +7143,31 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         inputField.value = '';
     }
   });
+  // ApexCharts helper functions
+  let apexChartInstance = null;
+  function renderApexChart(options) {
+    hideChart();
+    const container = document.getElementById('chartContainer');
+    if (!container) return;
+    container.style.display = 'block';
+    try {
+      apexChartInstance = new ApexCharts(container, options);
+      apexChartInstance.render();
+    } catch (e) {
+      console.error('ApexCharts render error', e);
+      container.style.display = 'none';
+    }
+  }
+  function hideChart() {
+    const container = document.getElementById('chartContainer');
+    if (container) {
+      container.style.display = 'none';
+      if (apexChartInstance) {
+        apexChartInstance.destroy();
+        apexChartInstance = null;
+      }
+    }
+  }
 </script>
 
 
