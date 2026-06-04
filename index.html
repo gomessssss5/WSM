@@ -314,6 +314,7 @@
   }
 
   .topbar-left {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -367,10 +368,41 @@
 
   .model-selector i { font-size: 13px; }
 
-  .model-card-container {
-    display: flex;
+  .model-button {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    margin-left: 8px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
+  }
+  .model-button:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+  }
+
+  .model-card-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 100;
   }
   .model-card {
     position: relative;
@@ -3147,23 +3179,24 @@ padding: 6px 10px;
         <button class="menu-toggle-btn" id="menuToggle" onclick="toggleSidebar()" title="Menu">
           <i class="ti ti-menu-2" aria-hidden="true"></i>
         </button>
-        <select id="modelSelect" class="model-selector" style="display:none;" onchange="toggleEffortSelector(this.value)">
-          <option value="WSM 1.0 Omni">WSM 1.0 Omni</option>
-          <option value="WSM 1.0 R1">WSM 1.0 R1</option>
-        </select>
-          <select id="effortSelect" class="model-selector" style="display:none; margin-left: 8px;">
-            <option value="low">Esforço: Baixo</option>
-            <option value="medium" selected>Esforço: Médio</option>
-            <option value="high">Esforço: Alto</option>
+          <button id="modelButton" class="model-button">Modelo</button>
+          <select id="modelSelect" class="model-selector" style="display:none;" onchange="toggleEffortSelector(this.value)">
+            <option value="WSM 1.0 Omni">WSM 1.0 Omni</option>
+            <option value="WSM 1.0 R1">WSM 1.0 R1</option>
           </select>
-          <div class="model-card-container">
-            <div class="model-card" data-value="WSM 1.0 Omni">
-              WSM 1.0 Omni<span class="new-badge">Novo</span>
+            <select id="effortSelect" class="model-selector" style="display:none; margin-left: 8px;">
+              <option value="low">Esforço: Baixo</option>
+              <option value="medium" selected>Esforço: Médio</option>
+              <option value="high">Esforço: Alto</option>
+            </select>
+            <div class="model-card-container" id="modelCardContainer" style="display:none;">
+              <div class="model-card" data-value="WSM 1.0 Omni">
+                WSM 1.0 Omni<span class="new-badge">Novo</span>
+              </div>
+              <div class="model-card" data-value="WSM 1.0 R1">
+                WSM 1.0 R1<span class="new-badge">Novo</span>
+              </div>
             </div>
-            <div class="model-card" data-value="WSM 1.0 R1">
-              WSM 1.0 R1<span class="new-badge">Novo</span>
-            </div>
-          </div>
       </div>
 <div class="topbar-right">
   <!-- From Uiverse.io by ilkhoeri -->
@@ -3521,6 +3554,22 @@ padding: 6px 10px;
       card.classList.add('active');
     }
   });
+  // Model button toggle
+  const modelButton = document.getElementById('modelButton');
+  const modelCardContainer = document.getElementById('modelCardContainer');
+  if (modelButton && modelCardContainer) {
+    modelButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const visible = modelCardContainer.style.display === 'flex';
+      modelCardContainer.style.display = visible ? 'none' : 'flex';
+    });
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!modelButton.contains(e.target) && !modelCardContainer.contains(e.target)) {
+        modelCardContainer.style.display = 'none';
+      }
+    });
+  }
   document.addEventListener('click', function(e) {
     const wrapper = document.querySelector('.agents-dropdown-wrapper');
     const menu = document.getElementById('agentsMenu');
