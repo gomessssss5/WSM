@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
@@ -35,11 +36,96 @@ body {
 }
 h1 { font-size: 2.2rem; margin-bottom: 1rem; }
 p { margin-bottom: 1rem; }
+  .loader-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    width: auto;
+    margin: 2rem;
+    font-family: "Poppins", sans-serif;
+    font-size: 1.6em;
+    font-weight: 600;
+    user-select: none;
+    --text-color: #333;
+    color: var(--text-color);
+    scale: 2;
+  }
+  @media (prefers-color-scheme: dark) {
+    .loader-wrapper { --text-color: #fff; }
+  }
+  .loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+    background-color: transparent;
+    mask: repeating-linear-gradient(90deg, transparent 0, transparent 6px, black 7px, black 8px);
+  }
+  .loader::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at 50% 50%, #ffcc00 0%, transparent 50%),
+      radial-gradient(circle at 45% 45%, #ff3333 0%, transparent 45%),
+      radial-gradient(circle at 55% 55%, #00ccff 0%, transparent 45%),
+      radial-gradient(circle at 45% 55%, #33cc33 0%, transparent 45%),
+      radial-gradient(circle at 55% 45%, #3333ff 0%, transparent 45%);
+    mask: radial-gradient(circle at 50% 50%, transparent 0%, transparent 10%, black 25%);
+    animation: transform-animation 2s infinite alternate, opacity-animation 4s infinite;
+    animation-timing-function: cubic-bezier(0.6, 0.8, 0.5, 1);
+  }
+  .loader-letter {
+    display: inline-block;
+    opacity: 0;
+    animation: loader-letter-anim 4s infinite linear;
+    z-index: 2;
+  }
+  .loader-letter:nth-child(1) { animation-delay: 0.1s; }
+  .loader-letter:nth-child(2) { animation-delay: 0.2s; }
+  .loader-letter:nth-child(3) { animation-delay: 0.3s; }
+  .loader-letter:nth-child(4) { animation-delay: 0.4s; }
+  .loader-letter:nth-child(5) { animation-delay: 0.5s; }
+  .loader-letter:nth-child(6) { animation-delay: 0.6s; }
+  .loader-letter:nth-child(7) { animation-delay: 0.7s; }
+  .loader-letter:nth-child(8) { animation-delay: 0.8s; }
+  .loader-letter:nth-child(9) { animation-delay: 0.9s; }
+  .loader-letter:nth-child(10) { animation-delay: 1.0s; }
+  .loader-letter:nth-child(11) { animation-delay: 1.1s; }
+  .loader-letter:nth-child(12) { animation-delay: 1.2s; }
+  @keyframes loader-letter-anim {
+    0% { opacity: 0; }
+    5% { opacity: 1; text-shadow: 0 0 8px rgba(128,128,128,0.5); transform: scale(1.1) translateY(-2px); }
+    20% { opacity: 0.2; }
+    100% { opacity: 0; }
+  }
+  @keyframes transform-animation { 0% { transform: translate(-55%); } 100% { transform: translate(55%); } }
+  @keyframes opacity-animation { 0%,100% { opacity: 0; } 15% { opacity: 1; } 65% { opacity: 0; } }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Design 2.0</h1>
+  <div class="loader-wrapper">
+    <span class="loader-letter">W</span>
+    <span class="loader-letter">S</span>
+    <span class="loader-letter">M</span>
+    <span class="loader-letter">&nbsp;</span>
+    <span class="loader-letter">1</span>
+    <span class="loader-letter">.</span>
+    <span class="loader-letter">0</span>
+    <span class="loader-letter">&nbsp;</span>
+    <span class="loader-letter">O</span>
+    <span class="loader-letter">m</span>
+    <span class="loader-letter">n</span>
+    <span class="loader-letter">i</span>
+    <div class="loader"></div>
+  </div>
   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae ligula at elit tristique posuere. Integer nec orci a nunc varius laoreet. Cras gravida, purus non egestas consequat, mi sapien ullamcorper orci, at interdum elit neque a turpis.</p>
   <p>Phasellus iaculis, ligula at fermentum ullamcorper, turpis velit sodales ligula, a sagittis elit nibh a mauris. Integer non ipsum a tortor eleifend mattis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
   <p>Donec dignissim, massa a faucibus condimentum, lorem risus gravida elit, at interdum mi odio non neque. Curabitur ac semper massa. Sed consequat, ex a elementum laoreet, lacus sapien blandit risus, et malesuada ex nulla non ligula.</p>
