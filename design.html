@@ -16,34 +16,33 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
-/* Reuse existing CSS variables from index.html */
 :root {
   --bg: #f8f8f6;
-  --bg-card: rgba(255, 255, 255, 0.82);
-  --bg-input: rgba(255, 255, 255, 0.92);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-focus: rgba(0, 0, 0, 0.18);
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --border: rgba(0,0,0,0.08);
   --text-primary: #0a0a0a;
-  --text-secondary: #6b6b6b;
-  --accent: #0a0a0a;
-  --pill-bg: rgba(0, 0, 0, 0.05);
   --radius-md: 14px;
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
   --transition: 0.22s cubic-bezier(0.25, 1, 0.5, 1);
 }
 body {
   margin:0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary);
-  display:flex; justify-content:center; align-items:center; height:100vh;
+  display:flex; justify-content:center; align-items:flex-start; padding: 40px 20px;
 }
 .container {
-  max-width: 800px; padding: 24px; background: var(--bg-card); border-radius: var(--radius-md); box-shadow: var(--shadow-card);
+  max-width: 800px; width: 100%; background: var(--bg-card); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card); padding: 32px; line-height: 1.6;
 }
+h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+p { margin-bottom: 1rem; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>Design 2.0</h1>
-  <p>Esta é a página base para o novo design. Personalize-a conforme necessário.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vitae ligula at elit tristique posuere. Integer nec orci a nunc varius laoreet. Cras gravida, purus non egestas consequat, mi sapien ullamcorper orci, at interdum elit neque a turpis.</p>
+  <p>Phasellus iaculis, ligula at fermentum ullamcorper, turpis velit sodales ligula, a sagittis elit nibh a mauris. Integer non ipsum a tortor eleifend mattis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
+  <p>Donec dignissim, massa a faucibus condimentum, lorem risus gravida elit, at interdum mi odio non neque. Curabitur ac semper massa. Sed consequat, ex a elementum laoreet, lacus sapien blandit risus, et malesuada ex nulla non ligula.</p>
 </div>
 </body>
 </html>
