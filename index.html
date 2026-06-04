@@ -403,10 +403,11 @@
     flex-direction: column;
     gap: 8px;
     z-index: 100;
+    min-width: 180px; /* increased width for better spacing */
   }
   .model-card {
     position: relative;
-    padding: 6px 12px;
+    padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     background: var(--bg-card);
@@ -415,6 +416,7 @@
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     color: var(--text-secondary);
+    width: 100%;
   }
   .model-card.active {
     border-color: var(--accent);
@@ -425,6 +427,11 @@
     background: var(--pill-bg);
     color: var(--text-primary);
     transform: translateY(-2px);
+  }
+  .model-card .model-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
   }
   .new-badge {
     position: absolute;
@@ -3192,9 +3199,11 @@ padding: 6px 10px;
             <div class="model-card-container" id="modelCardContainer" style="display:none;">
               <div class="model-card" data-value="WSM 1.0 Omni">
                 WSM 1.0 Omni<span class="new-badge">Novo</span>
+                <div class="model-desc">Tarefas do dia-a-dia</div>
               </div>
               <div class="model-card" data-value="WSM 1.0 R1">
                 WSM 1.0 R1<span class="new-badge">Novo</span>
+                <div class="model-desc">Raciocínio, tarefas pesadas</div>
               </div>
             </div>
       </div>
@@ -3502,7 +3511,9 @@ padding: 6px 10px;
 
     loadSessions();
     // Initialize model selector
-    window.currentChatModel = 'WSM 1.0 Omni';
+      window.currentChatModel = 'WSM 1.0 Omni';
+      const modelBtnInit = document.getElementById('modelButton');
+      if (modelBtnInit) modelBtnInit.textContent = window.currentChatModel;
     window.currentReasoningEffort = 'medium';
     const modelSelect = document.getElementById('modelSelect');
     const effortSelect = document.getElementById('effortSelect');
@@ -3533,16 +3544,22 @@ padding: 6px 10px;
   // Initialize model cards UI
   const modelCards = document.querySelectorAll('.model-card');
   const hiddenSelect = document.getElementById('modelSelect');
-  function updateModelFromCard(value) {
-    if (hiddenSelect) {
-      hiddenSelect.value = value;
-      hiddenSelect.dispatchEvent(new Event('change'));
+    function updateModelFromCard(value) {
+      if (hiddenSelect) {
+        hiddenSelect.value = value;
+        hiddenSelect.dispatchEvent(new Event('change'));
+      }
+      // Update button label
+      const modelBtn = document.getElementById('modelButton');
+      if (modelBtn) modelBtn.textContent = value;
+      // Hide card container
+      const cardContainer = document.getElementById('modelCardContainer');
+      if (cardContainer) cardContainer.style.display = 'none';
+      // Update active card styling
+      modelCards.forEach(c => c.classList.toggle('active', c.dataset.value === value));
+      // Update effort selector visibility
+      toggleEffortSelector(value);
     }
-    // Update active card styling
-    modelCards.forEach(c => c.classList.toggle('active', c.dataset.value === value));
-    // Update effort selector visibility
-    toggleEffortSelector(value);
-  }
   modelCards.forEach(card => {
     card.addEventListener('click', () => {
       const val = card.dataset.value;
