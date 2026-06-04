@@ -367,6 +367,45 @@
 
   .model-selector i { font-size: 13px; }
 
+  .model-card-container {
+    display: flex;
+    gap: 8px;
+    margin-left: 8px;
+  }
+  .model-card {
+    position: relative;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), transform var(--transition);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .model-card.active {
+    border-color: var(--accent);
+    background: var(--pill-bg);
+    color: var(--text-primary);
+  }
+  .model-card:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+  }
+  .new-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #ffeb3b;
+    color: #000;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
   .dot {
     width: 6px;
     height: 6px;
@@ -3108,15 +3147,23 @@ padding: 6px 10px;
         <button class="menu-toggle-btn" id="menuToggle" onclick="toggleSidebar()" title="Menu">
           <i class="ti ti-menu-2" aria-hidden="true"></i>
         </button>
-        <select id="modelSelect" class="model-selector" onchange="toggleEffortSelector(this.value)">
+        <select id="modelSelect" class="model-selector" style="display:none;" onchange="toggleEffortSelector(this.value)">
           <option value="WSM 1.0 Omni">WSM 1.0 Omni</option>
           <option value="WSM 1.0 R1">WSM 1.0 R1</option>
         </select>
-        <select id="effortSelect" class="model-selector" style="display:none; margin-left: 8px;">
-          <option value="low">Esforço: Baixo</option>
-          <option value="medium" selected>Esforço: Médio</option>
-          <option value="high">Esforço: Alto</option>
-        </select>
+          <select id="effortSelect" class="model-selector" style="display:none; margin-left: 8px;">
+            <option value="low">Esforço: Baixo</option>
+            <option value="medium" selected>Esforço: Médio</option>
+            <option value="high">Esforço: Alto</option>
+          </select>
+          <div class="model-card-container">
+            <div class="model-card" data-value="WSM 1.0 Omni">
+              WSM 1.0 Omni<span class="new-badge">Novo</span>
+            </div>
+            <div class="model-card" data-value="WSM 1.0 R1">
+              WSM 1.0 R1<span class="new-badge">Novo</span>
+            </div>
+          </div>
       </div>
 <div class="topbar-right">
   <!-- From Uiverse.io by ilkhoeri -->
@@ -3449,6 +3496,31 @@ padding: 6px 10px;
       window.currentChatModel = model;
     }
   }
+
+  // Initialize model cards UI
+  const modelCards = document.querySelectorAll('.model-card');
+  const hiddenSelect = document.getElementById('modelSelect');
+  function updateModelFromCard(value) {
+    if (hiddenSelect) {
+      hiddenSelect.value = value;
+      hiddenSelect.dispatchEvent(new Event('change'));
+    }
+    // Update active card styling
+    modelCards.forEach(c => c.classList.toggle('active', c.dataset.value === value));
+    // Update effort selector visibility
+    toggleEffortSelector(value);
+  }
+  modelCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const val = card.dataset.value;
+      window.currentChatModel = val;
+      updateModelFromCard(val);
+    });
+    // Set initial active state based on current model
+    if (card.dataset.value === window.currentChatModel) {
+      card.classList.add('active');
+    }
+  });
   document.addEventListener('click', function(e) {
     const wrapper = document.querySelector('.agents-dropdown-wrapper');
     const menu = document.getElementById('agentsMenu');
