@@ -3822,6 +3822,10 @@ padding: 6px 10px;
       clearTimeout(window._sendMsgTimeout);
       window._sendMsgTimeout = null;
     }
+    if (window._abortController) {
+      window._abortController.abort();
+      window._abortController = null;
+    }
     currentSessionId = id;
     
     // Limpa a tela de chat atual
@@ -3941,6 +3945,10 @@ padding: 6px 10px;
     if (window._sendMsgTimeout) {
       clearTimeout(window._sendMsgTimeout);
       window._sendMsgTimeout = null;
+    }
+    if (window._abortController) {
+      window._abortController.abort();
+      window._abortController = null;
     }
     currentSessionId = null;
       
@@ -4980,7 +4988,7 @@ indicator.innerHTML = `
   }
 
   // Chamada Real da API do Groq
-  async function callGroqAPI(userPrompt, attachments = []) {
+  async function callGroqAPI(userPrompt, attachments = [], signal) {
     
     const modelToUse = (attachments.length > 0) 
       ? "meta-llama/llama-4-scout-17b-16e-instruct" 
@@ -5090,7 +5098,8 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
                 include_reasoning: true, 
                 extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } } 
             } : {})
-          })
+          }),
+          signal: signal
         });
 
       const duration = Date.now() - startTime;
@@ -5129,6 +5138,10 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
 
     } catch (error) {
       removeTypingIndicator();
+      if (error.name === 'AbortError') {
+        // Requisição cancelada pelo usuário (ex.: nova conversa)
+        return;
+      }
       appendMessage(`Lamento, ocorreu um erro ao chamar o WSM AI 1.0 Omni: **${error.message}**.`, "bot");
     }
   }
@@ -7254,7 +7267,9 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         } else {
           setSendButtonLoading(true);
           showTypingIndicator();
-          callGroqAPI(text, currentAttachments);
+          const abortController = new AbortController();
+          window._abortController = abortController;
+          callGroqAPI(text, currentAttachments, abortController.signal);
         }
     }, 450);
     window._sendMsgTimeout = msgTimeout;
