@@ -4524,50 +4524,64 @@ padding: 6px 10px;
         // Acha todas as tags de código nativas geradas pelo markdown-it
         const codeBlocks = tempDiv.querySelectorAll('pre code');
         
-        codeBlocks.forEach((codeNode) => {
-            const rawCode = codeNode.textContent;
-            const lines = rawCode.split('\n').length;
-            let lang = codeNode.className.replace('language-', '') || 'texto';
-            
-            const isThisSlide = isSlide || lang === 'slide' || rawCode.includes('class="reveal"') || rawCode.includes('class="slides"');
-            if (isThisSlide) {
-              lang = 'slide';
-            }
-
-            // Se for um bloco considerável (mais de 50 linhas), substitui pelo Botão Bonito
-            if (isThisSlide || lines > 50 || rawCode.length > 5000) {
+codeBlocks.forEach((codeNode) => {
+              // Detect ApexCharts chart definition
+              if (codeNode.classList.contains('language-apexchart')) {
+                try {
+                  const options = JSON.parse(codeNode.textContent);
+                  renderApexChart(options);
+                } catch (e) {
+                  console.error('Invalid ApexChart options', e);
+                }
+                // Remove the code block from the UI
                 const preNode = codeNode.parentNode;
-                
-                const card = document.createElement('div');
-                card.className = 'artifact-trigger-card';
-                
-                const iconHTML = isThisSlide 
-                  ? `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i>` 
-                  : `<i class="ti ti-braces"></i>`;
-                const titleText = isThisSlide ? `Visualizar Apresentação` : `Visualizar Código`;
-                const metaText = isThisSlide ? `Reveal.js Slides • ${lines} linhas` : `${lang.toUpperCase()} • ${lines} linhas`;
-                
-                card.innerHTML = `
-                    <div class="artifact-card-icon">${iconHTML}</div>
-                    <div class="artifact-card-info">
-                        <span class="title">${titleText}</span>
-                        <span class="meta">${metaText}</span>
-                    </div>
-                    <button class="artifact-card-btn">Abrir Prévia</button>
-                `;
-                
-                card.addEventListener('click', () => {
-                    openArtifact(rawCode, lang);
-                });
-                
-                // Insere o card antes do código original, e remove o bloco antigo da tela
-                preNode.parentNode.insertBefore(card, preNode);
                 preNode.remove();
-            } else {
-                // Se for um código pequeno, apenas colorir inline
-                hljs.highlightElement(codeNode);
-            }
-        });
+                return; // skip further processing for this block
+              }
+
+              const rawCode = codeNode.textContent;
+              const lines = rawCode.split('\n').length;
+              let lang = codeNode.className.replace('language-', '') || 'texto';
+              
+              const isThisSlide = isSlide || lang === 'slide' || rawCode.includes('class="reveal"') || rawCode.includes('class="slides"');
+              if (isThisSlide) {
+                lang = 'slide';
+              }
+
+              // Se for um bloco considerável (mais de 50 linhas), substitui pelo Botão Bonito
+              if (isThisSlide || lines > 50 || rawCode.length > 5000) {
+                  const preNode = codeNode.parentNode;
+                  
+                  const card = document.createElement('div');
+                  card.className = 'artifact-trigger-card';
+                  
+                  const iconHTML = isThisSlide 
+                    ? `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i>` 
+                    : `<i class="ti ti-braces"></i>`;
+                  const titleText = isThisSlide ? `Visualizar Apresentação` : `Visualizar Código`;
+                  const metaText = isThisSlide ? `Reveal.js Slides • ${lines} linhas` : `${lang.toUpperCase()} • ${lines} linhas`;
+                  
+                  card.innerHTML = `
+                  <div class="artifact-card-icon">${iconHTML}</div>
+                  <div class="artifact-card-info">
+                      <span class="title">${titleText}</span>
+                      <span class="meta">${metaText}</span>
+                  </div>
+                  <button class="artifact-card-btn">Abrir Prévia</button>
+                  `;
+                  
+                  card.addEventListener('click', () => {
+                      openArtifact(rawCode, lang);
+                  });
+                  
+                  // Insere o card antes do código original, e remove o bloco antigo da tela
+                  preNode.parentNode.insertBefore(card, preNode);
+                  preNode.remove();
+              } else {
+                  // Se for um código pequeno, apenas colorir inline
+                  hljs.highlightElement(codeNode);
+              }
+          });
 
         const group = document.createElement('div');
         group.className = 'message-group bot';
