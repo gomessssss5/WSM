@@ -4981,10 +4981,22 @@ indicator.innerHTML = `
     if (loading) {
       btn.classList.add('loading');
       btn.innerHTML = '<span class="stop-icon"></span>';
+      btn.onclick = cancelGeneration;
     } else {
       btn.classList.remove('loading');
+      btn.style.background = '';
+      btn.style.color = '';
       btn.innerHTML = '<i class="ti ti-arrow-up" aria-hidden="true"></i>';
+      btn.onclick = sendMessage;
     }
+  }
+
+  function cancelGeneration() {
+    if (window._abortController) {
+      window._abortController.abort();
+      window._abortController = null;
+    }
+    setSendButtonLoading(false);
   }
 
   // Chamada Real da API do Groq
