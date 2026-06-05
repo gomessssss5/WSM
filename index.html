@@ -4525,18 +4525,29 @@ padding: 6px 10px;
         const codeBlocks = tempDiv.querySelectorAll('pre code');
         
 codeBlocks.forEach((codeNode) => {
-              // Detect ApexCharts chart definition
+              // Detect ApexCharts chart definition (renderizando direto no container da mensagem)
               if (codeNode.classList.contains('language-apexchart')) {
+                const chartId = 'chart_' + Date.now() + Math.random().toString(36).substr(2, 5);
+                const chartDiv = document.createElement('div');
+                chartDiv.id = chartId;
+                chartDiv.className = 'apex-chart-inline';
+                chartDiv.style.margin = '16px 0';
+                chartDiv.style.background = 'var(--bg-card)';
+                chartDiv.style.borderRadius = '16px';
+                
+                // Substitui o código pelo container do gráfico
+                const preNode = codeNode.parentNode;
+                preNode.parentNode.insertBefore(chartDiv, preNode);
+                preNode.remove();
+
                 try {
                   const options = JSON.parse(codeNode.textContent);
-                  renderApexChart(options);
+                  new ApexCharts(chartDiv, options).render();
                 } catch (e) {
                   console.error('Invalid ApexChart options', e);
+                  chartDiv.innerHTML = '<p style="color:red; font-size:12px;">Erro ao renderizar gráfico.</p>';
                 }
-                // Remove the code block from the UI
-                const preNode = codeNode.parentNode;
-                preNode.remove();
-                return; // skip further processing for this block
+                return;
               }
 
               const rawCode = codeNode.textContent;
