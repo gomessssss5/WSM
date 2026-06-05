@@ -5014,6 +5014,7 @@ indicator.innerHTML = `
       window._abortController.abort();
       window._abortController = null;
     }
+    removeTypingIndicator();
     setSendButtonLoading(false);
     showCancelCard();
   }
@@ -5026,9 +5027,6 @@ indicator.innerHTML = `
     card.innerHTML = '<i class="ti ti-alert-triangle"></i><span>Você interrompeu essa resposta.</span>';
     messagesEl.appendChild(card);
     scrollToBottom();
-    setTimeout(() => {
-      card.remove();
-    }, 4000);
   }
 
   // Chamada Real da API do Groq
