@@ -4813,15 +4813,17 @@ codeBlocks.forEach((codeNode) => {
     indicator.className = 'typing-loader-wrapper';
     indicator.id = 'typingIndicator';
     indicator.innerHTML = `
-      <div class="typing-loader-loader">
-        <p>Processando</p>
-        <div class="typing-loader-words">
-          <span class="typing-loader-word">Pensamento</span>
-          <span class="typing-loader-word">Raciocínio</span>
-          <span class="typing-loader-word">Resposta</span>
-          <span class="typing-loader-word">Texto</span>
-          <span class="typing-loader-word">Memória</span>
-          <span class="typing-loader-word">Pensamento</span>
+      <div class="card">
+        <div class="loader">
+          <p>Processando</p>
+          <div class="words">
+            <span class="word">Pensamento</span>
+            <span class="word">Raciocínio</span>
+            <span class="word">Resposta</span>
+            <span class="word">Texto</span>
+            <span class="word">Memória</span>
+            <span class="word">Pensamento</span>
+          </div>
         </div>
       </div>
     `;
