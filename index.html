@@ -2063,6 +2063,24 @@ padding: 6px 10px;
     border-radius: 2px;
   }
 
+  .cancel-alert {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #dc2626;
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    margin: 12px 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    animation: fadeUpMessage 0.4s ease both;
+  }
+  .cancel-alert i {
+    font-size: 20px;
+  }
+
   /* From Uiverse.io by xXJollyHAKERXx - Spinner atrás do botão enviar */
   .send-spinner-wrapper {
     position: relative;
@@ -4997,6 +5015,20 @@ indicator.innerHTML = `
       window._abortController = null;
     }
     setSendButtonLoading(false);
+    showCancelCard();
+  }
+
+  function showCancelCard() {
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+    const card = document.createElement('div');
+    card.className = 'cancel-alert';
+    card.innerHTML = '<i class="ti ti-alert-triangle"></i><span>Você interrompeu essa resposta.</span>';
+    messagesEl.appendChild(card);
+    scrollToBottom();
+    setTimeout(() => {
+      card.remove();
+    }, 4000);
   }
 
   // Chamada Real da API do Groq
