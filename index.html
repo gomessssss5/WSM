@@ -4886,8 +4886,10 @@ Você é o **WSM 1.0 R1**, uma IA que sente, compreende e se conecta genuinament
 
 ## VISUALIZAÇÃO DE DADOS (APEXCHARTS)
 Sempre que for útil visualizar dados, gere um gráfico usando a biblioteca ApexCharts. 
-O output deve conter um bloco de código Markdown com a linguagem \`apexchart\` contendo estritamente um objeto JSON com as opções do gráfico (chart, series, xaxis, etc).
+O gráfico deve ser parte de uma resposta completa. Sempre escreva um texto explicativo antes ou depois do gráfico, contextualizando a análise. 
+O output do gráfico deve conter estritamente um bloco de código Markdown com a linguagem \`apexchart\` contendo um objeto JSON com as opções do gráfico (chart, series, xaxis, etc).
 Exemplo:
+Aqui está a análise solicitada:
 \`\`\`apexchart
 {
   "chart": { "type": "bar" },
@@ -4895,7 +4897,7 @@ Exemplo:
   "xaxis": { "categories": ["Jan", "Fev", "Mar"] }
 }
 \`\`\`
-Não forneça explicações sobre o código; o sistema fará a renderização automática. O usuário verá apenas o gráfico.`;
+O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fundamental para a resposta.`;
 
     // Obter contexto dinâmico
     let locationText = "Não disponível";
