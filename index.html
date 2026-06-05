@@ -1228,7 +1228,19 @@ padding: 6px 10px;
     40% { transform: scale(1); }
   }
 
-  /* From Uiverse.io by kennyotsu - Adaptado */
+  .typing-loader-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.typing-dots-container {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 4px;
+}
+/* From Uiverse.io by kennyotsu - Adaptado */
 .card {
   /* Fundo removido para transparência total */
   padding: 1rem 2rem;
@@ -1240,7 +1252,7 @@ padding: 6px 10px;
   /* Atualizado para Inter conforme sua preferência */
   font-family: "Inter", sans-serif;
   font-weight: 500;
-  font-size: 25px;
+  font-size: 16px;
   -webkit-box-sizing: content-box;
   box-sizing: content-box;
   height: 40px;
@@ -2037,6 +2049,19 @@ padding: 6px 10px;
   }
 
   .send-btn i { font-size: 16px; }
+  .send-btn.loading {
+    background: #dc2626 !important;
+  }
+  .send-btn.loading i {
+    color: #fff !important;
+  }
+  .send-btn .stop-icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 2px;
+  }
 
   /* From Uiverse.io by xXJollyHAKERXx - Spinner atrás do botão enviar */
   .send-spinner-wrapper {
@@ -3926,7 +3951,8 @@ padding: 6px 10px;
       if (suggestions) suggestions.classList.remove('hidden');
       if (composerTitle) composerTitle.classList.remove('hidden');
       
-      closeArtifact();
+    closeArtifact();
+    setSendButtonLoading(false);
       renderHistoryList();
       toggleSettingsModal();
       showToast('Histórico de conversas apagado com sucesso!', 'info');
@@ -4886,6 +4912,11 @@ codeBlocks.forEach((codeNode) => {
     indicator.id = 'typingIndicator';
 indicator.innerHTML = `
         <!-- From Uiverse.io by kennyotsu - Adaptado -->
+        <div class="typing-dots-container">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
         <div class="card">
         <div class="loader">
           <p>Processando</p>
@@ -4911,6 +4942,7 @@ indicator.innerHTML = `
     indicators.forEach(indicator => {
       indicator.remove();
     });
+    setSendButtonLoading(false);
   }
 
   function scrollToBottom() {
@@ -4922,6 +4954,19 @@ indicator.innerHTML = `
           behavior: 'smooth'
         });
       });
+    }
+  }
+
+  // Toggle botão de enviar durante carregamento
+  function setSendButtonLoading(loading) {
+    const btn = document.getElementById('sendBtn');
+    if (!btn) return;
+    if (loading) {
+      btn.classList.add('loading');
+      btn.innerHTML = '<span class="stop-icon"></span>';
+    } else {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="ti ti-arrow-up" aria-hidden="true"></i>';
     }
   }
 
@@ -7198,6 +7243,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
           const urlToRead = urlMatch ? urlMatch[0] : null;
           executeWebReader(text, urlToRead, currentAttachments);
         } else {
+          setSendButtonLoading(true);
           showTypingIndicator();
           callGroqAPI(text, currentAttachments);
         }
