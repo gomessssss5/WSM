@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <!-- Leaflet.js para o Mapa Interativo (100% Open Source) -->
@@ -108,13 +109,7 @@
     --agent-purple: #8b5cf6;
   }
 
-  /* Loader de Pensamento do R1 */
-  .card { padding: 1rem 2rem; border-radius: 1.25rem; }
-  .loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 25px; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
-  .words { overflow: hidden; position: relative; }
-  .words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0) 100%); z-index: 20; }
-  .word { display: block; height: 100%; padding-left: 10px; color: #956afa; animation: spin_4991 10s infinite; }
-  @keyframes spin_4991 { 0%, 15% { transform: translateY(0%); } 20%, 35% { transform: translateY(-100%); } 40%, 55% { transform: translateY(-200%); } 60%, 75% { transform: translateY(-300%); } 80%, 95% { transform: translateY(-400%); } 100% { transform: translateY(-500%); } }
+  /* Removido Dark Mode */
   
   html, body {
     height: 100%;
@@ -4481,6 +4476,7 @@ padding: 6px 10px;
   }
 
   function appendMessage(text, sender, mediaFiles = [], isHistoryLoad = false, screenshotUrl = null, webReaderUrl = null, webReaderContent = null, isSlide = false, reasoning = null) {
+    const chartsToRender = [];
     const messages = document.getElementById('messages');
     if (!messages) return;
     const el = document.createElement('div');
@@ -4541,22 +4537,13 @@ codeBlocks.forEach((codeNode) => {
                 chartDiv.style.background = 'var(--bg-card)';
                 chartDiv.style.borderRadius = '16px';
                 
-                // Primeiro insere no DOM
+                // Primeiro insere o div container no DOM temporário
                 const preNode = codeNode.parentNode;
                 preNode.parentNode.insertBefore(chartDiv, preNode);
                 preNode.remove();
 
-                // Depois inicializa (garantindo que existe no DOM)
-                requestAnimationFrame(() => {
-                  try {
-                    const options = JSON.parse(codeNode.textContent);
-                    const chart = new ApexCharts(chartDiv, options);
-                    chart.render();
-                  } catch (e) {
-                    console.error('Invalid ApexChart options', e);
-                    chartDiv.innerHTML = '<p style="color:red; font-size:12px;">Erro ao renderizar gráfico.</p>';
-                  }
-                });
+                // Salva para renderizar após o elemento estar no DOM definitivo
+                chartsToRender.push({ id: chartId, optionsStr: codeNode.textContent });
                 return;
               }
 
@@ -4642,34 +4629,21 @@ codeBlocks.forEach((codeNode) => {
         thoughtBox.innerHTML = `
             <div class="thought-header" onclick="toggleAgentThoughtBox('r1_${msgId}')">
               <div class="thought-status">
-                <div class="card">
-                  <div class="loader">
-                    <p>Processando</p>
-                    <div class="words">
-                      <span class="word">Pensamento</span>
-                      <span class="word">Raciocínio</span>
-                      <span class="word">Resposta</span>
-                      <span class="word">Texto</span>
-                      <span class="word">Memória</span>
-                      <span class="word">Pensamento</span>
-                    </div>
-                  </div>
-                </div>
-                <span class="thought-title" id="mainTitle_r1_${msgId}">WSM 1.0 R1 pensando...</span>
+                <div class="spinner" id="mainSpinner_r1_${msgId}"></div>
+                <i class="ti ti-circle-check-filled success-icon" id="mainCheck_r1_${msgId}" style="color:var(--agent-green);"></i>
+                <span class="thought-title" id="mainTitle_r1_${msgId}">WSM 1.0 R1 está pensando...</span>
               </div>
               <i class="ti ti-chevron-down thought-toggle"></i>
             </div>
-            <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005); display: none;">
+            <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005);">
                 <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary);">${reasoning}</div>
             </div>
         `;
         el.prepend(thoughtBox);
 
-        // Animação: marca como completado após a IA responder
+        // Animação: marca como completado após breve delay (apenas troca o ícone/título, não colapsa)
         setTimeout(() => {
             thoughtBox.classList.add('completed');
-            thoughtBox.querySelector('.card').style.display = 'none';
-            thoughtBox.querySelector('.thought-content').style.display = 'block';
             const titleEl = document.getElementById(`mainTitle_r1_${msgId}`);
             if (titleEl) titleEl.textContent = "Raciocínio concluído";
         }, 1200);
@@ -4726,6 +4700,23 @@ codeBlocks.forEach((codeNode) => {
 
     if (!isHistoryLoad) {
       scrollToBottom();
+    }
+
+    // Renderiza os gráficos do ApexCharts agendados após tudo estar montado no DOM
+    if (chartsToRender && chartsToRender.length > 0) {
+      chartsToRender.forEach(c => {
+        const container = document.getElementById(c.id);
+        if (container) {
+          try {
+            const options = JSON.parse(c.optionsStr);
+            const chart = new ApexCharts(container, options);
+            chart.render();
+          } catch (e) {
+            console.error('Invalid ApexChart options', e);
+            container.innerHTML = '<p style="color:red; font-size:12px; padding:10px;">Erro ao renderizar gráfico.</p>';
+          }
+        }
+      });
     }
 
     if (window.lucide) lucide.createIcons();
