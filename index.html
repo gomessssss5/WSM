@@ -3836,6 +3836,7 @@ padding: 6px 10px;
 
     // Fechar painel de código se estiver aberto
     closeArtifact();
+    setSendButtonLoading(false);
 
     // Renderizar as mensagens deste chat
     sess.messages.forEach(msg => {
