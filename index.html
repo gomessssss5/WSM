@@ -109,13 +109,13 @@
     --agent-purple: #8b5cf6;
   }
 
-  /* Loader de Pensamento do R1 */
-  .card { padding: 1rem 2rem; border-radius: 1.25rem; }
-  .loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 25px; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
-  .words { overflow: hidden; position: relative; }
-  .words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0) 100%); z-index: 20; }
-  .word { display: block; height: 100%; padding-left: 10px; color: #956afa; animation: spin_4991 10s infinite; }
-  @keyframes spin_4991 { 0%, 15% { transform: translateY(0%); } 20%, 35% { transform: translateY(-100%); } 40%, 55% { transform: translateY(-200%); } 60%, 75% { transform: translateY(-300%); } 80%, 95% { transform: translateY(-400%); } 100% { transform: translateY(-500%); } }
+  /* Loader Global de Pensamento */
+  .typing-loader-wrapper { padding: 1rem 2rem; border-radius: 1.25rem; }
+  .typing-loader-loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 25px; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
+  .typing-loader-words { overflow: hidden; position: relative; }
+  .typing-loader-words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0) 100%); z-index: 20; }
+  .typing-loader-word { display: block; height: 100%; padding-left: 10px; color: #956afa; animation: spin_typing 10s infinite; }
+  @keyframes spin_typing { 0%, 15% { transform: translateY(0%); } 20%, 35% { transform: translateY(-100%); } 40%, 55% { transform: translateY(-200%); } 60%, 75% { transform: translateY(-300%); } 80%, 95% { transform: translateY(-400%); } 100% { transform: translateY(-500%); } }
   
   html, body {
     height: 100%;
@@ -4827,13 +4827,20 @@ codeBlocks.forEach((codeNode) => {
     if (!messages) return;
     
     const indicator = document.createElement('div');
-    indicator.className = 'typing-indicator';
+    indicator.className = 'typing-loader-wrapper';
     indicator.id = 'typingIndicator';
     indicator.innerHTML = `
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">WSM AI pensando...</span>
+      <div class="typing-loader-loader">
+        <p>Processando</p>
+        <div class="typing-loader-words">
+          <span class="typing-loader-word">Pensamento</span>
+          <span class="typing-loader-word">Raciocínio</span>
+          <span class="typing-loader-word">Resposta</span>
+          <span class="typing-loader-word">Texto</span>
+          <span class="typing-loader-word">Memória</span>
+          <span class="typing-loader-word">Pensamento</span>
+        </div>
+      </div>
     `;
     messages.appendChild(indicator);
     scrollToBottom();
