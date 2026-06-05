@@ -110,11 +110,11 @@
   }
 
   /* Loader Global de Pensamento */
-  .typing-loader-wrapper { padding: 1rem 2rem; border-radius: 1.25rem; }
-  .typing-loader-loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 25px; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
-  .typing-loader-words { overflow: hidden; position: relative; }
+  .typing-loader-wrapper { padding: 0.5rem 1rem; border-radius: 0.75rem; }
+  .typing-loader-loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 16px; height: 24px; padding: 5px; display: flex; align-items: center; border-radius: 8px; }
+  .typing-loader-words { overflow: hidden; position: relative; height: 24px; }
   .typing-loader-words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0) 100%); z-index: 20; }
-  .typing-loader-word { display: block; height: 100%; padding-left: 10px; color: #956afa; animation: spin_typing 10s infinite; }
+  .typing-loader-word { display: block; height: 100%; padding-left: 5px; color: #956afa; animation: spin_typing 10s infinite; }
   @keyframes spin_typing { 0%, 15% { transform: translateY(0%); } 20%, 35% { transform: translateY(-100%); } 40%, 55% { transform: translateY(-200%); } 60%, 75% { transform: translateY(-300%); } 80%, 95% { transform: translateY(-400%); } 100% { transform: translateY(-500%); } }
   
   html, body {
