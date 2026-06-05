@@ -109,7 +109,13 @@
     --agent-purple: #8b5cf6;
   }
 
-  /* Removido Dark Mode */
+  /* Loader de Pensamento do R1 */
+  .card { padding: 1rem 2rem; border-radius: 1.25rem; }
+  .loader { color: rgb(124, 124, 124); font-family: "Inter", sans-serif; font-weight: 500; font-size: 25px; height: 40px; padding: 10px 10px; display: flex; border-radius: 8px; }
+  .words { overflow: hidden; position: relative; }
+  .words::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0) 100%); z-index: 20; }
+  .word { display: block; height: 100%; padding-left: 10px; color: #956afa; animation: spin_4991 10s infinite; }
+  @keyframes spin_4991 { 0%, 15% { transform: translateY(0%); } 20%, 35% { transform: translateY(-100%); } 40%, 55% { transform: translateY(-200%); } 60%, 75% { transform: translateY(-300%); } 80%, 95% { transform: translateY(-400%); } 100% { transform: translateY(-500%); } }
   
   html, body {
     height: 100%;
@@ -4646,25 +4652,30 @@ codeBlocks.forEach((codeNode) => {
         thoughtBox.className = 'thought-box';
         thoughtBox.id = `thoughtBox_r1_${msgId}`;
         thoughtBox.innerHTML = `
-            <div class="thought-header" onclick="toggleAgentThoughtBox('r1_${msgId}')">
-              <div class="thought-status">
-                <div class="spinner" id="mainSpinner_r1_${msgId}"></div>
-                <i class="ti ti-circle-check-filled success-icon" id="mainCheck_r1_${msgId}" style="color:var(--agent-green);"></i>
-                <span class="thought-title" id="mainTitle_r1_${msgId}">WSM 1.0 R1 está pensando...</span>
+            <div class="card">
+              <div class="loader">
+                <p>Processando</p>
+                <div class="words">
+                  <span class="word">Pensamento</span>
+                  <span class="word">Raciocínio</span>
+                  <span class="word">Resposta</span>
+                  <span class="word">Texto</span>
+                  <span class="word">Memória</span>
+                  <span class="word">Pensamento</span>
+                </div>
               </div>
-              <i class="ti ti-chevron-down thought-toggle"></i>
             </div>
-            <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005);">
+            <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005); display: none;">
                 <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary);">${reasoning}</div>
             </div>
         `;
         el.prepend(thoughtBox);
 
-        // Animação: marca como completado após breve delay (apenas troca o ícone/título, não colapsa)
+        // Animação: marca como completado após a IA responder
         setTimeout(() => {
             thoughtBox.classList.add('completed');
-            const titleEl = document.getElementById(`mainTitle_r1_${msgId}`);
-            if (titleEl) titleEl.textContent = "Raciocínio concluído";
+            thoughtBox.querySelector('.card').style.display = 'none';
+            thoughtBox.querySelector('.thought-content').style.display = 'block';
         }, 1200);
     }
 
