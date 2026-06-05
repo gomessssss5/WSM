@@ -4640,18 +4640,24 @@ codeBlocks.forEach((codeNode) => {
         thoughtBox.className = 'thought-box';
         thoughtBox.id = `thoughtBox_r1_${msgId}`;
         thoughtBox.innerHTML = `
-            <div class="card">
-              <div class="loader">
-                <p>Processando</p>
-                <div class="words">
-                  <span class="word">Pensamento</span>
-                  <span class="word">Raciocínio</span>
-                  <span class="word">Resposta</span>
-                  <span class="word">Texto</span>
-                  <span class="word">Memória</span>
-                  <span class="word">Pensamento</span>
+            <div class="thought-header" onclick="toggleAgentThoughtBox('r1_${msgId}')">
+              <div class="thought-status">
+                <div class="card">
+                  <div class="loader">
+                    <p>Processando</p>
+                    <div class="words">
+                      <span class="word">Pensamento</span>
+                      <span class="word">Raciocínio</span>
+                      <span class="word">Resposta</span>
+                      <span class="word">Texto</span>
+                      <span class="word">Memória</span>
+                      <span class="word">Pensamento</span>
+                    </div>
+                  </div>
                 </div>
+                <span class="thought-title" id="mainTitle_r1_${msgId}">WSM 1.0 R1 pensando...</span>
               </div>
+              <i class="ti ti-chevron-down thought-toggle"></i>
             </div>
             <div class="thought-content" style="padding:18px 22px; border-top: 0.5px solid var(--border); background: rgba(0,0,0,0.005); display: none;">
                 <div style="font-size:13.5px; line-height:1.6; color:var(--text-secondary);">${reasoning}</div>
@@ -4664,6 +4670,8 @@ codeBlocks.forEach((codeNode) => {
             thoughtBox.classList.add('completed');
             thoughtBox.querySelector('.card').style.display = 'none';
             thoughtBox.querySelector('.thought-content').style.display = 'block';
+            const titleEl = document.getElementById(`mainTitle_r1_${msgId}`);
+            if (titleEl) titleEl.textContent = "Raciocínio concluído";
         }, 1200);
     }
 
