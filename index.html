@@ -7251,7 +7251,13 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     field.value = '';
     autoResize(field);
 
+    const sessionAtSend = currentSessionId;
     const msgTimeout = setTimeout(() => {
+        // Se a sessão mudou antes do timeout, abortar
+        if (currentSessionId !== sessionAtSend) {
+          setSendButtonLoading(false);
+          return;
+        }
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         const urlMatch = text.match(urlRegex);
 
