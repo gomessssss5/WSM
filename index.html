@@ -3818,6 +3818,10 @@ padding: 6px 10px;
     const sess = sessions.find(s => s.id === id);
     if (!sess) return;
     
+    if (window._sendMsgTimeout) {
+      clearTimeout(window._sendMsgTimeout);
+      window._sendMsgTimeout = null;
+    }
     currentSessionId = id;
     
     // Limpa a tela de chat atual
@@ -3934,7 +3938,11 @@ padding: 6px 10px;
     if (confirm('Tem certeza que deseja excluir todas as conversas do histórico? Essa ação não pode ser desfeita.')) {
       sessions = [];
       localStorage.removeItem('WSM_SESSIONS');
-      currentSessionId = null;
+    if (window._sendMsgTimeout) {
+      clearTimeout(window._sendMsgTimeout);
+      window._sendMsgTimeout = null;
+    }
+    currentSessionId = null;
       
       // Limpa a tela
       const messagesEl = document.getElementById('messages');
@@ -7230,7 +7238,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
     field.value = '';
     autoResize(field);
 
-    setTimeout(() => {
+    const msgTimeout = setTimeout(() => {
         const urlRegex = /(https?:\/\/[^\s]+)/gi;
         const urlMatch = text.match(urlRegex);
 
@@ -7249,6 +7257,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
           callGroqAPI(text, currentAttachments);
         }
     }, 450);
+    window._sendMsgTimeout = msgTimeout;
   }
 
   // --- Tic-Tac-Toe ---
