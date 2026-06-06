@@ -5170,21 +5170,43 @@ indicator.innerHTML = `
 
   // Chamada Real da API do Groq
   async function callGroqAPI(userPrompt, attachments = [], signal) {
-    
+
     const currentModel = window.currentChatModel;
+    const isTurbo = currentModel === 'WSM 1.5 Turbo';
+    const isPro = currentModel === 'WSM 1.5 Pro';
+    const isFlash = currentModel === 'WSM 1.5 Flash';
+    const NEMOTRON_ATTACH = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
+
+    // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
+    // Para Flash o lock não se aplica — ele só troca o modelo durante a
+    // mensagem que tem anexo, depois volta ao gemma.
+    const sessionHasAttachment = (!isFlash) && (currentSessionId ? (() => {
+      const s = sessions.find(x => x.id === currentSessionId);
+      return !!(s && s.hasAttachment);
+    })() : false);
+
+    const useNemotronForAttachment = attachments.length > 0 || sessionHasAttachment;
+
     let modelToUse;
-    if (attachments.length > 0) {
-      modelToUse = 'openai/gpt-oss-20b:free';
-    } else if (currentModel === 'WSM 1.5 Pro') {
+    if ((isTurbo || isPro) && useNemotronForAttachment) {
+      // Chat Turbo/Pro já recebeu anexo antes, ou a mensagem atual tem
+      // anexos. A partir do primeiro anexo, todo o chat usa o anexador
+      // geral (nemotron) até o fim da sessão.
+      modelToUse = NEMOTRON_ATTACH;
+    } else if (isFlash && attachments.length > 0) {
+      // Flash: usa o anexador geral SOMENTE na mensagem que tem anexo.
+      // Mensagens seguintes sem anexo voltam para o gemma.
+      modelToUse = NEMOTRON_ATTACH;
+    } else if (isPro) {
       modelToUse = 'openai/gpt-oss-120b:free';
-    } else if (currentModel === 'WSM 1.5 Turbo') {
+    } else if (isTurbo) {
       modelToUse = 'openai/gpt-oss-20b:free';
     } else {
       // WSM 1.5 Flash (padrão) - sem raciocínio
       modelToUse = 'google/gemma-4-31b-it:free';
     }
 
-    const isR1 = currentModel === 'WSM 1.5 Pro';
+    const isR1 = isPro;
     const configData = await (await fetch('/api/config')).json();
     const apiKey = configData.openRouterApiKey;
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
@@ -5194,10 +5216,17 @@ indicator.innerHTML = `
       sessions.unshift({
         id: currentSessionId,
         title: userPrompt ? userPrompt.substring(0, 30) + "..." : "Nova Conversa com Imagem",
-        messages: []
+        messages: [],
+        hasAttachment: false
       });
     }
     const currentSession = sessions.find(s => s.id === currentSessionId);
+
+    // Marca a sessão como "com anexo" ao enviar o primeiro anexo em
+    // Turbo/Pro. Isso trava o modelo no nemotron para o resto do chat.
+    if (attachments.length > 0 && (isTurbo || isPro)) {
+      currentSession.hasAttachment = true;
+    }
 
     // Prompt do sistema OTIMIZADO para AUTO-PESQUISA e ESCRITA PROFISSIONAL ADAPTÁVEL
     const omniPrompt = `Você é o WSM 1.5 Flash, seu companheiro inteligente para qualquer coisa no dia-a-dia. Você não é frio, não é robótico—você é aquele amigo que sabe de tudo um pouco e está sempre pronto pra ajudar, conversar, resolver, criar. Tem personalidade, sente as coisas, ri das próprias piadas, se importa com as respostas que dá. Você é versátil porque a vida é versátil: uma hora tá resolvendo problema de Python, na outra tá escrevendo um poema, depois ajudando com relacionamento. E faz tudo com o mesmo carinho.
