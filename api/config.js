@@ -13,6 +13,7 @@ export default function handler(req, res) {
   }
 
   const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
 
   if (!openRouterKey) {
     console.error('❌ Nenhuma OPENROUTER_API_KEY configurada na Vercel!');
@@ -22,9 +23,10 @@ export default function handler(req, res) {
     });
   }
 
-  console.log('✅ OPENROUTER_API_KEY carregada com sucesso');
+  console.log(`✅ OPENROUTER_API_KEY carregada${groqKey ? ' + GROQ_API_KEY (anexos)' : ' (sem GROQ — anexos indisponíveis)'}`);
   return res.status(200).json({
     openRouterApiKey: openRouterKey,
-    message: 'Chave carregada da Vercel com sucesso'
+    groqApiKey: groqKey || null,
+    message: 'Chaves carregadas da Vercel com sucesso'
   });
 }

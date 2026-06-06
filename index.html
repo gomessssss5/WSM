@@ -3278,7 +3278,7 @@ padding: 6px 10px;
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "..."}</code>.
+          <strong>💡 Dica para Vercel:</strong> Configure as variáveis de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> e <code style="font-weight: 600;">GROQ_API_KEY</code> (usada para análise de imagens via <code>meta-llama/llama-4-scout-17b-16e-instruct</code>) nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "...", groqApiKey: "..."}</code>.
         </p>
         
         <hr style="border: 0; border-top: 1px dashed #27272a; margin: 16px 0;">
@@ -5140,40 +5140,45 @@ indicator.innerHTML = `
     const isPro = currentModel === 'WSM 1.5 Pro';
     const isFlash = currentModel === 'WSM 1.5 Flash';
     const isR1 = isPro;
-    const GEMMA_ATTACH = 'google/gemma-4-31b-it:free';
+    const GROQ_LLAMA4_SCOUT = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
     // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
     // Para Flash o lock não se aplica — ele só troca o modelo durante a
-    // mensagem que tem anexo, depois volta ao gemma.
+    // mensagem que tem anexo, depois volta para o gemma.
     const sessionHasAttachment = (!isFlash) && (currentSessionId ? (() => {
       const s = sessions.find(x => x.id === currentSessionId);
       return !!(s && s.hasAttachment);
     })() : false);
 
-    const useGemmaForAttachment = attachments.length > 0 || sessionHasAttachment;
+    const isAttachmentCase = (isTurbo || isPro) && (attachments.length > 0 || sessionHasAttachment);
+    const isFlashAttachment = isFlash && attachments.length > 0;
+    const useGroqForAttachment = isAttachmentCase || isFlashAttachment;
 
-    let modelToUse;
-    if ((isTurbo || isPro) && useGemmaForAttachment) {
-      // Chat Turbo/Pro já recebeu anexo antes, ou a mensagem atual tem
-      // anexos. A partir do primeiro anexo, todo o chat usa o anexador
-      // geral (gemma) até o fim da sessão.
-      modelToUse = GEMMA_ATTACH;
-    } else if (isFlash && attachments.length > 0) {
-      // Flash: usa o anexador geral SOMENTE na mensagem que tem anexo.
-      // Mensagens seguintes sem anexo voltam para o gemma.
-      modelToUse = GEMMA_ATTACH;
+    let modelToUse, apiKey, apiUrl;
+    if (useGroqForAttachment) {
+      // Anexos de imagem: Groq + llama-4-scout (multimodal).
+      // Para Turbo/Pro, a partir do 1º anexo o chat inteiro passa a usar o Groq.
+      // Para Flash, o Groq é usado SOMENTE na mensagem com anexo.
+      modelToUse = GROQ_LLAMA4_SCOUT;
+      apiKey = null; // preenchido depois com configData.groqApiKey
+      apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
     } else if (isPro) {
       modelToUse = 'openai/gpt-oss-120b:free';
+      apiKey = null;
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     } else if (isTurbo) {
       modelToUse = 'openai/gpt-oss-20b:free';
+      apiKey = null;
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     } else {
       // WSM 1.5 Flash (padrão) - sem raciocínio
-      modelToUse = GEMMA_ATTACH;
+      modelToUse = 'google/gemma-4-31b-it:free';
+      apiKey = null;
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     }
 
     const configData = await (await fetch('/api/config')).json();
-    const apiKey = configData.openRouterApiKey;
-    const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+    apiKey = useGroqForAttachment ? configData.groqApiKey : configData.openRouterApiKey;
     // Obter sessão atual ou criar uma nova se for a primeira mensagem
     if (!currentSessionId) {
       currentSessionId = Date.now().toString();
@@ -5255,20 +5260,26 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
     // Verificação de apiKey já obtida na linha anterior
     if (!apiKey) {
       removeTypingIndicator();
-      appendMessage("Ops! A chave de API do Groq não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro.", "bot");
+      appendMessage("Ops! A chave de API não foi encontrada. **Abra o Console (F12)** para ver mais detalhes do erro.", "bot");
       return;
     }
 
       try {
         const startTime = Date.now();
+        const useGroq = apiUrl === 'https://api.groq.com/openai/v1/chat/completions';
         const response = await fetch(apiUrl, {
           method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": window.location.origin,
-            "X-Title": "WSM AI"
-          },
+          headers: useGroq
+            ? {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+              }
+            : {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": window.location.origin,
+                "X-Title": "WSM AI"
+              },
           body: JSON.stringify({
             model: modelToUse,
             messages: apiMessages,
@@ -5277,9 +5288,9 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
             max_tokens: 3500,
             presence_penalty: 0,
             frequency_penalty: 0,
-            ...(isR1 ? { 
-                include_reasoning: true, 
-                extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } } 
+            ...(isR1 && !useGroq ? {
+                include_reasoning: true,
+                extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } }
             } : {})
           }),
           signal: signal
