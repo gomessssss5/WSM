@@ -13,6 +13,7 @@ export default function handler(req, res) {
   }
 
   const openRouterKey = process.env.OPENROUTER_API_KEY;
+  const openRouterKey2 = process.env.OPENROUTER_API_KEY_2;
 
   if (!openRouterKey) {
     console.error('❌ Nenhuma OPENROUTER_API_KEY configurada na Vercel!');
@@ -22,9 +23,10 @@ export default function handler(req, res) {
     });
   }
 
-  console.log('✅ OPENROUTER_API_KEY carregada com sucesso');
+  console.log(`✅ OPENROUTER_API_KEY carregada${openRouterKey2 ? ' + chave 2 de fallback' : ' (sem fallback)'}`);
   return res.status(200).json({
     openRouterApiKey: openRouterKey,
-    message: 'Chave carregada da Vercel com sucesso'
+    openRouterApiKey2: openRouterKey2 || null,
+    message: 'Chaves carregadas da Vercel com sucesso'
   });
 }

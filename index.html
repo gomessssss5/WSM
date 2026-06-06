@@ -35,7 +35,7 @@
         if (!response.ok) {
           try {
             const config = await (await originalFetch('/api/config')).json();
-            const keys = [config.openRouterApiKey];
+            const keys = [config.openRouterApiKey, config.openRouterApiKey2].filter(Boolean);
             for (const key of keys) {
               const newOptions = { ...options, headers: { ...options.headers, 'Authorization': `Bearer ${key}` } };
               response = await originalFetch(url, newOptions);
@@ -3278,7 +3278,7 @@ padding: 6px 10px;
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "..."}</code>.
+          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> nas Settings do seu projeto (opcional: <code style="font-weight: 600;">OPENROUTER_API_KEY_2</code> como fallback automático em caso de 429/erro). Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "...", openRouterApiKey2: "..."}</code>.
         </p>
         
         <hr style="border: 0; border-top: 1px dashed #27272a; margin: 16px 0;">
