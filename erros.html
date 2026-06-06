@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!-- Added by OpenCode auto-commit -->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSM AI - Erros</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #ffffff;
+    font-family: 'Inter', -apple-system, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .error-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fef9c3;
+    color: #92400e;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid #facc15;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+    font-weight: 500;
+    width: 100%;
+    max-width: 520px;
+  }
+  .error-card i {
+    font-size: 20px;
+  }
+  .error-card .timer {
+    margin-left: auto;
+    font-weight: 700;
+    color: #b45309;
+  }
+</style>
+</head>
+<body>
+<div class="error-card" id="demoCard">
+  <i class="ti ti-clock"></i>
+  <span>WSM está sobrecarregado agora. tente mais tarde</span>
+  <span class="timer" id="demoTimer">1:30</span>
+</div>
+<script>
+  (function() {
+    let time = 90;
+    const timerEl = document.getElementById('demoTimer');
+    setInterval(() => {
+      if (time <= 0) {
+        time = 90;
+        timerEl.textContent = '1:30';
+      } else {
+        time--;
+        const min = Math.floor(time / 60);
+        const sec = time % 60;
+        timerEl.textContent = min + ':' + sec.toString().padStart(2, '0');
+      }
+    }, 1000);
+  })();
+</script>
+</body>
+</html>

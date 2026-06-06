@@ -2080,6 +2080,29 @@ padding: 6px 10px;
   .cancel-alert i {
     font-size: 20px;
   }
+  .error-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #fef9c3;
+    color: #92400e;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid #facc15;
+    box-shadow: var(--shadow-card);
+    margin: 12px 0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    animation: fadeUpMessage 0.4s ease both;
+  }
+  .error-card i {
+    font-size: 20px;
+  }
+  .error-card .timer {
+    margin-left: auto;
+    font-weight: 700;
+    color: #b45309;
+  }
 
   /* From Uiverse.io by xXJollyHAKERXx - Spinner atrás do botão enviar */
   .send-spinner-wrapper {
@@ -5029,6 +5052,65 @@ indicator.innerHTML = `
     scrollToBottom();
   }
 
+  function showErrorCard(status, message, userPrompt, attachments) {
+    const messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+    const card = document.createElement('div');
+    card.className = 'error-card';
+
+    let title = 'Erro';
+    let iconClass = 'ti ti-alert-circle';
+    if (status === 429) {
+      title = 'WSM está sobrecarregado agora. tente mais tarde';
+      iconClass = 'ti ti-clock';
+    } else if (status === 401) {
+      title = 'Chave de API inválida ou expirada';
+    } else if (status === 404) {
+      title = 'Recurso não encontrado';
+    } else if (status) {
+      title = `Erro ${status}: ${message || 'Falha na requisição'}`;
+    }
+
+    let html = `<i class="${iconClass}"></i><span>${title}</span>`;
+
+    if (status === 429 && userPrompt) {
+      html += '<span class="timer" data-time="90">1:30</span>';
+      card.dataset.prompt = userPrompt;
+      card.dataset.attachments = JSON.stringify(attachments || []);
+    }
+
+    card.innerHTML = html;
+    messagesEl.appendChild(card);
+    scrollToBottom();
+
+    if (status === 429 && userPrompt) {
+      startRetryTimer(card);
+    }
+  }
+
+  function startRetryTimer(card) {
+    let time = 90;
+    const timerEl = card.querySelector('.timer');
+    const interval = setInterval(() => {
+      time--;
+      if (time <= 0) {
+        clearInterval(interval);
+        const prompt = card.dataset.prompt;
+        const attachments = JSON.parse(card.dataset.attachments || '[]');
+        card.remove();
+        attachedFiles = attachments;
+        renderAttachmentPreviews();
+        const field = document.getElementById('inputField');
+        if (field) field.value = prompt;
+        sendMessage();
+      } else {
+        const min = Math.floor(time / 60);
+        const sec = time % 60;
+        timerEl.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+  }
+
   // Chamada Real da API do Groq
   async function callGroqAPI(userPrompt, attachments = [], signal) {
     
@@ -5156,8 +5238,13 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
       }
 
       if (!response.ok) {
+        const status = response.status;
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `Falha na comunicação com ${isR1 ? 'OpenRouter' : 'Groq'}. Status: ${response.status}`);
+        const detail = errorData.error?.message || `Falha na comunicação com ${isR1 ? 'OpenRouter' : 'Groq'}.`;
+        console.error(`API Error ${status}:`, detail);
+        removeTypingIndicator();
+        showErrorCard(status, detail, userPrompt, attachments);
+        return;
       }
 
       const data = await response.json();
@@ -5184,7 +5271,8 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
         // Requisição cancelada pelo usuário (ex.: nova conversa)
         return;
       }
-      appendMessage(`Lamento, ocorreu um erro ao chamar o WSM AI 1.0 Omni: **${error.message}**.`, "bot");
+      console.error('Network/Unknown Error:', error);
+      showErrorCard(0, error.message, userPrompt, attachments);
     }
   }
 
