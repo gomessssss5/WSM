@@ -5375,24 +5375,29 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
     try {
       // ETAPA 1
       setStepActive(1, currentAgentId);
-      let groqApiKey = localStorage.getItem('GROQ_API_KEY');
-      if (!groqApiKey) {
+      let openRouterApiKey = localStorage.getItem('OPENROUTER_API_KEY');
+      if (!openRouterApiKey) {
         const configResponse = await fetch('/api/config');
         if (configResponse.ok) {
           const configData = await configResponse.json();
-          groqApiKey = configData.groqApiKey;
+          openRouterApiKey = configData.openRouterApiKey;
         }
       }
-      if (!groqApiKey) throw new Error('GROQ_API_KEY não encontrada');
+      if (!openRouterApiKey) throw new Error('OPENROUTER_API_KEY não encontrada');
 
       let searchKeywords = autoSearchQuery;
 
       if (!searchKeywords) {
-        const planResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const planResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
+          headers: {
+            'Authorization': `Bearer ${openRouterApiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'WSM AI'
+          },
           body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
+            model: 'meta-llama/llama-3.1-8b-instruct:free',
             messages: [
               { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
               { role: 'user', content: userPrompt }
@@ -5401,7 +5406,14 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
           })
         });
 
-        if (!planResponse.ok) throw new Error('Erro ao chamar Groq para planejamento');
+        if (!planResponse.ok) {
+          const status = planResponse.status;
+          const errData = await planResponse.json().catch(() => ({}));
+          const detail = errData.error?.message || 'Erro no planejamento';
+          console.error(`OpenRouter Error ${status}:`, detail);
+          showErrorCard(status, detail, userPrompt, attachedFilesData);
+          throw new Error(detail);
+        }
         const planData = await planResponse.json();
         searchKeywords = planData.choices[0].message.content.trim();
         await sleep(800);
