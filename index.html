@@ -5404,10 +5404,17 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       }
 
       const data = await response.json();
-      console.log("DEBUG API RESPONSE:", data); 
+      console.log("DEBUG API RESPONSE:", data);
+      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+        const errMsg = data.error?.message || JSON.stringify(data).substring(0, 300);
+        console.error("Resposta vazia/inválida do modelo:", errMsg);
+        removeTypingIndicator();
+        showErrorCard(0, `Resposta vazia/inválida do modelo: ${errMsg}`, userPrompt, attachments);
+        return;
+      }
       console.log("FULL MESSAGE OBJECT:", data.choices[0].message);
       const message = data.choices[0].message;
-      const assistantResponse = (message.content || "").trim();
+      const assistantResponse = (message && message.content ? message.content : "").trim();
 
       if (assistantResponse.includes('{jogo-velha}')) {
           startTicTacToe();

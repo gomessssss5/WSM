@@ -296,7 +296,13 @@
           throw new Error(detail);
         }
         const planData = await planResponse.json();
-        searchKeywords = planData.choices[0].message.content.trim();
+        if (!planData.choices || !Array.isArray(planData.choices) || planData.choices.length === 0) {
+          const errMsg = planData.error?.message || JSON.stringify(planData).substring(0, 300);
+          throw new Error(`Resposta vazia/inválida do planejador: ${errMsg}`);
+        }
+        const planContent = planData.choices[0].message?.content;
+        if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
+        searchKeywords = planContent.trim();
         await sleep(800);
       } else {
         const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
@@ -452,10 +458,21 @@
         })
       });
 
-      if (!synthesisResponse.ok) throw new Error('Erro ao sintetizar resposta final');
+      if (!synthesisResponse.ok) {
+        const errBody = await synthesisResponse.json().catch(() => ({}));
+        const detail = errBody.error?.message || `HTTP ${synthesisResponse.status}`;
+        throw new Error(`Erro ao sintetizar resposta final: ${detail}`);
+      }
 
       const synthesisData = await synthesisResponse.json();
-      const finalResponse = synthesisData.choices[0].message.content;
+      if (!synthesisData.choices || !Array.isArray(synthesisData.choices) || synthesisData.choices.length === 0) {
+        const errMsg = synthesisData.error?.message || JSON.stringify(synthesisData).substring(0, 300);
+        throw new Error(`Resposta vazia/inválida do modelo: ${errMsg}`);
+      }
+      const finalResponse = synthesisData.choices[0].message?.content;
+      if (!finalResponse) {
+        throw new Error('Modelo retornou resposta sem conteúdo.');
+      }
 
       currentSession.messages.push({ role: 'user', text: userPrompt || "[Pesquisa Web Iniciada]" });
       currentSession.messages.push({ role: 'bot', text: finalResponse });
@@ -764,9 +781,19 @@ if (chartOptions) {
         })
       });
 
-      if (!planResponse.ok) throw new Error('Erro ao planejar busca no mapa');
+      if (!planResponse.ok) {
+        const errBody = await planResponse.json().catch(() => ({}));
+        const detail = errBody.error?.message || `HTTP ${planResponse.status}`;
+        throw new Error(`Erro ao planejar busca no mapa: ${detail}`);
+      }
       const planData = await planResponse.json();
-      let searchKeywords = planData.choices[0].message.content.trim().replace(/['"]/g, '');
+      if (!planData.choices || !Array.isArray(planData.choices) || planData.choices.length === 0) {
+        const errMsg = planData.error?.message || JSON.stringify(planData).substring(0, 300);
+        throw new Error(`Resposta vazia/inválida do planejador: ${errMsg}`);
+      }
+      const planContent = planData.choices[0].message?.content;
+      if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
+      let searchKeywords = planContent.trim().replace(/['"]/g, '');
       await sleep(600);
       setStepCompleted(1, currentAgentId, '#10b981');
 
@@ -819,9 +846,20 @@ if (chartOptions) {
         })
       });
 
-      if (!synthesisResponse.ok) throw new Error('Erro ao sintetizar resposta do mapa');
+      if (!synthesisResponse.ok) {
+        const errBody = await synthesisResponse.json().catch(() => ({}));
+        const detail = errBody.error?.message || `HTTP ${synthesisResponse.status}`;
+        throw new Error(`Erro ao sintetizar resposta do mapa: ${detail}`);
+      }
       const synthesisData = await synthesisResponse.json();
-      const finalResponse = synthesisData.choices[0].message.content;
+      if (!synthesisData.choices || !Array.isArray(synthesisData.choices) || synthesisData.choices.length === 0) {
+        const errMsg = synthesisData.error?.message || JSON.stringify(synthesisData).substring(0, 300);
+        throw new Error(`Resposta vazia/inválida do modelo: ${errMsg}`);
+      }
+      const finalResponse = synthesisData.choices[0].message?.content;
+      if (!finalResponse) {
+        throw new Error('Modelo retornou resposta sem conteúdo.');
+      }
 
       currentSession.messages.push({ role: 'user', text: userPrompt || "[Busca no Mapa Iniciada]" });
       currentSession.messages.push({ role: 'bot', text: finalResponse });
@@ -1143,9 +1181,20 @@ if (chartOptions) {
         })
       });
 
-      if (!synthesisResponse.ok) throw new Error('Erro ao gerar resposta final com a IA');
+      if (!synthesisResponse.ok) {
+        const errBody = await synthesisResponse.json().catch(() => ({}));
+        const detail = errBody.error?.message || `HTTP ${synthesisResponse.status}`;
+        throw new Error(`Erro ao gerar resposta final do Leitor de Web: ${detail}`);
+      }
       const synthesisData = await synthesisResponse.json();
-      const finalResponse = synthesisData.choices[0].message.content;
+      if (!synthesisData.choices || !Array.isArray(synthesisData.choices) || synthesisData.choices.length === 0) {
+        const errMsg = synthesisData.error?.message || JSON.stringify(synthesisData).substring(0, 300);
+        throw new Error(`Resposta vazia/inválida do modelo: ${errMsg}`);
+      }
+      const finalResponse = synthesisData.choices[0].message?.content;
+      if (!finalResponse) {
+        throw new Error('Modelo retornou resposta sem conteúdo.');
+      }
 
       currentSession.messages.push({ role: 'user', text: userPrompt || `Leitura de Link: ${url}` });
       currentSession.messages.push({
@@ -1380,11 +1429,16 @@ if (chartOptions) {
 
         if (planResponse.ok) {
           const planData = await planResponse.json();
-          const planText = planData.choices[0].message.content.trim();
-          const bracketRegex = /\{([^}]+)\}/g;
-          let match;
-          while ((match = bracketRegex.exec(planText)) !== null) {
-            matches.push(match[1].trim());
+          if (planData.choices && Array.isArray(planData.choices) && planData.choices.length > 0) {
+            const planContent = planData.choices[0].message?.content;
+            if (planContent) {
+              const planText = planContent.trim();
+              const bracketRegex = /\{([^}]+)\}/g;
+              let match;
+              while ((match = bracketRegex.exec(planText)) !== null) {
+                matches.push(match[1].trim());
+              }
+            }
           }
         }
 
@@ -1593,9 +1647,20 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         })
       });
 
-      if (!response.ok) throw new Error('Falha ao gerar apresentação de slides com a IA.');
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}));
+        const detail = errBody.error?.message || `HTTP ${response.status}`;
+        throw new Error(`Falha ao gerar apresentação de slides: ${detail}`);
+      }
       const data = await response.json();
-      const aiResponseText = data.choices[0].message.content;
+      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+        const errMsg = data.error?.message || JSON.stringify(data).substring(0, 300);
+        throw new Error(`Resposta vazia/inválida do modelo: ${errMsg}`);
+      }
+      const aiResponseText = data.choices[0].message?.content;
+      if (!aiResponseText) {
+        throw new Error('Modelo retornou resposta sem conteúdo.');
+      }
 
       // Salva na sessão do chat
       currentSession.messages.push({ role: 'user', text: userPrompt || 'Gerar Slides' });
