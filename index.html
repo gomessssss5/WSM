@@ -5169,7 +5169,7 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
     const dateTime = new Date().toLocaleString();
 
     let apiMessages = [
-      { role: "system", content: (isR1 ? r1Prompt : omniPrompt) + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.\n\nINSTRUÇÃO DE PESQUISA WEB: Se você precisar de informações atualizadas, recentes ou que não conhece com certeza, e nenhum modo de pesquisa estiver ativo, responda EXCLUSIVAMENTE e APENAS com o token: {web: "sua consulta aqui"} (sem nenhum outro texto, markdown ou explicação). O sistema irá executar a pesquisa automaticamente.` },
+      { role: "system", content: (isR1 ? r1Prompt : omniPrompt) + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.\n\nINSTRUÇÃO DE PESQUISA WEB: É SEMPRE MELHOR PESQUISAR NA WEB DO QUE RESPONDER COM INFORMAÇÕES DESCONHECIDAS, ANTIGAS OU INCERTAS. SEMPRE que o usuário pedir pesquisa, notícias, informações atuais, dados em tempo real, ou qualquer conteúdo que exija verificação (ex: 'pesquise sobre X', 'o que aconteceu com Y', 'notícias de Z', 'quem é W', 'preço de algo', 'resultado de jogo', etc.), você DEVE responder EXCLUSIVAMENTE e APENAS com o token: {web: "consulta objetiva aqui"} (sem nenhum outro texto, markdown ou explicação). NUNCA invente respostas. Na dúvida, pesquise. O sistema executará a busca automaticamente.` },
     ];
 
     // Adiciona o histórico limpo e limitado
