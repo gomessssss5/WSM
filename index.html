@@ -5169,7 +5169,7 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
     const dateTime = new Date().toLocaleString();
 
     let apiMessages = [
-      { role: "system", content: (isR1 ? r1Prompt : omniPrompt) + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.` },
+      { role: "system", content: (isR1 ? r1Prompt : omniPrompt) + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.\n\nINSTRUÇÃO DE PESQUISA WEB: Se você precisar de informações atualizadas, recentes ou que não conhece com certeza, e nenhum modo de pesquisa estiver ativo, responda EXCLUSIVAMENTE e APENAS com o token: {web: "sua consulta aqui"} (sem nenhum outro texto, markdown ou explicação). O sistema irá executar a pesquisa automaticamente.` },
     ];
 
     // Adiciona o histórico limpo e limitado
@@ -5256,6 +5256,17 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
       if (assistantResponse.includes('{jogo-velha}')) {
           startTicTacToe();
           return;
+      }
+
+      // Detecta token de pesquisa web automática
+      const webMatch = assistantResponse.match(/\{web:\s*"?([^"\}]+)"?\s*\}/i);
+      if (webMatch && !searchMode && !webReaderMode && !mapMode && !slideMode) {
+        const query = webMatch[1].trim();
+        console.log("Auto web search triggered:", query);
+        removeTypingIndicator();
+        appendMessage(`🔎 Pesquisando na web: **${query}**`, 'bot');
+        executeDeepResearch(query, attachments);
+        return;
       }
 
       const reasoning = message.reasoning || message.thinking || null;
