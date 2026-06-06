@@ -3416,7 +3416,7 @@ padding: 6px 10px;
               <div class="input-actions">
                 <div class="input-tools">
                   <!-- BOTÃO DE ANEXAR -->
-                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem ou vídeo (máx. 5 imagens e 2 vídeos)"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
+                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem (máx. 5)"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
 
                   
                   <!-- BOTÃO DE PESQUISAR -->
@@ -3564,13 +3564,12 @@ padding: 6px 10px;
 
     </div>
   </main>
-  <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display:none" onchange="handleFileSelection(event)">
+  <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none" onchange="handleFileSelection(event)">
 
   <!-- FULLSCREEN IMAGE MODAL -->
   <div class="fullscreen-modal" id="fullscreenModal" onclick="closeFullscreen()">
     <button class="fullscreen-close" onclick="closeFullscreen()"><i class="ti ti-x"></i></button>
     <img id="fullscreenImg" src="" alt="Visualização em tela cheia" onclick="event.stopPropagation()">
-    <video id="fullscreenVideo" src="" controls onclick="event.stopPropagation()" style="display:none; max-width:90vw; max-height:90vh; border-radius:12px;"></video>
   </div>
 
   <!-- FULLSCREEN SLIDES PRESENTATION MODAL -->
@@ -4029,36 +4028,27 @@ padding: 6px 10px;
     if (fileInput) fileInput.click();
   }
 
-  // Manipular seleção e validação de imagens e vídeos
+  // Manipular seleção e validação de imagens
   function handleFileSelection(event) {
     const files = Array.from(event.target.files);
     const container = document.getElementById('attachmentPreview');
     if (!container) return;
 
     const MAX_IMAGES = 5;
-    const MAX_VIDEOS = 2;
 
     const currentImages = attachedFiles.filter(f => f.kind === 'image').length;
-    const currentVideos = attachedFiles.filter(f => f.kind === 'video').length;
-
     const acceptedFiles = [];
     const rejected = [];
 
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
-        if (currentImages + acceptedFiles.filter(f => f._kind === 'image').length >= MAX_IMAGES) {
+        if (currentImages + acceptedFiles.length >= MAX_IMAGES) {
           rejected.push(`${file.name} (limite de ${MAX_IMAGES} imagens)`);
         } else {
           acceptedFiles.push({ file, _kind: 'image' });
         }
-      } else if (file.type.startsWith('video/')) {
-        if (currentVideos + acceptedFiles.filter(f => f._kind === 'video').length >= MAX_VIDEOS) {
-          rejected.push(`${file.name} (limite de ${MAX_VIDEOS} vídeos)`);
-        } else {
-          acceptedFiles.push({ file, _kind: 'video' });
-        }
       } else {
-        rejected.push(`${file.name} (tipo não suportado)`);
+        rejected.push(`${file.name} (apenas imagens são aceitas)`);
       }
     });
 
@@ -4066,13 +4056,13 @@ padding: 6px 10px;
       showToast(`Alguns arquivos foram ignorados: ${rejected.join('; ')}`);
     }
 
-    acceptedFiles.forEach(({ file, _kind }) => {
+    acceptedFiles.forEach(({ file }) => {
       const reader = new FileReader();
       reader.onload = function(e) {
         attachedFiles.push({
           file: file,
           src: e.target.result,
-          kind: _kind,
+          kind: 'image',
           mime: file.type
         });
         renderAttachmentPreviews();
@@ -4099,22 +4089,12 @@ padding: 6px 10px;
     }
 
     container.style.display = 'flex';
-    container.innerHTML = attachedFiles.map((item, index) => {
-      const media = item.kind === 'video'
-        ? `<video src="${item.src}" muted playsinline style="width:100%;height:100%;object-fit:cover;border-radius:15px;background:#000;cursor:pointer;" onclick="openFullscreen(this.src)"></video>
-           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-             <div style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;">
-               <div style="width:0;height:0;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px;"></div>
-             </div>
-           </div>`
-        : `<img src="${item.src}" alt="Preview anexo" onclick="openFullscreen(this.src)" style="cursor: pointer; width:100%;height:100%;object-fit:cover;border-radius:15px;">`;
-      return `
+    container.innerHTML = attachedFiles.map((item, index) => `
       <div class="attachment-thumb">
-        ${media}
+        <img src="${item.src}" alt="Preview anexo" onclick="openFullscreen(this.src)" style="cursor: pointer; width:100%;height:100%;object-fit:cover;border-radius:15px;">
         <button class="attachment-clear-btn" title="Remover" onclick="event.stopPropagation(); removeAttachedFile(${index})">C</button>
       </div>
-    `;
-    }).join('');
+    `).join('');
 
     if (toolsContainer) {
       toolsContainer.classList.add('has-attachments');
@@ -4131,30 +4111,14 @@ padding: 6px 10px;
   function openFullscreen(src) {
     const modal = document.getElementById('fullscreenModal');
     const img = document.getElementById('fullscreenImg');
-    const video = document.getElementById('fullscreenVideo');
-    if (!modal) return;
-    const isVideo = typeof src === 'string' && src.startsWith('data:video');
-    if (isVideo) {
-      if (img) img.style.display = 'none';
-      if (video) {
-        video.src = src;
-        video.style.display = 'block';
-        video.currentTime = 0;
-      }
-    } else {
-      if (video) { video.pause(); video.removeAttribute('src'); video.load(); video.style.display = 'none'; }
-      if (img) {
-        img.src = src;
-        img.style.display = 'block';
-      }
+    if (modal && img) {
+      img.src = src;
+      modal.classList.add('active');
     }
-    modal.classList.add('active');
   }
 
   function closeFullscreen() {
     const modal = document.getElementById('fullscreenModal');
-    const video = document.getElementById('fullscreenVideo');
-    if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
     if (modal) modal.classList.remove('active');
   }
 
@@ -5175,7 +5139,8 @@ indicator.innerHTML = `
     const isTurbo = currentModel === 'WSM 1.5 Turbo';
     const isPro = currentModel === 'WSM 1.5 Pro';
     const isFlash = currentModel === 'WSM 1.5 Flash';
-    const NEMOTRON_ATTACH = 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free';
+    const isR1 = isPro;
+    const GEMMA_ATTACH = 'google/gemma-4-31b-it:free';
 
     // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
     // Para Flash o lock não se aplica — ele só troca o modelo durante a
@@ -5185,28 +5150,27 @@ indicator.innerHTML = `
       return !!(s && s.hasAttachment);
     })() : false);
 
-    const useNemotronForAttachment = attachments.length > 0 || sessionHasAttachment;
+    const useGemmaForAttachment = attachments.length > 0 || sessionHasAttachment;
 
     let modelToUse;
-    if ((isTurbo || isPro) && useNemotronForAttachment) {
+    if ((isTurbo || isPro) && useGemmaForAttachment) {
       // Chat Turbo/Pro já recebeu anexo antes, ou a mensagem atual tem
       // anexos. A partir do primeiro anexo, todo o chat usa o anexador
-      // geral (nemotron) até o fim da sessão.
-      modelToUse = NEMOTRON_ATTACH;
+      // geral (gemma) até o fim da sessão.
+      modelToUse = GEMMA_ATTACH;
     } else if (isFlash && attachments.length > 0) {
       // Flash: usa o anexador geral SOMENTE na mensagem que tem anexo.
       // Mensagens seguintes sem anexo voltam para o gemma.
-      modelToUse = NEMOTRON_ATTACH;
+      modelToUse = GEMMA_ATTACH;
     } else if (isPro) {
       modelToUse = 'openai/gpt-oss-120b:free';
     } else if (isTurbo) {
       modelToUse = 'openai/gpt-oss-20b:free';
     } else {
       // WSM 1.5 Flash (padrão) - sem raciocínio
-      modelToUse = 'google/gemma-4-31b-it:free';
+      modelToUse = GEMMA_ATTACH;
     }
 
-    const isR1 = isPro;
     const configData = await (await fetch('/api/config')).json();
     const apiKey = configData.openRouterApiKey;
     const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
@@ -5223,7 +5187,7 @@ indicator.innerHTML = `
     const currentSession = sessions.find(s => s.id === currentSessionId);
 
     // Marca a sessão como "com anexo" ao enviar o primeiro anexo em
-    // Turbo/Pro. Isso trava o modelo no nemotron para o resto do chat.
+    // Turbo/Pro. Isso trava o modelo no gemma para o resto do chat.
     if (attachments.length > 0 && (isTurbo || isPro)) {
       currentSession.hasAttachment = true;
     }
@@ -5277,16 +5241,12 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
       });
     }
 
-    // Prepara o conteúdo ATUAL (Aqui imagens e vídeos da vez são inseridos em Base64 apenas na requisição voando, não guardados)
+    // Prepara o conteúdo ATUAL (imagens da vez são inseridas em Base64 apenas na requisição voando, não guardadas)
     let userContent = userPrompt;
     if (attachments.length > 0) {
-      userContent = [{ type: "text", text: userPrompt || "Analise as mídias enviadas." }];
+      userContent = [{ type: "text", text: userPrompt || "Analise as imagens enviadas." }];
       attachments.forEach(att => {
-        if (att.kind === 'video') {
-          userContent.push({ type: "video_url", video_url: { url: att.src } });
-        } else {
-          userContent.push({ type: "image_url", image_url: { url: att.src } });
-        }
+        userContent.push({ type: "image_url", image_url: { url: att.src } });
       });
     }
 
