@@ -5184,7 +5184,7 @@ indicator.innerHTML = `
     } else if (isPro) {
       modelToUse = 'openai/gpt-oss-120b:free';
     } else if (isTurbo) {
-      modelToUse = 'openai/gpt-oss-20b:free';
+      modelToUse = 'nvidia/nemotron-3-super-120b-a12b:free';
     } else {
       // WSM 1.5 Flash (padrão) - sem raciocínio
       modelToUse = 'google/gemma-4-31b-it:free';
@@ -5648,7 +5648,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
             'X-Title': 'WSM AI'
           },
           body: JSON.stringify({
-            model: 'openai/gpt-oss-20b:free',
+            model: 'nvidia/nemotron-3-super-120b-a12b:free',
             messages: [
               { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
               { role: 'user', content: userPrompt }
@@ -5801,7 +5801,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-20b:free',
+          model: 'nvidia/nemotron-3-super-120b-a12b:free',
           messages: [
             {
               role: 'system',
@@ -6121,7 +6121,7 @@ if (chartOptions) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-20b:free',
+          model: 'nvidia/nemotron-3-super-120b-a12b:free',
           messages: [
             { role: 'system', content: 'Você é um especialista em geolocalização. Transforme o pedido do usuário em uma busca otimizada para a API Nominatim (OpenStreetMap). Retorne APENAS a string de busca, sem aspas ou acréscimos. Se for um tipo de local em uma cidade, use o formato "local, cidade". Ex: "restaurantes em santos" -> "restaurante, santos". "praias de ubatuba" -> "praia, ubatuba".' },
             { role: 'user', content: userPrompt }
@@ -6170,7 +6170,7 @@ if (chartOptions) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-20b:free',
+          model: 'nvidia/nemotron-3-super-120b-a12b:free',
           messages: [
             {
               role: 'system',
@@ -6490,7 +6490,7 @@ if (chartOptions) {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-20b:free',
+          model: 'nvidia/nemotron-3-super-120b-a12b:free',
           messages: [
             {
               role: 'system',
@@ -6731,7 +6731,7 @@ if (chartOptions) {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
           body: JSON.stringify({
-            model: 'openai/gpt-oss-20b:free',
+            model: 'nvidia/nemotron-3-super-120b-a12b:free',
             messages: [
               { role: 'system', content: 'Você é um assistente de planejamento para apresentações de slides focado em exatidão histórica, científica e conceitual. Analise a solicitação do usuário e retorne OBRIGATORIAMENTE de 1 a 3 termos específicos de busca na web para coletar fatos, dados e datas precisas sobre o tema. Você NUNCA deve retornar colchetes vazios ou decidir não pesquisar. Retorne os termos EXCLUSIVAMENTE entre colchetes separados por vírgula. Exemplo de retorno: "{revolução francesa}, {maria antonieta}, {reino do terror}".' },
               { role: 'user', content: userPrompt }
@@ -6948,7 +6948,7 @@ Retorne EXCLUSIVAMENTE o código HTML completo atualizado no bloco de código ma
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'openai/gpt-oss-20b:free',
+          model: 'nvidia/nemotron-3-super-120b-a12b:free',
           messages: messagesForGroq,
           temperature: 0.6,
           max_tokens: 2500
