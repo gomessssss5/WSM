@@ -5128,8 +5128,8 @@ indicator.innerHTML = `
     } else if (currentModel === 'WSM 1.5 Turbo') {
       modelToUse = 'openai/gpt-oss-20b:free';
     } else {
-      // WSM 1.5 Flash (padrão)
-      modelToUse = 'nvidia/nemotron-3-super-120b-a12b:free';
+      // WSM 1.5 Flash (padrão) - sem raciocínio
+      modelToUse = 'google/gemma-4-31b-it:free';
     }
 
     const isR1 = currentModel === 'WSM 1.5 Pro';
