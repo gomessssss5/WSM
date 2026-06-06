@@ -3683,7 +3683,8 @@ padding: 6px 10px;
   function toggleEffortSelector(model) {
     const effort = document.getElementById('effortSelect');
     if (effort) {
-      effort.style.display = (model === 'WSM 1.5 Pro') ? 'inline-block' : 'none';
+      // Reasoning desativado nos modelos :free — select fica oculto.
+      effort.style.display = 'none';
       window.currentChatModel = model;
     }
   }
@@ -5144,7 +5145,6 @@ indicator.innerHTML = `
     const isTurbo = currentModel === 'WSM 1.5 Turbo';
     const isPro = currentModel === 'WSM 1.5 Pro';
     const isFlash = currentModel === 'WSM 1.5 Flash';
-    const isR1 = isPro;
     const GEMMA_ATTACH = 'google/gemma-4-26b-a4b-it:free';
 
     // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
@@ -5455,11 +5455,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
             top_p: 0.9,
             max_tokens: 3500,
             presence_penalty: 0,
-            frequency_penalty: 0,
-            ...(isR1 ? {
-                include_reasoning: true,
-                extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } }
-            } : {})
+            frequency_penalty: 0
           }),
           signal: signal
         });
@@ -5478,7 +5474,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       if (!response.ok) {
         const status = response.status;
         const errorData = await response.json().catch(() => ({}));
-        const detail = errorData.error?.message || `Falha na comunicação com ${isR1 ? 'OpenRouter' : 'Groq'}.`;
+        const detail = errorData.error?.message || 'Falha na comunicação com a API.';
         console.error(`API Error ${status}:`, detail);
         removeTypingIndicator();
         showErrorCard(status, detail, userPrompt, attachments);
