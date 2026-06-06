@@ -3278,7 +3278,7 @@ padding: 6px 10px;
         </p>
         <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-          <strong>💡 Dica para Vercel:</strong> Configure as variáveis de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> e <code style="font-weight: 600;">GROQ_API_KEY</code> (usada para análise de imagens via <code>meta-llama/llama-4-scout-17b-16e-instruct</code>) nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "...", groqApiKey: "..."}</code>.
+          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> nas Settings do seu projeto. Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "..."}</code>.
         </p>
         
         <hr style="border: 0; border-top: 1px dashed #27272a; margin: 16px 0;">
@@ -5132,7 +5132,7 @@ indicator.innerHTML = `
     }, 1000);
   }
 
-  // Chamada Real da API do Groq
+  // Chamada Real da API do OpenRouter
   async function callGroqAPI(userPrompt, attachments = [], signal) {
 
     const currentModel = window.currentChatModel;
@@ -5140,11 +5140,11 @@ indicator.innerHTML = `
     const isPro = currentModel === 'WSM 1.5 Pro';
     const isFlash = currentModel === 'WSM 1.5 Flash';
     const isR1 = isPro;
-    const GROQ_LLAMA4_SCOUT = 'meta-llama/llama-4-scout-17b-16e-instruct';
+    const GEMMA_ATTACH = 'google/gemma-4-26b-a4b-it:free';
 
     // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
     // Para Flash o lock não se aplica — ele só troca o modelo durante a
-    // mensagem que tem anexo, depois volta para o gemma.
+    // mensagem que tem anexo, depois volta para o gemma-31b.
     const sessionHasAttachment = (!isFlash) && (currentSessionId ? (() => {
       const s = sessions.find(x => x.id === currentSessionId);
       return !!(s && s.hasAttachment);
@@ -5152,33 +5152,26 @@ indicator.innerHTML = `
 
     const isAttachmentCase = (isTurbo || isPro) && (attachments.length > 0 || sessionHasAttachment);
     const isFlashAttachment = isFlash && attachments.length > 0;
-    const useGroqForAttachment = isAttachmentCase || isFlashAttachment;
+    const useGemmaForAttachment = isAttachmentCase || isFlashAttachment;
 
-    let modelToUse, apiKey, apiUrl;
-    if (useGroqForAttachment) {
-      // Anexos de imagem: Groq + llama-4-scout (multimodal).
-      // Para Turbo/Pro, a partir do 1º anexo o chat inteiro passa a usar o Groq.
-      // Para Flash, o Groq é usado SOMENTE na mensagem com anexo.
-      modelToUse = GROQ_LLAMA4_SCOUT;
-      apiKey = null; // preenchido depois com configData.groqApiKey
-      apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+    let modelToUse;
+    if (useGemmaForAttachment) {
+      // Anexos de imagem: OpenRouter + gemma-4-26b-a4b (multimodal).
+      // Para Turbo/Pro, a partir do 1º anexo o chat inteiro usa o gemma-26b.
+      // Para Flash, o gemma-26b é usado SOMENTE na mensagem com anexo.
+      modelToUse = GEMMA_ATTACH;
     } else if (isPro) {
       modelToUse = 'openai/gpt-oss-120b:free';
-      apiKey = null;
-      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     } else if (isTurbo) {
       modelToUse = 'openai/gpt-oss-20b:free';
-      apiKey = null;
-      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     } else {
       // WSM 1.5 Flash (padrão) - sem raciocínio
       modelToUse = 'google/gemma-4-31b-it:free';
-      apiKey = null;
-      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     }
 
     const configData = await (await fetch('/api/config')).json();
-    apiKey = useGroqForAttachment ? configData.groqApiKey : configData.openRouterApiKey;
+    const apiKey = configData.openRouterApiKey;
+    const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
     // Obter sessão atual ou criar uma nova se for a primeira mensagem
     if (!currentSessionId) {
       currentSessionId = Date.now().toString();
@@ -5266,20 +5259,14 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
 
       try {
         const startTime = Date.now();
-        const useGroq = apiUrl === 'https://api.groq.com/openai/v1/chat/completions';
         const response = await fetch(apiUrl, {
           method: "POST",
-          headers: useGroq
-            ? {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json"
-              }
-            : {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": window.location.origin,
-                "X-Title": "WSM AI"
-              },
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": window.location.origin,
+            "X-Title": "WSM AI"
+          },
           body: JSON.stringify({
             model: modelToUse,
             messages: apiMessages,
@@ -5288,7 +5275,7 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
             max_tokens: 3500,
             presence_penalty: 0,
             frequency_penalty: 0,
-            ...(isR1 && !useGroq ? {
+            ...(isR1 ? {
                 include_reasoning: true,
                 extra_body: { reasoning: { effort: window.currentReasoningEffort || "medium" } }
             } : {})
