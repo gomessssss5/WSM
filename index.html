@@ -3416,7 +3416,7 @@ padding: 6px 10px;
               <div class="input-actions">
                 <div class="input-tools">
                   <!-- BOTÃO DE ANEXAR -->
-                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" disabled title="Anexo de imagens temporariamente desabilitado" style="opacity:0.4; cursor:not-allowed; pointer-events:none;"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
+                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="showAttachDisabledNotice()" title="Anexo de imagens inativo temporariamente para manutenção" style="opacity:0.4; cursor:not-allowed;"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
 
                   
                   <!-- BOTÃO DE PESQUISAR -->
@@ -4120,6 +4120,11 @@ padding: 6px 10px;
   function closeFullscreen() {
     const modal = document.getElementById('fullscreenModal');
     if (modal) modal.classList.remove('active');
+  }
+
+  // Exibe aviso de manutenção no botão de anexo (temporariamente desabilitado)
+  function showAttachDisabledNotice() {
+    showToast("Modo de anexo de imagens inativo temporariamente para manutenção.", "info");
   }
 
   // Exibir toast premium estilizado
