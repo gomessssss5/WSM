@@ -35,11 +35,27 @@
         if (!response.ok) {
           try {
             const config = await (await originalFetch('/api/config')).json();
-            const keys = [config.openRouterApiKey, config.openRouterApiKey2].filter(Boolean);
-            for (const key of keys) {
+            // Extrai a chave que já foi usada (Authorization do options original)
+            let usedKey = null;
+            try {
+              const auth = (options && options.headers && (options.headers.Authorization || options.headers.authorization)) || '';
+              const m = String(auth).match(/Bearer\s+(.+)/i);
+              if (m) usedKey = m[1].trim();
+            } catch (e) {}
+            // Monta a lista de fallback: TODAS as chaves, exceto a que já foi usada.
+            const candidates = [config.openRouterApiKey, config.openRouterApiKey2]
+              .filter(Boolean)
+              .filter(k => k !== usedKey);
+            if (candidates.length === 0) {
+              console.warn('[OpenRouter fallback] Nenhuma chave alternativa configurada (defina OPENROUTER_API_KEY_2 na Vercel).');
+            }
+            for (const key of candidates) {
               const newOptions = { ...options, headers: { ...options.headers, 'Authorization': `Bearer ${key}` } };
               response = await originalFetch(url, newOptions);
-              if (response.ok) break;
+              if (response.ok) {
+                console.log('[OpenRouter fallback] chave alternativa funcionou (status ' + response.status + ')');
+                break;
+              }
             }
           } catch (e) { console.error("Fallback failed", e); }
         }
