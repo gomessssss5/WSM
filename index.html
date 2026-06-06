@@ -3416,7 +3416,7 @@ padding: 6px 10px;
               <div class="input-actions">
                 <div class="input-tools">
                   <!-- BOTÃO DE ANEXAR -->
-                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
+                  <button class="tool-btn icon-only-btn" id="attachBtn" type="button" onclick="triggerFileUpload()" title="Anexar imagem ou vídeo (máx. 5 imagens e 2 vídeos)"><i class="ti ti-paperclip" aria-hidden="true"></i></button>
 
                   
                   <!-- BOTÃO DE PESQUISAR -->
@@ -3564,12 +3564,13 @@ padding: 6px 10px;
 
     </div>
   </main>
-  <input type="file" id="mediaFileInput" multiple accept="image/*" style="display:none" onchange="handleFileSelection(event)">
+  <input type="file" id="mediaFileInput" multiple accept="image/*,video/*" style="display:none" onchange="handleFileSelection(event)">
 
   <!-- FULLSCREEN IMAGE MODAL -->
   <div class="fullscreen-modal" id="fullscreenModal" onclick="closeFullscreen()">
     <button class="fullscreen-close" onclick="closeFullscreen()"><i class="ti ti-x"></i></button>
     <img id="fullscreenImg" src="" alt="Visualização em tela cheia" onclick="event.stopPropagation()">
+    <video id="fullscreenVideo" src="" controls onclick="event.stopPropagation()" style="display:none; max-width:90vw; max-height:90vh; border-radius:12px;"></video>
   </div>
 
   <!-- FULLSCREEN SLIDES PRESENTATION MODAL -->
@@ -4028,30 +4029,55 @@ padding: 6px 10px;
     if (fileInput) fileInput.click();
   }
 
-  // Manipular seleção e validação das imagens
+  // Manipular seleção e validação de imagens e vídeos
   function handleFileSelection(event) {
     const files = Array.from(event.target.files);
     const container = document.getElementById('attachmentPreview');
     if (!container) return;
 
-    if (attachedFiles.length + files.length > 5) {
-      showToast("Você pode anexar no máximo 5 imagens!");
-      event.target.value = '';
-      return;
-    }
+    const MAX_IMAGES = 5;
+    const MAX_VIDEOS = 2;
+
+    const currentImages = attachedFiles.filter(f => f.kind === 'image').length;
+    const currentVideos = attachedFiles.filter(f => f.kind === 'video').length;
+
+    const acceptedFiles = [];
+    const rejected = [];
 
     files.forEach(file => {
       if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          attachedFiles.push({
-            file: file,
-            src: e.target.result
-          });
-          renderAttachmentPreviews();
-        };
-        reader.readAsDataURL(file);
+        if (currentImages + acceptedFiles.filter(f => f._kind === 'image').length >= MAX_IMAGES) {
+          rejected.push(`${file.name} (limite de ${MAX_IMAGES} imagens)`);
+        } else {
+          acceptedFiles.push({ file, _kind: 'image' });
+        }
+      } else if (file.type.startsWith('video/')) {
+        if (currentVideos + acceptedFiles.filter(f => f._kind === 'video').length >= MAX_VIDEOS) {
+          rejected.push(`${file.name} (limite de ${MAX_VIDEOS} vídeos)`);
+        } else {
+          acceptedFiles.push({ file, _kind: 'video' });
+        }
+      } else {
+        rejected.push(`${file.name} (tipo não suportado)`);
       }
+    });
+
+    if (rejected.length > 0) {
+      showToast(`Alguns arquivos foram ignorados: ${rejected.join('; ')}`);
+    }
+
+    acceptedFiles.forEach(({ file, _kind }) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        attachedFiles.push({
+          file: file,
+          src: e.target.result,
+          kind: _kind,
+          mime: file.type
+        });
+        renderAttachmentPreviews();
+      };
+      reader.readAsDataURL(file);
     });
 
     event.target.value = '';
@@ -4073,12 +4099,22 @@ padding: 6px 10px;
     }
 
     container.style.display = 'flex';
-    container.innerHTML = attachedFiles.map((item, index) => `
+    container.innerHTML = attachedFiles.map((item, index) => {
+      const media = item.kind === 'video'
+        ? `<video src="${item.src}" muted playsinline style="width:100%;height:100%;object-fit:cover;border-radius:15px;background:#000;cursor:pointer;" onclick="openFullscreen(this.src)"></video>
+           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+             <div style="width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;">
+               <div style="width:0;height:0;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px;"></div>
+             </div>
+           </div>`
+        : `<img src="${item.src}" alt="Preview anexo" onclick="openFullscreen(this.src)" style="cursor: pointer; width:100%;height:100%;object-fit:cover;border-radius:15px;">`;
+      return `
       <div class="attachment-thumb">
-        <img src="${item.src}" alt="Preview anexo" onclick="openFullscreen(this.src)" style="cursor: pointer;">
+        ${media}
         <button class="attachment-clear-btn" title="Remover" onclick="event.stopPropagation(); removeAttachedFile(${index})">C</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     if (toolsContainer) {
       toolsContainer.classList.add('has-attachments');
@@ -4095,14 +4131,30 @@ padding: 6px 10px;
   function openFullscreen(src) {
     const modal = document.getElementById('fullscreenModal');
     const img = document.getElementById('fullscreenImg');
-    if (modal && img) {
-      img.src = src;
-      modal.classList.add('active');
+    const video = document.getElementById('fullscreenVideo');
+    if (!modal) return;
+    const isVideo = typeof src === 'string' && src.startsWith('data:video');
+    if (isVideo) {
+      if (img) img.style.display = 'none';
+      if (video) {
+        video.src = src;
+        video.style.display = 'block';
+        video.currentTime = 0;
+      }
+    } else {
+      if (video) { video.pause(); video.removeAttribute('src'); video.load(); video.style.display = 'none'; }
+      if (img) {
+        img.src = src;
+        img.style.display = 'block';
+      }
     }
+    modal.classList.add('active');
   }
 
   function closeFullscreen() {
     const modal = document.getElementById('fullscreenModal');
+    const video = document.getElementById('fullscreenVideo');
+    if (video) { video.pause(); video.removeAttribute('src'); video.load(); }
     if (modal) modal.classList.remove('active');
   }
 
@@ -5196,12 +5248,16 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
       });
     }
 
-    // Prepara o conteúdo ATUAL (Aqui as imagens da vez são inseridas em Base64 apenas na requisição voando, não guardadas)
+    // Prepara o conteúdo ATUAL (Aqui imagens e vídeos da vez são inseridos em Base64 apenas na requisição voando, não guardados)
     let userContent = userPrompt;
     if (attachments.length > 0) {
-      userContent = [{ type: "text", text: userPrompt || "Analise as imagens enviadas." }];
-      attachments.forEach(img => {
-        userContent.push({ type: "image_url", image_url: { url: img.src } });
+      userContent = [{ type: "text", text: userPrompt || "Analise as mídias enviadas." }];
+      attachments.forEach(att => {
+        if (att.kind === 'video') {
+          userContent.push({ type: "video_url", video_url: { url: att.src } });
+        } else {
+          userContent.push({ type: "image_url", image_url: { url: att.src } });
+        }
       });
     }
 
