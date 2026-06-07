@@ -202,12 +202,12 @@
             'X-Title': 'WSM AI'
           },
           body: JSON.stringify({
-            model: 'nvidia/nemotron-nano-9b-v2:free',
+            model: 'google/gemma-4-31b-it:free',
             messages: [
-              { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web. Não explique, não pense em voz alta, responda direto com as palavras-chave.' },
+              { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
               { role: 'user', content: userPrompt }
             ],
-            temperature: 0.3, max_tokens: 600
+            temperature: 0.3, max_tokens: 100
           })
         });
 
@@ -224,10 +224,7 @@
           const errMsg = planData.error?.message || JSON.stringify(planData).substring(0, 300);
           throw new Error(`Resposta vazia/inválida do planejador: ${errMsg}`);
         }
-        let planContent = planData.choices[0].message?.content;
-        if (!planContent && planData.choices[0].message?.reasoning) {
-          planContent = planData.choices[0].message.reasoning;
-        }
+        const planContent = planData.choices[0].message?.content;
         if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
         // Limpa prefixos/sufixos comuns que o modelo pode adicionar
         let cleaned = String(planContent).replace(/```[\s\S]*?```/g, ' ').replace(/[`*#>]/g, ' ').trim();
@@ -384,7 +381,7 @@
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'nvidia/nemotron-nano-9b-v2:free',
+          model: 'google/gemma-4-31b-it:free',
           messages: [
             {
               role: 'system',
