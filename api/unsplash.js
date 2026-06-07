@@ -12,7 +12,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { query } = req.body;
+  const { query, count } = req.body;
+  const perPage = Math.min(Math.max(parseInt(count) || 3, 1), 3);
 
   if (!query) {
     return res.status(400).json({ error: 'query é obrigatório' });
@@ -32,7 +33,7 @@ export default async function handler(req, res) {
     console.log(`🖼️ Buscando imagens Unsplash: "${query}"`);
 
     const unsplashResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=3&orientation=landscape`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=${perPage}&orientation=landscape`,
       {
         headers: {
           'Authorization': `Client-ID ${apiKey}`
@@ -55,9 +56,7 @@ export default async function handler(req, res) {
 
     const images = data.results.map(photo => ({
       url: photo.urls.regular,
-      alt: photo.alt_description || query,
-      photographer: photo.user.name,
-      photographerUrl: photo.user.links.html
+      alt: photo.alt_description || query
     }));
 
     return res.status(200).json({
