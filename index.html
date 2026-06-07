@@ -3365,7 +3365,7 @@ padding: 6px 10px;
     }
   }
 
-  // Funções do Artifact (Painel de Código Lateral ou Mapas)
+  // Funções do Artifact (Painel de Código Lateral)
   function openArtifact(code, lang) {
     resetDownloadBtn();
     const mainContent = document.getElementById('mainContent');
@@ -3408,6 +3408,28 @@ padding: 6px 10px;
 
     // Mostrar animação
     mainContent.classList.add('artifact-open');
+  }
+
+  function closeArtifact() {
+    const mainContent = document.getElementById('mainContent');
+    const codePre = document.getElementById('artifactCodePre');
+    const codeElement = document.getElementById('artifactCodeContent');
+    const iframe = document.getElementById('artifactIframe');
+    const htmlToggleContainer = document.getElementById('htmlToggleContainer');
+    const copyBtn = document.getElementById('copyArtifactBtn');
+
+    if (mainContent) mainContent.classList.remove('artifact-open');
+    if (codePre) codePre.style.display = 'none';
+    if (codeElement) codeElement.textContent = '';
+    if (iframe) {
+      iframe.style.display = 'none';
+      iframe.srcdoc = '';
+    }
+    if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+
+    currentArtifactCode = '';
+    currentArtifactLang = '';
   }
 
   // NOVA FUNÇÃO: Alternar visualização (Preview vs Código)

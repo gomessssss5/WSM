@@ -227,6 +227,7 @@
         const planContent = planData.choices[0].message?.content;
         if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
         searchKeywords = planContent.trim();
+        if (!searchKeywords) throw new Error('Planejador retornou palavras-chave vazias.');
         await sleep(800);
       } else {
         const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
@@ -248,7 +249,14 @@
       });
 
       if (!searchResponse.ok) {
-        throw new Error('Erro ao chamar Tavily API');
+        let detail = '';
+        try {
+          const errBody = await searchResponse.json();
+          detail = errBody.error || errBody.details?.error?.message || errBody.hint || JSON.stringify(errBody).substring(0, 300);
+        } catch (e) {
+          detail = `HTTP ${searchResponse.status}`;
+        }
+        throw new Error(`Tavily API: ${detail}`);
       }
 
       const searchData = await searchResponse.json();
