@@ -22,10 +22,6 @@
 <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<!-- Leaflet.js para o Mapa Interativo (100% Open Source) -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
 <script>
   (function() {
     const originalFetch = window.fetch;
@@ -279,35 +275,6 @@
     color: var(--text-primary);
     font-weight: 500;
   }
-
-  .sidebar-footer {
-    margin-top: auto;
-    border-top: 0.5px solid var(--border);
-    padding-top: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-
-  .footer-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 13.5px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: background var(--transition), color var(--transition);
-  }
-
-  .footer-item:hover {
-    background: var(--pill-bg);
-    color: var(--text-primary);
-  }
-
-  .footer-item i { font-size: 16px; }
 
   /* MAIN WORKSPACE */
   .main {
@@ -843,39 +810,7 @@
   }
 
 
-  /* ======= ARTIFACT TRIGGER CARD (Botão de Código) ======= */
-  .artifact-trigger-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 0.5px solid var(--border);
-    background: var(--bg-card);
-    box-shadow: var(--shadow-card);
-    margin: 14px 0;
-    max-width: 420px; 
-    cursor: pointer;
-    transition: all var(--transition);
-    font-family: 'Inter', sans-serif;
-  }
-  .artifact-trigger-card:hover {
-    border-color: var(--border-focus);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-  }
-  .artifact-card-icon {
-    width: 40px; height: 40px; border-radius: 8px; background: var(--pill-bg); display: grid; place-items: center; color: var(--text-secondary); font-size: 20px; flex-shrink: 0;
-  }
-  .artifact-card-info { flex: 1; display: flex; flex-direction: column; overflow: hidden;}
-  .artifact-card-info .title { font-size: 14px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .artifact-card-info .meta { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;}
-  .artifact-card-btn {
-    padding: 8px 14px; border-radius: 8px; border: 0.5px solid var(--border); background: var(--bg); color: var(--text-primary); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; white-space: nowrap; flex-shrink: 0;
-  }
-  .artifact-trigger-card:hover .artifact-card-btn { background: var(--text-primary); color: var(--bg); border-color: var(--text-primary); }
-
-
+ 
   /* ======= ARTIFACT SIDE PANEL ======= */
   .artifact-panel {
     flex: 0 0 0;
@@ -1123,27 +1058,11 @@
     min-height: 0;
   }
 
-  /* Remove o padding apenas quando o mapa estiver ativo para ele ocupar a tela toda */
-  .main-content.artifact-map .artifact-body {
-    padding: 0;
-    overflow: hidden;
-  }
-
   .artifact-body pre {
     margin: 0; background: transparent; padding: 0; border: none; flex: 1;
   }
   .artifact-body code {
     font-family: 'Fira Code', monospace; font-size: 13.5px; line-height: 1.6; color: #c9d1d9;
-  }
-
-  /* MAP CONTAINER DENTRO DO ARTIFACT */
-  #mapContainer {
-    flex: 1;
-    border-radius: 0; /* Mapa fica melhor sem borda interna no painel */
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    width: 100%;
-    height: 100%; /* Garante que o container tenha altura */
-    min-height: 100%;
   }
 
   /* Leaflet forces z-index on some elements, make sure it doesn't overlap weirdly */
@@ -1862,42 +1781,14 @@ padding: 6px 10px;
     inherits: false;
   }
 
-  /* Animação do ponto de luz caminhando pela borda do botão Agentes */
-  #agentsBtn {
-    position: relative;
-  }
-  #agentsBtn::after {
-    content: "";
-    position: absolute;
-    /* Ajustado para centralizar o feixe mais grosso na borda */
-    inset: -1.5px;
-    padding: 2.5px; 
-    border-radius: inherit;
-    /* Animamos o ângulo do gradiente (--angle) em vez de girar o elemento */
-    background: conic-gradient(from var(--angle), transparent 92%, var(--agent-blue));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    animation: border-beam 3s linear infinite;
-  }
-  @keyframes border-beam {
-    to { --angle: 360deg; }
-  }
-
   /* MODOS ATIVOS - Estilo Escuro (Preto/Branco) */
-  .tool-btn.search-active,
-  .tool-btn.map-active,
-  .tool-btn.web-reader-active {
+  .tool-btn.search-active {
     background: var(--accent);
     color: var(--bg);
     border-color: var(--accent);
   }
 
-  .tool-btn.search-active .search-close,
-  .tool-btn.map-active .search-close,
-  .tool-btn.web-reader-active .search-close {
+  .tool-btn.search-active .search-close {
     display: inline-flex;
   }
 
@@ -1913,128 +1804,6 @@ padding: 6px 10px;
     font-size: 11px;
     line-height: 1;
     margin-left: 2px;
-  }
-
-  /* DROPDOWN DE AGENTES */
-  .agents-dropdown-wrapper {
-    position: relative;
-    display: inline-flex;
-  }
-
-  .agents-menu {
-    position: absolute;
-    bottom: calc(100% + 14px);
-    left: 0;
-    transform: translateY(10px) scale(0.95);
-    transform-origin: bottom left;
-    background: var(--bg-card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 240px;
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--transition);
-    z-index: 100;
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-  }
-
-  .agents-menu.open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-  }
-
-  .agents-menu::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    left: 24px;
-    transform: rotate(45deg);
-    width: 12px;
-    height: 12px;
-    background: var(--bg-card);
-    border-right: 0.5px solid var(--border);
-    border-bottom: 0.5px solid var(--border);
-  }
-
-  .agents-menu-header {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 4px 8px 8px;
-  }
-
-  .agent-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    transition: background var(--transition);
-    text-align: left;
-    width: 100%;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .agent-item:hover {
-    background: var(--pill-bg);
-  }
-
-  .agent-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    display: grid;
-    place-items: center;
-    font-size: 18px;
-    flex-shrink: 0;
-  }
-
-  .agent-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .agent-name {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .agent-desc {
-    font-size: 11.5px;
-    color: var(--text-muted);
-  }
-
-  /* Ocultar o botão "Mapas" dedicado até que esteja ativo */
-  #mapActiveBtn {
-    display: none;
-  }
-
-  #mapActiveBtn.is-active {
-    display: inline-flex;
-  }
-
-  /* Ocultar o botão "Leitor de Web" dedicado até que esteja ativo */
-  #webReaderActiveBtn {
-    display: none;
-  }
-
-  #webReaderActiveBtn.is-active {
-    display: inline-flex;
   }
 
   .send-btn {
@@ -2179,187 +1948,6 @@ padding: 6px 10px;
     pointer-events: none;
   }
 
-  .agents-promo-card {
-    display: flex;
-    align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-card);
-    max-width: 580px;
-    width: 100%;
-    padding: 12px 20px;
-    gap: 16px;
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  .agents-promo-card:hover {
-    transform: translateY(-1.5px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    border-color: var(--border-focus);
-  }
-
-  .agents-promo-left {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid var(--border);
-    padding-right: 16px;
-    flex-shrink: 0;
-    width: 90px;
-  }
-
-  .agents-icons-stack {
-    display: flex;
-    align-items: center;
-    position: relative;
-    height: 40px;
-    width: 72px;
-    justify-content: center;
-  }
-
-  .promo-icon-circle {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    position: absolute;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    border: 1.5px solid var(--bg-card);
-    transition: transform 0.3s ease;
-  }
-
-  .promo-icon-circle.icon-map {
-    left: 0;
-    z-index: 1;
-  }
-  .promo-icon-circle.icon-web {
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-  }
-  .promo-icon-circle.icon-slide {
-    right: 0;
-    z-index: 1;
-  }
-
-  .agents-promo-card:hover .promo-icon-circle.icon-map {
-    transform: translateX(-4px) scale(1.05);
-  }
-  .agents-promo-card:hover .promo-icon-circle.icon-slide {
-    transform: translateX(4px) scale(1.05);
-  }
-  .agents-promo-card:hover .promo-icon-circle.icon-web {
-    transform: translateX(-50%) scale(1.1);
-    z-index: 3;
-  }
-
-  .promo-badge {
-    margin-top: 4px;
-    font-size: 9px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    background: linear-gradient(135deg, var(--agent-blue), var(--agent-purple));
-    color: #fff;
-    padding: 2px 8px;
-    border-radius: var(--radius-full);
-  }
-
-  .agents-promo-right {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: left;
-    flex-grow: 1;
-  }
-
-  .agents-promo-right h3 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-    letter-spacing: -0.2px;
-  }
-
-  .agents-promo-right p {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    line-height: 1.3;
-  }
-
-  .promo-agents-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .promo-agent-tag {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-primary);
-    background: var(--pill-bg);
-    padding: 2px 8px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: background var(--transition), transform var(--transition);
-  }
-
-  .promo-agent-tag:hover {
-    background: var(--pill-hover);
-    transform: translateY(-1px);
-  }
-
-  .promo-agent-tag:active {
-    transform: translateY(0);
-  }
-
-  .promo-agent-tag .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-right: 5px;
-    display: inline-block;
-  }
-
-  /* GLOWING BORDERS FOR ACTIVE AGENTS */
-  @keyframes pulse-glow-map {
-    0% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.2), var(--shadow-input); }
-    50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.5), var(--shadow-input); }
-    100% { box-shadow: 0 0 4px rgba(16, 185, 129, 0.2), var(--shadow-input); }
-  }
-  @keyframes pulse-glow-web {
-    0% { box-shadow: 0 0 4px rgba(2, 132, 199, 0.2), var(--shadow-input); }
-    50% { box-shadow: 0 0 16px rgba(2, 132, 199, 0.5), var(--shadow-input); }
-    100% { box-shadow: 0 0 4px rgba(2, 132, 199, 0.2), var(--shadow-input); }
-  }
-  @keyframes pulse-glow-slide {
-    0% { box-shadow: 0 0 4px rgba(139, 92, 246, 0.2), var(--shadow-input); }
-    50% { box-shadow: 0 0 16px rgba(139, 92, 246, 0.5), var(--shadow-input); }
-    100% { box-shadow: 0 0 4px rgba(139, 92, 246, 0.2), var(--shadow-input); }
-  }
-
-  .input-box.agent-map-active {
-    border-color: var(--agent-green) !important;
-    animation: pulse-glow-map 2s infinite ease-in-out;
-  }
-  .input-box.agent-web-active {
-    border-color: var(--agent-blue) !important;
-    animation: pulse-glow-web 2s infinite ease-in-out;
-  }
-  .input-box.agent-slide-active {
-    border-color: var(--agent-purple) !important;
-    animation: pulse-glow-slide 2s infinite ease-in-out;
-  }
 
   /* MICROPHONE ACTIVE PULSE EFFECT */
   @keyframes mic-pulse {
@@ -2372,29 +1960,6 @@ padding: 6px 10px;
     animation: mic-pulse 1.2s infinite ease-in-out;
     background: rgba(239, 68, 68, 0.1) !important;
     border-color: rgba(239, 68, 68, 0.3) !important;
-  }
-
-  @media (max-width: 580px) {
-    .agents-promo-card {
-      flex-direction: column;
-      padding: 12px;
-      gap: 10px;
-    }
-    .agents-promo-left {
-      flex-direction: row;
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      padding-right: 0;
-      padding-bottom: 8px;
-      width: 100%;
-      justify-content: space-around;
-    }
-    .agents-promo-right {
-      text-align: center;
-    }
-    .promo-agents-row {
-      justify-content: center;
-    }
   }
 
   .suggestion-pill {
@@ -2659,108 +2224,6 @@ padding: 6px 10px;
     color: var(--agent-green);
   }
 
-  /* MODAL DE CONFIGURAÇÕES PARA API KEY */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .modal-overlay.active {
-    display: flex;
-  }
-
-  .modal-card {
-    background: var(--bg-card);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    width: 90%;
-    max-width: 440px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    animation: scaleUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    font-family: 'Inter', sans-serif;
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .modal-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  .modal-close-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 18px;
-  }
-
-  .modal-body {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .settings-input {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border);
-    background: var(--bg);
-    color: var(--text-primary);
-    outline: none;
-    font-family: 'Inter', sans-serif;
-    font-size: 13.5px;
-  }
-
-  .settings-input:focus {
-    border-color: var(--border-focus);
-  }
-
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  .modal-btn {
-    padding: 8px 16px;
-    border-radius: var(--radius-full);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 0.5px solid var(--border);
-    background: transparent;
-    color: var(--text-secondary);
-    transition: all var(--transition);
-  }
-
-  .modal-btn.primary {
-    background: var(--text-primary);
-    color: var(--bg);
-    border: none;
-  }
-
-  .modal-btn.primary:hover {
-    opacity: 0.9;
-  }
-
   /* FLOATING TOAST */
   .toast {
     position: fixed;
@@ -2857,78 +2320,6 @@ padding: 6px 10px;
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-
-  /* ==========================================================================
-     AGENTE DE APRESENTAÇÕES (SLIDES PREVIEW & FULLSCREEN)
-     ========================================================================== */
-  #slideActiveBtn {
-    display: none;
-  }
-
-  #slideActiveBtn.is-active {
-    display: inline-flex;
-  }
-
-  .tool-btn.slide-active {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-  }
-
-  .tool-btn.slide-active .search-close {
-    display: inline-flex;
-  }
-
-  .slides-preview-container {
-    display: none;
-    padding: 30px;
-    flex-direction: column;
-    gap: 30px;
-    overflow-y: auto;
-    height: 100%;
-    background: #0f0f10;
-    box-sizing: border-box;
-    scroll-behavior: smooth;
-  }
-
-  .slide-card {
-    background: #18181b;
-    border: 1px solid #27272a;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    width: 100%;
-    max-width: 760px;
-    margin: 0 auto;
-    aspect-ratio: 16 / 9;
-    position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .slide-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--agent-purple, #9333ea);
-    box-shadow: 0 12px 30px -5px rgba(147, 51, 234, 0.3);
-  }
-
-  .slide-card-header {
-    position: absolute;
-    top: 14px;
-    left: 20px;
-    font-size: 11px;
-    color: #a1a1aa;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    z-index: 100;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 4px 10px;
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-    font-family: 'Inter', sans-serif;
-  }
   .site-tag {
     display: inline-flex;
     align-items: center;
@@ -2945,68 +2336,6 @@ padding: 6px 10px;
   }
   .site-tag:hover { background: var(--pill-hover); }
   .site-tag img { width: 12px; height: 12px; border-radius: 2px; }
-
-  .slide-card-content-wrapper section {
-    display: flex !important;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    min-height: 100% !important;
-    box-sizing: border-box;
-    padding: 40px;
-    text-align: center;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-  }
-
-  /* Reset reveal.js elements styling inside the preview slide cards */
-  .slide-card-content-wrapper section h1,
-  .slide-card-content-wrapper section h2,
-  .slide-card-content-wrapper section h3 {
-    margin-top: 0;
-    font-weight: 700;
-    font-family: 'Outfit', 'Inter', sans-serif;
-    line-height: 1.2;
-    color: #ffffff;
-  }
-
-  .slide-card-content-wrapper section h1 { font-size: 2.2rem; }
-  .slide-card-content-wrapper section h2 { font-size: 1.8rem; }
-  .slide-card-content-wrapper section h3 { font-size: 1.4rem; }
-  .slide-card-content-wrapper section p,
-  .slide-card-content-wrapper section li {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    font-family: 'Inter', sans-serif;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .slide-card-content-wrapper section ul,
-  .slide-card-content-wrapper section ol {
-    text-align: left;
-    margin-top: 15px;
-    display: inline-block;
-  }
-
-  .slide-card-content-wrapper section img {
-    max-height: 40%;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-top: 15px;
-  }
-
-  /* Layout de grade/divisão padrão nas apresentações */
-  .slide-card-content-wrapper section .split-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    width: 100%;
-    align-items: center;
-    text-align: left;
-  }
 
   /* From Uiverse.io by Gautammsharma - Grid Background */
   .grid-wrapper {
@@ -3280,43 +2609,6 @@ padding: 6px 10px;
     <span id="toastMessage">Erro</span>
   </div>
 
-  <!-- MODAL DE CONFIGURAÇÃO (API KEY) -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 class="modal-title">Configurações do Sistema</h3>
-        <button class="modal-close-btn" onclick="toggleSettingsModal()"><i class="ti ti-x"></i></button>
-      </div>
-      <div class="modal-body">
-        <h4 style="font-size: 13px; color: var(--text-primary); margin-bottom: 8px;">Chave de API do Groq</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;">
-          Insira sua chave de API para conversar em tempo real. A chave é salva apenas localmente no seu navegador.
-        </p>
-        <input type="password" class="settings-input" id="apiKeyInput" placeholder="gsk_...">
-        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
-          <strong>💡 Dica para Vercel:</strong> Configure a variável de ambiente <code style="font-weight: 600;">OPENROUTER_API_KEY</code> nas Settings do seu projeto (opcional: <code style="font-weight: 600;">OPENROUTER_API_KEY_2</code> como fallback automático em caso de 429/erro). Pode ser feito manualmente aqui ou automaticamente se houver um endpoint <code>/api/config</code> que retorna <code>{openRouterApiKey: "...", openRouterApiKey2: "..."}</code>.
-        </p>
-        
-        <hr style="border: 0; border-top: 1px dashed #27272a; margin: 16px 0;">
-        
-        <h4 style="font-size: 13px; color: var(--text-primary); margin-bottom: 8px;">Armazenamento Local</h4>
-        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;">
-          Se o aplicativo estiver lento ou pesado, você pode limpar todo o histórico de conversas salvas no navegador.
-        </p>
-        <button class="modal-btn danger-btn" onclick="clearAllSessions()" 
-                onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" 
-                onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"
-                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-          <i class="ti ti-trash" style="margin-right: 6px; font-size: 14px;"></i>Excluir Conversas Recentes
-        </button>
-      </div>
-      <div class="modal-footer">
-        <button class="modal-btn" onclick="toggleSettingsModal()">Fechar</button>
-        <button class="modal-btn primary" onclick="saveApiKey()">Salvar Chave</button>
-      </div>
-    </div>
-  </div>
-
   <!-- SIDEBAR (Barra Lateral) -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
@@ -3337,10 +2629,6 @@ padding: 6px 10px;
       <div class="history-list" id="historyList">
         <!-- Itens de Histórico renderizados aqui via JS -->
       </div>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="footer-item" onclick="toggleSettingsModal()"><i class="ti ti-settings" aria-hidden="true"></i> Configurações</div>
     </div>
   </aside>
 
@@ -3437,42 +2725,7 @@ padding: 6px 10px;
                   
                   <!-- BOTÃO DE PESQUISAR -->
                   <button class="tool-btn" id="searchBtn" type="button" onclick="toggleSearchMode()"><i class="ti ti-world-search" aria-hidden="true"></i> Pesquisar <span class="search-close">×</span></button>
-                  
-                  <!-- NOVO DROPDOWN DE AGENTES -->
-                  <div class="agents-dropdown-wrapper">
-                    <button class="tool-btn" id="agentsBtn" type="button" onclick="toggleAgentsMenu()"><i class="ti ti-apps" aria-hidden="true"></i> Agentes</button>
-                    <div class="agents-menu" id="agentsMenu">
-                      <div class="agents-menu-header">Selecione um Agente</div>
-                      <button class="agent-item" type="button" disabled aria-disabled="true" title="Agente temporariamente em manutenção" style="opacity:0.4; cursor:not-allowed; pointer-events:none;" onclick="toggleMapMode()">
-                        <div class="agent-icon" style="color: var(--agent-green)"><i class="ti ti-map-2"></i></div>
-                        <div class="agent-info">
-                          <span class="agent-name">WSM 1.0 Agent Maps</span>
-                          <span class="agent-desc">Pesquisa geolocalizada e rotas</span>
-                        </div>
-                      </button>
-                      <button class="agent-item" type="button" disabled aria-disabled="true" title="Agente temporariamente em manutenção" style="opacity:0.4; cursor:not-allowed; pointer-events:none;" onclick="toggleWebReaderMode()">
-                        <div class="agent-icon" style="color: var(--agent-blue)"><i class="ti ti-world-search"></i></div>
-                        <div class="agent-info">
-                          <span class="agent-name">WSM 1.0 Agent Web</span>
-                          <span class="agent-desc">Lê e analisa o conteúdo de links</span>
-                        </div>
-                      </button>
-                      <button class="agent-item" type="button" onclick="toggleSlideMode()">
-                        <div class="agent-icon" style="color: var(--agent-purple, #9333ea)"><i class="ti ti-presentation"></i></div>
-                        <div class="agent-info">
-                          <span class="agent-name">WSM 1.0 Agent Slide</span>
-                          <span class="agent-desc">Gera slides usando Reveal.js</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
 
-                  <!-- BOTÃO DE MAPAS (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="mapActiveBtn" type="button" disabled aria-disabled="true" title="Agente temporariamente em manutenção" style="opacity:0.4; cursor:not-allowed; pointer-events:none;"><i class="ti ti-map-2" aria-hidden="true"></i> WSM 1.0 Agent Maps <span class="search-close">×</span></button>
-                  <!-- BOTÃO DE LEITOR DE WEB (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="webReaderActiveBtn" type="button" disabled aria-disabled="true" title="Agente temporariamente em manutenção" style="opacity:0.4; cursor:not-allowed; pointer-events:none;"><i class="ti ti-world-search" aria-hidden="true"></i> WSM 1.0 Agent Web <span class="search-close">×</span></button>
-                  <!-- BOTÃO DE APRESENTAÇÃO (INVISÍVEL POR PADRÃO, FICA VISÍVEL QUANDO ATIVO) -->
-                  <button class="tool-btn" id="slideActiveBtn" type="button" onclick="toggleSlideMode()"><i class="ti ti-presentation" aria-hidden="true"></i> WSM 1.0 Agent Slide <span class="search-close">×</span></button>
                 </div>
 
                 <button class="tool-btn icon-only-btn" id="micBtn" type="button" onclick="toggleSpeechRecognition()" title="Gravar voz"><i class="ti ti-microphone" aria-hidden="true"></i></button>
@@ -3484,34 +2737,8 @@ padding: 6px 10px;
             </div>
           </div>
 
-          <!-- Card de Novidades dos Agentes -->
-          <div class="suggestions" id="suggestions">
-            <div class="agents-promo-card">
-              <div class="agents-promo-left">
-                <div class="agents-icons-stack">
-                  <div class="promo-icon-circle icon-map" style="background: rgba(16, 185, 129, 0.12); color: var(--agent-green)">
-                    <i class="ti ti-map-2"></i>
-                  </div>
-                  <div class="promo-icon-circle icon-web" style="background: rgba(2, 132, 199, 0.12); color: var(--agent-blue)">
-                    <i class="ti ti-world-search"></i>
-                  </div>
-                  <div class="promo-icon-circle icon-slide" style="background: rgba(139, 92, 246, 0.12); color: var(--agent-purple)">
-                    <i class="ti ti-presentation"></i>
-                  </div>
-                </div>
-                <div class="promo-badge">Novidade</div>
-              </div>
-              <div class="agents-promo-right">
-                <h3>Conheça os Agentes WSM</h3>
-                <p>Assistentes integrados para potencializar seu chat. Ative-os no menu de ferramentas:</p>
-                <div class="promo-agents-row">
-                  <span class="promo-agent-tag" title="WSM 1.0 Agent Maps" onclick="activateAgent('map')"><span class="dot" style="background: var(--agent-green)"></span>WSM 1.0 Agent Maps</span>
-                  <span class="promo-agent-tag" title="WSM 1.0 Agent Web" onclick="activateAgent('web')"><span class="dot" style="background: var(--agent-blue)"></span>WSM 1.0 Agent Web</span>
-                  <span class="promo-agent-tag" title="WSM 1.0 Agent Slide" onclick="activateAgent('slide')"><span class="dot" style="background: var(--agent-purple)"></span>WSM 1.0 Agent Slide</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Slot de sugestões iniciais (reservado para uso futuro) -->
+          <div class="suggestions" id="suggestions" style="display: none;"></div>
 
         </div>
       </div>
@@ -3530,13 +2757,6 @@ padding: 6px 10px;
               <button class="artifact-btn" id="viewPreviewBtn" onclick="toggleArtifactView('preview')" title="Visualizar Site Rendenizado"><i class="ti ti-eye"></i></button>
             </div>
 
-            <!-- Toggle de visualização para Slides -->
-            <div id="slideToggleContainer" style="display: none; align-items: center; gap: 4px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; margin-right: 4px;">
-              <button class="artifact-btn active" id="viewSlideCodeBtn" onclick="toggleArtifactView('code')" title="Visualizar Código"><i class="ti ti-code"></i></button>
-              <button class="artifact-btn" id="viewSlidePreviewBtn" onclick="toggleArtifactView('slide')" title="Visualizar Slides"><i class="ti ti-presentation"></i></button>
-              <button class="artifact-btn" id="viewSlideFullscreenBtn" onclick="openSlidesFullscreen()" title="Apresentar em Tela Cheia"><i class="ti ti-maximize"></i></button>
-            </div>
-            
             <button class="artifact-btn" id="copyArtifactBtn" onclick="copyArtifact()" title="Copiar"><i class="ti ti-copy"></i></button>
             <div class="download-container" id="downloadBtnContainer">
               <label class="download-label" id="downloadLabel">
@@ -3571,10 +2791,6 @@ padding: 6px 10px;
           <pre id="artifactCodePre" style="margin: 0; height: 100%;"><code id="artifactCodeContent" class="hljs"></code></pre>
           <!-- Bloco do HTML renderizado -->
           <iframe id="artifactIframe" style="display: none; border: none; width: 100%; height: 100%; background: white; border-radius: 8px;"></iframe>
-          <!-- Bloco dos slides renderizados -->
-          <div id="slidesPreviewContainer" class="slides-preview-container"></div>
-          <!-- Bloco do Mapa gerado dinamicamente -->
-          <div id="mapContainer" style="display: none;"></div>
         </div>
       </div>
 
@@ -3588,22 +2804,11 @@ padding: 6px 10px;
     <img id="fullscreenImg" src="" alt="Visualização em tela cheia" onclick="event.stopPropagation()">
   </div>
 
-  <!-- FULLSCREEN SLIDES PRESENTATION MODAL -->
-  <div class="fullscreen-modal" id="slidesFullscreenModal" style="background: #000; z-index: 10000;">
-    <button class="fullscreen-close" onclick="closeSlidesFullscreen()" style="position: absolute; top: 20px; right: 20px; z-index: 10001; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px;"><i class="ti ti-x"></i></button>
-    <iframe id="slidesFullscreenIframe" style="width: 100%; height: 100%; border: none; background: #000;"></iframe>
-  </div>
-
 </div>
 
 <script>
   let searchMode = false;
-  let mapMode = false;
-  let webReaderMode = false;
-  let slideMode = false;
-  let activeAgentsCount = 0;
-  let attachedFiles = []; 
-  let leafletMap = null; // Variável global para armazenar instância do Leaflet
+  let attachedFiles = [];
   let speechRecognition = null;
   let isSpeechRecognitionActive = false;
   
@@ -3663,12 +2868,8 @@ padding: 6px 10px;
     img.src = 'https://i.ibb.co/hJFMwhDH/abdb5443d9e785db127a8701389997c3-removebg-preview.png';
   }
 
-  // Carrega chave da API do LocalStorage e o Histórico se houver
+  // Carrega o Histórico se houver
   window.addEventListener('load', () => {
-    const savedKey = localStorage.getItem('OPENROUTER_API_KEY');
-    if (savedKey) {
-      document.getElementById('apiKeyInput').value = savedKey;
-    }
     const f = document.getElementById('inputField');
     if (f) f.focus();
 
@@ -3751,44 +2952,6 @@ padding: 6px 10px;
       }
     });
   }
-  document.addEventListener('click', function(e) {
-    const wrapper = document.querySelector('.agents-dropdown-wrapper');
-    const menu = document.getElementById('agentsMenu');
-    if (wrapper && menu && menu.classList.contains('open')) {
-      if (!wrapper.contains(e.target)) {
-        menu.classList.remove('open');
-      }
-    }
-  });
-
-  // Abre e fecha o menu de agentes
-  function toggleAgentsMenu() {
-    const menu = document.getElementById('agentsMenu');
-    if(menu) menu.classList.toggle('open');
-  }
-
-  // Ativa agente via tag promocional
-  function activateAgent(agent) {
-    // Fecha o menu de agentes se estiver aberto
-    const menu = document.getElementById('agentsMenu');
-    if (menu && menu.classList.contains('open')) {
-      menu.classList.remove('open');
-    }
-    switch(agent) {
-      case 'map':
-        toggleMapMode();
-        break;
-      case 'web':
-        toggleWebReaderMode();
-        break;
-      case 'slide':
-        toggleSlideMode();
-        break;
-      default:
-        console.warn('Agent unknown:', agent);
-    }
-  }
-
   // ========== FUNÇÕES DO HISTÓRICO LOCAL (NO SIDEBAR) ==========
 
   // Função de comando de voz via microfone
@@ -3937,7 +3100,6 @@ padding: 6px 10px;
     // Ferramentas da barra inferior
     const toolsContainer = document.querySelector('.input-tools');
     const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapActiveBtn');
     const field = document.getElementById('inputField');
 
     attachedFiles = [];
@@ -3946,23 +3108,12 @@ padding: 6px 10px;
     if (messagesEl) messagesEl.innerHTML = '';
     if (suggestions) suggestions.classList.remove('hidden');
     if (composerTitle) composerTitle.classList.remove('hidden');
-    
+
     searchMode = false;
-    mapMode = false;
-    webReaderMode = false;
-    slideMode = false;
 
     // Reseta as ferramentas ativas e reexibe todos os botões
     if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
     if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
-    if (mapBtn) mapBtn.classList.remove('is-active', 'map-active');
-    const webReaderBtn = document.getElementById('webReaderActiveBtn');
-    if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
-    const slideActiveBtn = document.getElementById('slideActiveBtn');
-    if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
-    // Remove any glowing border classes from the input box
-    const inputBox = document.querySelector('.input-box');
-    inputBox?.classList.remove('agent-map-active', 'agent-web-active', 'agent-slide-active');
 
     if (chatPanel) {
       chatPanel.classList.add('centered');
@@ -3978,26 +3129,6 @@ padding: 6px 10px;
       field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
       autoResize(field);
       field.focus();
-    }
-  }
-
-  // Abre/fecha as Configurações
-  function toggleSettingsModal() {
-    const modal = document.getElementById('settingsModal');
-    modal.classList.toggle('active');
-  }
-
-  // Salva chave da API no LocalStorage
-  function saveApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (key) {
-      localStorage.setItem('OPENROUTER_API_KEY', key);
-      showToast("Chave da API salva com sucesso!", "info");
-      toggleSettingsModal();
-    } else {
-      localStorage.removeItem('OPENROUTER_API_KEY');
-      showToast("Chave removida. O app tentará ler das variáveis de ambiente da Vercel.", "info");
-      toggleSettingsModal();
     }
   }
 
@@ -4034,7 +3165,6 @@ padding: 6px 10px;
     closeArtifact();
     setSendButtonLoading(false);
       renderHistoryList();
-      toggleSettingsModal();
       showToast('Histórico de conversas apagado com sucesso!', 'info');
     }
   }
@@ -4168,31 +3298,19 @@ padding: 6px 10px;
   // Ativa e desativa modo de pesquisa web
   function toggleSearchMode() {
     const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapActiveBtn');
     const toolsContainer = document.querySelector('.input-tools');
     const field = document.getElementById('inputField');
-    
+
     searchMode = !searchMode;
-    
+
     if (searchMode) {
-        mapMode = false;
-        webReaderMode = false;
-        slideMode = false;
-        codeMode = false;
         toolsContainer.classList.add('has-active-mode'); // Oculta todos os botões não ativos
         searchBtn.classList.add('is-active', 'search-active'); // Deixa o Pesquisar vísivel e pintado
-        mapBtn.classList.remove('is-active', 'map-active');
-        const webReaderBtn = document.getElementById('webReaderActiveBtn');
-        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
-        const slideActiveBtn = document.getElementById('slideActiveBtn');
-        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
-        const codeActiveBtn = document.getElementById('codeActiveBtn');
-        if (codeActiveBtn) codeActiveBtn.classList.remove('is-active', 'code-active');
         if (field) field.placeholder = 'Pesquisar na web estruturada...';
     } else {
         deactivateSearchMode();
     }
-    
+
     if (field) field.focus();
   }
 
@@ -4211,127 +3329,6 @@ padding: 6px 10px;
         field.focus();
     }
     console.log("DEBUG: Search mode UI reset.");
-  }
-
-  // Ativa e desativa o agente de Mapas
-  function toggleMapMode() {
-    // Agente temporariamente em manutenção — não ativa.
-    return;
-    const mapBtn = document.getElementById('mapActiveBtn');
-    const searchBtn = document.getElementById('searchBtn');
-    const toolsContainer = document.querySelector('.input-tools');
-    const menu = document.getElementById('agentsMenu');
-    const field = document.getElementById('inputField');
-    const inputBox = document.querySelector('.input-box');
-
-    mapMode = !mapMode;
-    
-    if (mapMode) {
-        searchMode = false;
-        webReaderMode = false;
-        slideMode = false;
-        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
-        mapBtn.classList.add('is-active', 'map-active'); // Exibe e pinta o Mapas dedicado
-        searchBtn.classList.remove('is-active', 'search-active');
-        const webReaderBtn = document.getElementById('webReaderActiveBtn');
-        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
-        const slideActiveBtn = document.getElementById('slideActiveBtn');
-        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
-        
-        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
-        if (field) field.placeholder = 'Pesquisar locais, rotas ou destinos no mapa...';
-        // Apply glowing border for Map agent
-        inputBox?.classList.add('agent-map-active');
-        inputBox?.classList.remove('agent-web-active', 'agent-slide-active');
-    } else {
-        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente (incluindo Agentes)
-        mapBtn.classList.remove('is-active', 'map-active'); // Esconde o mapa dedicado
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
-        // Remove glowing border
-        inputBox?.classList.remove('agent-map-active');
-    }
-    
-    if (field) field.focus();
-  }
-
-  // Ativa e desativa o agente Leitor de Web
-  function toggleWebReaderMode() {
-    // Agente temporariamente em manutenção — não ativa.
-    return;
-    const webReaderBtn = document.getElementById('webReaderActiveBtn');
-    const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapActiveBtn');
-    const toolsContainer = document.querySelector('.input-tools');
-    const menu = document.getElementById('agentsMenu');
-    const field = document.getElementById('inputField');
-    const inputBox = document.querySelector('.input-box');
-    
-    webReaderMode = !webReaderMode;
-    
-    if (webReaderMode) {
-        searchMode = false;
-        mapMode = false;
-        slideMode = false;
-        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
-        webReaderBtn.classList.add('is-active', 'web-reader-active'); // Exibe e pinta o Leitor de Web
-        searchBtn.classList.remove('is-active', 'search-active');
-        mapBtn.classList.remove('is-active', 'map-active');
-        const slideActiveBtn = document.getElementById('slideActiveBtn');
-        if (slideActiveBtn) slideActiveBtn.classList.remove('is-active', 'slide-active');
-        
-        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
-        if (field) field.placeholder = 'Cole o link de um site para ler e analisar...';
-        // Apply glowing border for Web Reader agent
-        inputBox?.classList.add('agent-web-active');
-        inputBox?.classList.remove('agent-map-active', 'agent-slide-active');
-    } else {
-        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
-        webReaderBtn.classList.remove('is-active', 'web-reader-active'); // Esconde o botão
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
-        // Remove glowing border
-        inputBox?.classList.remove('agent-web-active');
-    }
-    
-    if (field) field.focus();
-  }
-
-  // Ativa e desativa o agente de Apresentação
-  function toggleSlideMode() {
-    const slideActiveBtn = document.getElementById('slideActiveBtn');
-    const searchBtn = document.getElementById('searchBtn');
-    const mapBtn = document.getElementById('mapActiveBtn');
-    const webReaderBtn = document.getElementById('webReaderActiveBtn');
-    const toolsContainer = document.querySelector('.input-tools');
-    const menu = document.getElementById('agentsMenu');
-    const field = document.getElementById('inputField');
-    const inputBox = document.querySelector('.input-box');
-    
-    slideMode = !slideMode;
-    
-    if (slideMode) {
-        searchMode = false;
-        mapMode = false;
-        webReaderMode = false;
-        toolsContainer.classList.add('has-active-mode'); // Oculta tudo que não tiver .is-active
-        slideActiveBtn.classList.add('is-active', 'slide-active'); // Exibe e pinta o Slide
-        searchBtn.classList.remove('is-active', 'search-active');
-        mapBtn.classList.remove('is-active', 'map-active');
-        if (webReaderBtn) webReaderBtn.classList.remove('is-active', 'web-reader-active');
-        
-        if (menu) menu.classList.remove('open'); // Fecha o dropdown imediatamente
-        if (field) field.placeholder = 'Digite o tema ou assunto para criar os slides de apresentação...';
-        // Apply glowing border for Slide agent
-        inputBox?.classList.add('agent-slide-active');
-        inputBox?.classList.remove('agent-map-active', 'agent-web-active');
-    } else {
-        toolsContainer.classList.remove('has-active-mode'); // Exibe todos novamente
-        slideActiveBtn.classList.remove('is-active', 'slide-active'); // Esconde o botão
-        if (field) field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
-        // Remove glowing border
-        inputBox?.classList.remove('agent-slide-active');
-    }
-    
-    if (field) field.focus();
   }
 
   // Alterna a exibição da barra lateral no mobile
@@ -4376,56 +3373,27 @@ padding: 6px 10px;
     const codeElement = document.getElementById('artifactCodeContent');
     const titleElement = document.getElementById('artifactTitle');
     const copyBtn = document.getElementById('copyArtifactBtn');
-    const mapContainer = document.getElementById('mapContainer');
     const iframe = document.getElementById('artifactIframe');
-    const slidesContainer = document.getElementById('slidesPreviewContainer');
     const htmlToggleContainer = document.getElementById('htmlToggleContainer');
-    const slideToggleContainer = document.getElementById('slideToggleContainer');
-    
+
     // Guardar os dados atuais
     currentArtifactCode = code;
     currentArtifactLang = lang || 'texto';
-    
-    // Ocultar mapa, e decidir o que exibir baseado no tipo
-    if (mapContainer) mapContainer.style.display = 'none';
-    if (lang && lang.toLowerCase() === 'slide') {
-        if (codePre) codePre.style.display = 'none';
-        if (iframe) iframe.style.display = 'none';
-        if (slidesContainer) {
-            slidesContainer.style.display = 'flex';
-            renderSlidesPreview(code);
-        }
-        if (copyBtn) copyBtn.style.display = 'none';
-    } else {
-        // Exibir código fonte ou HTML em iframe
-        if (codePre) codePre.style.display = 'block';
-        if (iframe) iframe.style.display = 'none';
-        if (slidesContainer) { slidesContainer.style.display = 'none'; }
-        if (copyBtn) copyBtn.style.display = 'flex';
-    }
-    
+
+    // Exibir código fonte por padrão; HTML pode ser visualizado via toggle
+    if (codePre) codePre.style.display = 'block';
+    if (iframe) iframe.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'flex';
+
     // Inserir os dados
     codeElement.textContent = code;
     codeElement.className = lang ? `language-${lang}` : '';
-    
+
     let displayLang = (lang || 'TEXTO').toUpperCase();
-    if (lang === 'slide') {
-      displayLang = 'APRESENTAÇÃO';
-      titleElement.innerHTML = `<i class="ti ti-presentation" style="color: var(--agent-purple, #9333ea)"></i><span>WSM 1.0 Agent Slide</span>`;
-    } else {
-      titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
-    }
-    
-    // Se for Slide, exibe o controle de slides e deixa a aba Visualizar Slides ativa por padrão
-    if (lang && lang.toLowerCase() === 'slide') {
-      if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
-      if (slideToggleContainer) slideToggleContainer.style.display = 'flex';
-      const viewSlideCodeBtn = document.getElementById('viewSlideCodeBtn');
-      const viewSlidePreviewBtn = document.getElementById('viewSlidePreviewBtn');
-      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.remove('active');
-      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.add('active');
-    } else if (lang && lang.toLowerCase() === 'html') {
-      if (slideToggleContainer) slideToggleContainer.style.display = 'none';
+    titleElement.innerHTML = `<i class="ti ti-code"></i><span>Código ${displayLang}</span>`;
+
+    // Mostrar toggle de visualização apenas para HTML
+    if (lang && lang.toLowerCase() === 'html') {
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'flex';
       const viewCodeBtn = document.getElementById('viewCodeBtn');
       const viewPreviewBtn = document.getElementById('viewPreviewBtn');
@@ -4433,43 +3401,33 @@ padding: 6px 10px;
       if (viewPreviewBtn) viewPreviewBtn.classList.remove('active');
     } else {
       if (htmlToggleContainer) htmlToggleContainer.style.display = 'none';
-      if (slideToggleContainer) slideToggleContainer.style.display = 'none';
     }
-    
+
     // Aplicar cor (Highlight.js)
     hljs.highlightElement(codeElement);
-    
+
     // Mostrar animação
     mainContent.classList.add('artifact-open');
-    mainContent.classList.remove('artifact-map');
   }
 
   // NOVA FUNÇÃO: Alternar visualização (Preview vs Código)
   function toggleArtifactView(mode) {
     const codePre = document.getElementById('artifactCodePre');
     const iframe = document.getElementById('artifactIframe');
-    const slidesContainer = document.getElementById('slidesPreviewContainer');
-    
+
     // HTML Buttons
     const viewCodeBtn = document.getElementById('viewCodeBtn');
     const viewPreviewBtn = document.getElementById('viewPreviewBtn');
-    
-    // Slide Buttons
-    const viewSlideCodeBtn = document.getElementById('viewSlideCodeBtn');
-    const viewSlidePreviewBtn = document.getElementById('viewSlidePreviewBtn');
-    
+
     const copyBtn = document.getElementById('copyArtifactBtn');
-    
+
     if (mode === 'code') {
       if (codePre) codePre.style.display = 'block';
       if (iframe) iframe.style.display = 'none';
-      if (slidesContainer) slidesContainer.style.display = 'none';
-      
+
       if (viewCodeBtn) viewCodeBtn.classList.add('active');
       if (viewPreviewBtn) viewPreviewBtn.classList.remove('active');
-      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.add('active');
-      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.remove('active');
-      
+
       if (copyBtn) copyBtn.style.display = 'flex';
     } else if (mode === 'preview') {
       if (codePre) codePre.style.display = 'none';
@@ -4477,23 +3435,10 @@ padding: 6px 10px;
         iframe.style.display = 'block';
         iframe.srcdoc = currentArtifactCode;
       }
-      if (slidesContainer) slidesContainer.style.display = 'none';
-      
+
       if (viewCodeBtn) viewCodeBtn.classList.remove('active');
       if (viewPreviewBtn) viewPreviewBtn.classList.add('active');
-      
-      if (copyBtn) copyBtn.style.display = 'none';
-    } else if (mode === 'slide') {
-      if (codePre) codePre.style.display = 'none';
-      if (iframe) iframe.style.display = 'none';
-      if (slidesContainer) {
-        slidesContainer.style.display = 'flex';
-        renderSlidesPreview(currentArtifactCode);
-      }
-      
-      if (viewSlideCodeBtn) viewSlideCodeBtn.classList.remove('active');
-      if (viewSlidePreviewBtn) viewSlidePreviewBtn.classList.add('active');
-      
+
       if (copyBtn) copyBtn.style.display = 'none';
     }
   }
@@ -4508,12 +3453,7 @@ padding: 6px 10px;
     const titleEl = document.querySelector('#artifactTitle span');
     let filename = 'download.txt';
     const lang = currentArtifactLang.toLowerCase();
-    
-    if (lang === 'slide') {
-      downloadSlidesAsPDF();
-      return false;
-    }
-    
+
     if (titleEl) {
       const titleText = titleEl.textContent.trim().toLowerCase();
       if (titleText.startsWith('texto lido de')) {
@@ -5424,7 +4364,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       // Detecta token de pesquisa web automática (suporta um OU vários termos)
       // Aceita: {web: "termo"} ou {web: "termo 1", "termo 2", "termo 3"}
       const webMatch = assistantResponse.match(/\{web:\s*([\s\S]*?)\}/i);
-      if (webMatch && !searchMode && !webReaderMode && !mapMode && !slideMode) {
+      if (webMatch && !searchMode) {
         const inner = webMatch[1];
         // Extrai todas as strings entre aspas; se não houver, captura tokens crus.
         const quoted = [...inner.matchAll(/"([^"]+)"/g)].map(m => m[1].trim());
@@ -5507,18 +4447,9 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
           setSendButtonLoading(false);
           return;
         }
-        const urlRegex = /(https?:\/\/[^\s]+)/gi;
-        const urlMatch = text.match(urlRegex);
 
-        if (slideMode) {
-          executeSlideAgent(text, currentAttachments);
-        } else if (mapMode) {
-          executeMapAgent(text, currentAttachments);
-        } else if (searchMode) {
+        if (searchMode) {
           executeDeepResearch(text, currentAttachments);
-        } else if (webReaderMode || (urlMatch && !searchMode && !mapMode)) {
-          const urlToRead = urlMatch ? urlMatch[0] : null;
-          executeWebReader(text, urlToRead, currentAttachments);
         } else {
           setSendButtonLoading(true);
           showTypingIndicator();
@@ -5612,8 +4543,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
         e.preventDefault();
         const cmd = inputField.value.toLowerCase();
         if (cmd === '/limpar') startNewChat();
-        else if (cmd === '/agentes') toggleAgentsMenu();
-        else if (cmd === '/ajuda') appendMessage("Comandos disponíveis: /limpar, /agentes, /ajuda", "bot");
+        else if (cmd === '/ajuda') appendMessage("Comandos disponíveis: /limpar, /ajuda", "bot");
         inputField.value = '';
     }
   });
@@ -5644,8 +4574,8 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
   }
 </script>
 
-<!-- Agentes (Mapas, Leitor de Web, Apresentação, Deep Research) -->
-<script src="agents.js"></script>
+<!-- Deep Research (acionado pelo botão "Pesquisar" e pelo token {web: ...}) -->
+<script src="deep-research.js"></script>
 
 </body>
 </html>
