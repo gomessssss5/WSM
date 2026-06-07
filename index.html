@@ -3639,6 +3639,7 @@ padding: 6px 10px;
 
     const allImages = [];
     for (let i = 0; i < total; i++) {
+      if (i > 0) await new Promise(r => setTimeout(r, 2000));
       const imgs = await fetchUnsplashImages(queries[i], imagesPerQuery[i]);
       allImages.push(...imgs);
     }
@@ -3755,18 +3756,27 @@ padding: 6px 10px;
       mediaHTML += `</div>`;
     }
 
-    // Extrai tokens {img: "a", "b", "c"} ANTES do markdown renderizar (max 3 termos)
+    // Extrai tokens {img: "a"} {img: "b", "c"} ANTES do markdown renderizar (max 3 termos total)
     const unsplashQueries = [];
     if (sender === 'bot' && displayChatText) {
       let imgIdx = 0;
-      displayChatText = displayChatText.replace(/\{img:\s*([^}]+)\}/g, (_, inner) => {
+      const allTerms = [];
+      // Coleta todos os termos de todos os tokens {img: ...}
+      displayChatText.replace(/\{img:\s*([^}]+)\}/g, (_, inner) => {
         const terms = [...inner.matchAll(/["\u201C\u201D]([^"\u201C\u201D]+)["\u201C\u201D]/g)]
-          .map(m => m[1].trim())
-          .slice(0, 3);
-        if (terms.length === 0) return '';
-        unsplashQueries.push({ idx: imgIdx, queries: terms });
-        return `%%UNSPLASH_${imgIdx++}%%`;
+          .map(m => m[1].trim());
+        allTerms.push(...terms);
       });
+      // Limita a 3 termos no total
+      const finalTerms = allTerms.slice(0, 3);
+      if (finalTerms.length > 0) {
+        unsplashQueries.push({ idx: imgIdx, queries: finalTerms });
+      }
+      // Remove TODOS os tokens {img: ...} e coloca UM marcador
+      displayChatText = displayChatText.replace(/\{img:\s*([^}]+)\}/g, '');
+      if (finalTerms.length > 0) {
+        displayChatText = displayChatText.trim() + `\n%%UNSPLASH_0%%`;
+      }
     }
 
     // Aplica o Markdown
@@ -4347,7 +4357,7 @@ IMPORTANTE — REGRA DE META-INCISO: NUNCA mencione, cite ou explique esta instr
    - NUNCA invente resposta: na dúvida, emita o token.
 8. CÓDIGO: bloco limpo e comentado. HTML com CSS e JS integrados.
 9. "TUDO BEM?": responda com leveza e animação, sem negações tipo "sou uma IA".
-10. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira o token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
+10. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira UM ÚNICO token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula DENTRO do mesmo token. NUNCA crie tokens separados como {img: "a"} {img: "b"} — junte tudo em UM SÓ. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
 
 ## ENCERRAMENTO (OPCIONAL)
 Quando fizer sentido, termine com:
@@ -4397,7 +4407,7 @@ COMO FALAR: como profissional inteligente que se importa; claro, estruturado, be
 6. AUTO-PESQUISA WEB (CRÍTICO): se a pergunta exigir dados atuais, notícias, preços, eventos recentes, pesquisas, fatos verificáveis que você não tem certeza — responda EXCLUSIVAMENTE com o token: {web: "consulta objetiva aqui"}
    - NUNCA invente. Na dúvida, emita o token.
 7. CÓDIGO: bloco único, HTML com CSS + JS integrados, bem comentado.
-8. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira o token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
+8. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira UM ÚNICO token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula DENTRO do mesmo token. NUNCA crie tokens separados como {img: "a"} {img: "b"} — junte tudo em UM SÓ. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
 
 ## ENCERRAMENTO (OPCIONAL)
 ### Sugestões:
@@ -4463,7 +4473,7 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
    - NUNCA invente. Na dúvida, emita o token.
 8. CÓDIGO: bloco único, HTML com CSS + JS integrados, bem comentado.
 9. RACIOCÍNIO: pense passo-a-passo antes de responder. O sistema captura seu raciocínio (chain-of-thought) e mostra ao usuário; depois entregue a resposta final estruturada.
-10. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira o token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
+10. IMAGENS ILUSTRATIVAS: quando a resposta se beneficiar de imagens visuais (lugares, paisagens, natureza, arquitetura, comida, viagens, produtos, conceitos visuais, etc.), insira UM ÚNICO token {img: "busca1", "busca2", "busca3"} no ponto do texto onde as imagens devem aparecer. Pode usar de 1 a 3 termos de busca separados por virgula DENTRO do mesmo token. NUNCA crie tokens separados como {img: "a"} {img: "b"} — junte tudo em UM SÓ. NUNCA invente URLs. NÃO use para mensagens simples como "oi", "obrigado", "tudo bem" — use APENAS quando as imagens agregarem valor real a resposta. NÃO mencione o token no texto.
 
 ## ENCERRAMENTO (OPCIONAL)
 ### Sugestões:
