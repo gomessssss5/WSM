@@ -3613,7 +3613,12 @@ padding: 6px 10px;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
-      if (!resp.ok) throw new Error('Erro Unsplash');
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        console.warn('Unsplash API erro:', resp.status, errData);
+        placeholderEl.remove();
+        return;
+      }
       const data = await resp.json();
       if (!data.images || data.images.length === 0) {
         placeholderEl.remove();
@@ -3624,53 +3629,37 @@ padding: 6px 10px;
       grid.className = 'unsplash-grid';
       grid.style.opacity = '0';
       grid.style.transition = 'opacity 0.4s';
-      // 1ª imagem = grande (esquerda)
+      // 1 imagem = grande (esquerda)
       const main = document.createElement('img');
       main.className = 'unsplash-main';
       main.src = imgs[0].url;
       main.alt = imgs[0].alt;
-      main.onclick = () => openFullscreen(imgs[0].url);
+      main.onclick = () => window.openFullscreen(imgs[0].url);
       grid.appendChild(main);
-      // 2ª e 3ª imagens = pequenas (direita)
+      // 2 e 3 imagens = pequenas (direita)
       for (let i = 1; i < 3 && imgs[i]; i++) {
         const side = document.createElement('img');
         side.className = 'unsplash-side';
         side.src = imgs[i].url;
         side.alt = imgs[i].alt;
-        side.onclick = () => openFullscreen(imgs[i].url);
+        side.onclick = () => window.openFullscreen(imgs[i].url);
         grid.appendChild(side);
       }
       placeholderEl.replaceWith(grid);
-      // Crédito
+      // Credito
       const credit = document.createElement('div');
       credit.className = 'unsplash-credit';
       credit.innerHTML = `Foto de <a href="${imgs[0].photographerUrl}?utm_source=wsm_ai" target="_blank" rel="noopener">${imgs[0].photographer}</a> no Unsplash`;
       grid.parentNode.insertBefore(credit, grid.nextSibling);
       requestAnimationFrame(() => { grid.style.opacity = '1'; });
-      scrollToBottom();
+      if (window.scrollToBottom) window.scrollToBottom();
     } catch (e) {
       console.warn('Erro ao buscar imagens Unsplash:', e);
       placeholderEl.remove();
     }
   }
 
-  // Substitui tokens {img: "query"} por placeholders e dispara busca
-  function processUnsplashTokens(containerEl) {
-    const walker = document.createTreeWalker(containerEl, NodeFilter.SHOW_TEXT);
-    const textNodes = [];
-    while (walker.nextNode()) textNodes.push(walker.currentNode);
-    textNodes.forEach(node => {
-      const match = node.textContent.match(/\{img:\s*"([^"]+)"\}/);
-      if (match) {
-        const query = match[1];
-        const placeholder = document.createElement('div');
-        placeholder.className = 'unsplash-placeholder';
-        placeholder.innerHTML = '<div class="unsplash-spinner"></div>';
-        node.parentNode.replaceChild(placeholder, node);
-        fetchAndRenderUnsplash(query, placeholder);
-      }
-    });
-  }
+  // (processUnsplashTokens removido — tokens sao extraidos antes do markdown)
 
   // Inicializa o evento do toggle Download/Open
   (function() {
@@ -3772,6 +3761,16 @@ padding: 6px 10px;
         mediaHTML += `<img src="${fileData.src}" class="msg-media-img" alt="Anexo" onclick="openFullscreen(this.src)">`;
       });
       mediaHTML += `</div>`;
+    }
+
+    // Extrai tokens {img: "query"} ANTES do markdown renderizar
+    const unsplashQueries = [];
+    if (sender === 'bot' && displayChatText) {
+      let imgIdx = 0;
+      displayChatText = displayChatText.replace(/\{img:\s*["\u201C\u201D]([^"\u201C\u201D]+)["\u201C\u201D]\}/g, (_, query) => {
+        unsplashQueries.push({ idx: imgIdx, query: query.trim() });
+        return `%%UNSPLASH_${imgIdx++}%%`;
+      });
     }
 
     // Aplica o Markdown
@@ -3957,9 +3956,23 @@ codeBlocks.forEach((codeNode) => {
       el.appendChild(followupsEl);
     }
 
-    // Detecta tokens {img: "query"} e busca imagens no Unsplash
-    if (sender === 'bot') {
-      processUnsplashTokens(el);
+    // Detecta marcadores %%UNSPLASH_N%% e dispara busca no Unsplash
+    if (sender === 'bot' && unsplashQueries.length > 0) {
+      unsplashQueries.forEach(({ idx, query }) => {
+        const marker = `%%UNSPLASH_${idx}%%`;
+        const html = el.innerHTML;
+        if (html.includes(marker)) {
+          const ph = document.createElement('div');
+          ph.className = 'unsplash-placeholder';
+          ph.innerHTML = '<div class="unsplash-spinner"></div>';
+          el.innerHTML = html.replace(marker, `<div data-us-placeholder="${idx}"></div>`);
+          const container = el.querySelector(`[data-us-placeholder="${idx}"]`);
+          if (container) {
+            container.replaceWith(ph);
+            fetchAndRenderUnsplash(query, ph);
+          }
+        }
+      });
     }
 
     scrollToBottom();
