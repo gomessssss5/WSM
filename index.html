@@ -1177,30 +1177,33 @@ padding: 6px 10px;
 }
 /* From Uiverse.io by kennyotsu - Adaptado */
 .card {
-  /* Fundo removido para transparência total */
-  padding: 1rem 2rem;
-  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 0.5rem 1.25rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  display: inline-block;
 }
 
 .loader {
   color: rgb(124, 124, 124);
-  /* Atualizado para Inter conforme sua preferência */
   font-family: "Inter", sans-serif;
   font-weight: 500;
   font-size: 16px;
-  -webkit-box-sizing: content-box;
-  box-sizing: content-box;
-  height: 40px;
-  padding: 10px 10px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.loader p {
+  margin: 0;
+  padding-right: 4px;
 }
 
 .words {
   overflow: hidden;
   position: relative;
+  height: 1.2em;
+  vertical-align: middle;
 }
 
 .words::after {
@@ -1219,10 +1222,28 @@ padding: 6px 10px;
 
 .word {
   display: block;
-  height: 100%;
-  padding-left: 10px;
+  height: 1.2em;
+  padding-left: 6px;
   color: #956afa;
+  line-height: 1.2em;
   animation: spin_4991 10s infinite;
+}
+
+.loader-sep {
+  color: #956afa;
+  margin: 0 6px;
+  font-size: 16px;
+  line-height: 1.2em;
+  vertical-align: middle;
+}
+
+.loader-timer {
+  color: #956afa;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2em;
+  vertical-align: middle;
 }
 
 @keyframes spin_4991 {
@@ -3898,6 +3919,9 @@ codeBlocks.forEach((codeNode) => {
   }
 
   // Mostra indicador visual de carregamento da API
+  let _loaderTimerInterval = null;
+  let _loaderStartMs = 0;
+
   function showTypingIndicator() {
     const messages = document.getElementById('messages');
     if (!messages) return;
@@ -3923,15 +3947,30 @@ indicator.innerHTML = `
             <span class="word">Memória</span>
             <span class="word">Pensamento</span>
           </div>
+          <span class="loader-sep">•</span>
+          <span class="loader-timer" id="loaderTimer">0.0s</span>
         </div>
       </div>
     `;
     messages.appendChild(indicator);
     scrollToBottom();
+
+    _loaderStartMs = Date.now();
+    const timerEl = document.getElementById('loaderTimer');
+    if (timerEl && !_loaderTimerInterval) {
+      _loaderTimerInterval = setInterval(() => {
+        const secs = ((Date.now() - _loaderStartMs) / 1000).toFixed(1);
+        timerEl.textContent = secs + 's';
+      }, 100);
+    }
   }
 
   // Nova lógica de remoção suave para o indicador de digitação
   function removeTypingIndicator() {
+    if (_loaderTimerInterval) {
+      clearInterval(_loaderTimerInterval);
+      _loaderTimerInterval = null;
+    }
     const indicators = document.querySelectorAll('#typingIndicator, .typing-indicator');
     console.log("Removendo indicadores encontrados:", indicators.length);
     indicators.forEach(indicator => {
