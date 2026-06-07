@@ -202,12 +202,12 @@
             'X-Title': 'WSM AI'
           },
           body: JSON.stringify({
-            model: 'google/gemma-4-31b-it:free',
+            model: 'nvidia/nemotron-nano-9b-v2:free',
             messages: [
               { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
               { role: 'user', content: userPrompt }
             ],
-            temperature: 0.3, max_tokens: 100
+            temperature: 0.3, max_tokens: 3000
           })
         });
 
@@ -224,7 +224,10 @@
           const errMsg = planData.error?.message || JSON.stringify(planData).substring(0, 300);
           throw new Error(`Resposta vazia/inválida do planejador: ${errMsg}`);
         }
-        const planContent = planData.choices[0].message?.content;
+        let planContent = planData.choices[0].message?.content;
+        if (!planContent && planData.choices[0].message?.reasoning) {
+          planContent = planData.choices[0].message.reasoning;
+        }
         if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
         // Limpa prefixos/sufixos comuns que o modelo pode adicionar
         let cleaned = String(planContent).replace(/```[\s\S]*?```/g, ' ').replace(/[`*#>]/g, ' ').trim();
@@ -381,7 +384,7 @@
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'google/gemma-4-31b-it:free',
+          model: 'nvidia/nemotron-nano-9b-v2:free',
           messages: [
             {
               role: 'system',
@@ -398,7 +401,7 @@
               content: `Com base nestes dados REAIS coletados da internet:\n\n${sourcesContext}\n\nResponda à pergunta original do usuário de forma premium e estruturada:\n\n${userPrompt}`
             }
           ],
-          temperature: 0.7, max_tokens: 1500
+          temperature: 0.7, max_tokens: 3000
         })
       });
 
