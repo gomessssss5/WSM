@@ -625,6 +625,19 @@
     font-size: 11px;
     color: var(--text-muted);
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .bot-timer-dot {
+    color: #956afa;
+    margin: 0 5px;
+  }
+
+  .bot-response-timer {
+    color: #956afa;
+    font-weight: 600;
   }
 
   /* Fileira de Ações da Mensagem */
@@ -3619,7 +3632,9 @@ padding: 6px 10px;
     const userActions = `<div class="message-actions"><button class="action-btn" onclick="copyMessageText('${msgId}', this)" title="Copiar"><i data-lucide="copy"></i></button><button class="action-btn" onclick="editUserMessage('${msgId}')" title="Editar"><i data-lucide="pen-line"></i></button></div>`;
 
     // HTML do avatar fixo para o bot
-    const botAvatarHTML = sender === 'bot' ? `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">${window.currentChatModel || 'WSM 1.5 Flash'}</span>` : '';
+    const elapsed = (sender === 'bot' && _loaderStartMs) ? ((Date.now() - _loaderStartMs) / 1000).toFixed(1) : null;
+    const timerHTML = elapsed ? `<span class="bot-response-timer"><span class="bot-timer-dot">•</span>${elapsed}s</span>` : '';
+    const botAvatarHTML = sender === 'bot' ? `<img src="oi.gif" class="bot-avatar" alt="AI"><span class="bot-name-tag">${window.currentChatModel || 'WSM 1.5 Flash'}${timerHTML}</span>` : '';
 
     let mediaHTML = '';
     if (mediaFiles && mediaFiles.length > 0) {
