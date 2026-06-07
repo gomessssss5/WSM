@@ -202,7 +202,7 @@
             'X-Title': 'WSM AI'
           },
           body: JSON.stringify({
-            model: 'nvidia/nemotron-3-super-120b-a12b:free',
+            model: 'nvidia/nemotron-nano-9b-v2:free',
             messages: [
               { role: 'system', content: 'Analise o prompt e retorne APENAS palavras-chave otimizadas (máximo 5) separadas por vírgula para busca web.' },
               { role: 'user', content: userPrompt }
@@ -381,7 +381,7 @@
         method: 'POST',
         headers: { 'Authorization': `Bearer ${openRouterApiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin, 'X-Title': 'WSM AI' },
         body: JSON.stringify({
-          model: 'nvidia/nemotron-3-super-120b-a12b:free',
+          model: 'nvidia/nemotron-nano-9b-v2:free',
           messages: [
             {
               role: 'system',
