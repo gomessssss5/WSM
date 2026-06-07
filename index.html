@@ -1289,6 +1289,68 @@ padding: 6px 10px;
   }
   .msg-media-img:hover { opacity: 0.85; }
 
+  /* Unsplash Grid - 1 imagem grande esquerda + 2 pequenas direita */
+  .unsplash-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 6px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+    max-height: 360px;
+    background: #111;
+  }
+  .unsplash-main {
+    grid-row: 1 / 3;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .unsplash-main:hover { opacity: 0.88; }
+  .unsplash-side {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .unsplash-side:hover { opacity: 0.88; }
+  .unsplash-credit {
+    font-size: 11px;
+    color: var(--text-muted, #888);
+    text-align: right;
+    margin-top: 4px;
+    margin-bottom: 6px;
+  }
+  .unsplash-credit a {
+    color: var(--text-muted, #888);
+    text-decoration: none;
+  }
+  .unsplash-credit a:hover { text-decoration: underline; }
+  .unsplash-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 220px;
+    margin: 14px 0;
+    border-radius: 12px;
+    background: var(--bg-card, #1a1a1a);
+  }
+  .unsplash-spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid rgba(255,255,255,0.12);
+    border-top-color: #956afa;
+    border-radius: 50%;
+    animation: uspin 0.8s linear infinite;
+  }
+  @keyframes uspin {
+    to { transform: rotate(360deg); }
+  }
+
   /* COMPOSER (Input + Sugestões) */
   .composer {
     width: 100%;
@@ -3543,6 +3605,73 @@ padding: 6px 10px;
     return true;
   }
 
+  // Busca imagens no Unsplash e substitui placeholders pelo grid
+  async function fetchAndRenderUnsplash(query, placeholderEl) {
+    try {
+      const resp = await fetch('/api/unsplash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+      if (!resp.ok) throw new Error('Erro Unsplash');
+      const data = await resp.json();
+      if (!data.images || data.images.length === 0) {
+        placeholderEl.remove();
+        return;
+      }
+      const imgs = data.images;
+      const grid = document.createElement('div');
+      grid.className = 'unsplash-grid';
+      grid.style.opacity = '0';
+      grid.style.transition = 'opacity 0.4s';
+      // 1ª imagem = grande (esquerda)
+      const main = document.createElement('img');
+      main.className = 'unsplash-main';
+      main.src = imgs[0].url;
+      main.alt = imgs[0].alt;
+      main.onclick = () => openFullscreen(imgs[0].url);
+      grid.appendChild(main);
+      // 2ª e 3ª imagens = pequenas (direita)
+      for (let i = 1; i < 3 && imgs[i]; i++) {
+        const side = document.createElement('img');
+        side.className = 'unsplash-side';
+        side.src = imgs[i].url;
+        side.alt = imgs[i].alt;
+        side.onclick = () => openFullscreen(imgs[i].url);
+        grid.appendChild(side);
+      }
+      placeholderEl.replaceWith(grid);
+      // Crédito
+      const credit = document.createElement('div');
+      credit.className = 'unsplash-credit';
+      credit.innerHTML = `Foto de <a href="${imgs[0].photographerUrl}?utm_source=wsm_ai" target="_blank" rel="noopener">${imgs[0].photographer}</a> no Unsplash`;
+      grid.parentNode.insertBefore(credit, grid.nextSibling);
+      requestAnimationFrame(() => { grid.style.opacity = '1'; });
+      scrollToBottom();
+    } catch (e) {
+      console.warn('Erro ao buscar imagens Unsplash:', e);
+      placeholderEl.remove();
+    }
+  }
+
+  // Substitui tokens {img: "query"} por placeholders e dispara busca
+  function processUnsplashTokens(containerEl) {
+    const walker = document.createTreeWalker(containerEl, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(node => {
+      const match = node.textContent.match(/\{img:\s*"([^"]+)"\}/);
+      if (match) {
+        const query = match[1];
+        const placeholder = document.createElement('div');
+        placeholder.className = 'unsplash-placeholder';
+        placeholder.innerHTML = '<div class="unsplash-spinner"></div>';
+        node.parentNode.replaceChild(placeholder, node);
+        fetchAndRenderUnsplash(query, placeholder);
+      }
+    });
+  }
+
   // Inicializa o evento do toggle Download/Open
   (function() {
     const checkbox = document.getElementById('downloadCheckbox');
@@ -3828,9 +3957,12 @@ codeBlocks.forEach((codeNode) => {
       el.appendChild(followupsEl);
     }
 
-    if (!isHistoryLoad) {
-      scrollToBottom();
+    // Detecta tokens {img: "query"} e busca imagens no Unsplash
+    if (sender === 'bot') {
+      processUnsplashTokens(el);
     }
+
+    scrollToBottom();
 
     // Renderiza os gráficos do ApexCharts agendados após tudo estar montado no DOM
     if (chartsToRender && chartsToRender.length > 0) {
@@ -4206,6 +4338,7 @@ IMPORTANTE — REGRA DE META-INCISO: NUNCA mencione, cite ou explique esta instr
    - NUNCA invente resposta: na dúvida, emita o token.
 8. CÓDIGO: bloco limpo e comentado. HTML com CSS e JS integrados.
 9. "TUDO BEM?": responda com leveza e animação, sem negações tipo "sou uma IA".
+10. IMAGENS ILUSTRATIVAS (OPCIONAL): quando a resposta se beneficiar de imagens visuais (lugares, produtos, paisagens, conceitos visuais, natureza, arquitetura, comida, viagens, etc.), insira o token {img: "busca relevante"} no ponto exato do texto onde a imagem deve aparecer. NUNCA invente URLs. NUNCA use mais de 1 token por resposta. NÃO mencione o token no texto — ele é processado silenciosamente pelo sistema.
 
 ## ENCERRAMENTO (OPCIONAL)
 Quando fizer sentido, termine com:
@@ -4255,6 +4388,7 @@ COMO FALAR: como profissional inteligente que se importa; claro, estruturado, be
 6. AUTO-PESQUISA WEB (CRÍTICO): se a pergunta exigir dados atuais, notícias, preços, eventos recentes, pesquisas, fatos verificáveis que você não tem certeza — responda EXCLUSIVAMENTE com o token: {web: "consulta objetiva aqui"}
    - NUNCA invente. Na dúvida, emita o token.
 7. CÓDIGO: bloco único, HTML com CSS + JS integrados, bem comentado.
+8. IMAGENS ILUSTRATIVAS (OPCIONAL): quando a resposta se beneficiar de imagens visuais (lugares, produtos, paisagens, conceitos visuais, natureza, arquitetura, etc.), insira o token {img: "busca relevante"} no ponto exato do texto onde a imagem deve aparecer. NUNCA invente URLs. NUNCA use mais de 1 token por resposta. NÃO mencione o token no texto — ele é processado silenciosamente pelo sistema.
 
 ## ENCERRAMENTO (OPCIONAL)
 ### Sugestões:
@@ -4320,6 +4454,7 @@ O sistema renderizará o gráfico automaticamente, mas o texto explicativo é fu
    - NUNCA invente. Na dúvida, emita o token.
 8. CÓDIGO: bloco único, HTML com CSS + JS integrados, bem comentado.
 9. RACIOCÍNIO: pense passo-a-passo antes de responder. O sistema captura seu raciocínio (chain-of-thought) e mostra ao usuário; depois entregue a resposta final estruturada.
+10. IMAGENS ILUSTRATIVAS (OPCIONAL): quando a resposta se beneficiar de imagens visuais (lugares, produtos, paisagens, conceitos visuais, natureza, arquitetura, etc.), insira o token {img: "busca relevante"} no ponto exato do texto onde a imagem deve aparecer. NUNCA invente URLs. NUNCA use mais de 1 token por resposta. NÃO mencione o token no texto — ele é processado silenciosamente pelo sistema.
 
 ## ENCERRAMENTO (OPCIONAL)
 ### Sugestões:
