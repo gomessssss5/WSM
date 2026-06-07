@@ -226,8 +226,14 @@
         }
         const planContent = planData.choices[0].message?.content;
         if (!planContent) throw new Error('Planejador retornou resposta sem conteúdo.');
-        searchKeywords = planContent.trim();
+        // Limpa prefixos/sufixos comuns que o modelo pode adicionar
+        let cleaned = String(planContent).replace(/```[\s\S]*?```/g, ' ').replace(/[`*#>]/g, ' ').trim();
+        // Pega só a primeira linha se houver múltiplas
+        const firstLine = cleaned.split(/\r?\n/).find(l => l.trim().length > 0) || '';
+        // Trunca para 200 chars (limite seguro do Tavily)
+        searchKeywords = firstLine.substring(0, 200).trim();
         if (!searchKeywords) throw new Error('Planejador retornou palavras-chave vazias.');
+        console.log(`[WebSequence] Keywords extraídos: "${searchKeywords}"`);
         await sleep(800);
       } else {
         const titleEl1 = document.getElementById(`mainTitle_${currentAgentId}`);
@@ -242,10 +248,14 @@
       const titleEl2 = document.getElementById(`mainTitle_${currentAgentId}`);
       if (titleEl2) titleEl2.textContent = 'Varrendo canais da web em tempo real...';
 
+      const trimmedQuery = String(searchKeywords || '').trim();
+      if (!trimmedQuery) throw new Error('Palavras-chave de busca estão vazias.');
+      console.log(`[WebSequence] Enviando /api/search com query: "${trimmedQuery}"`);
+
       const searchResponse = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ searchQuery: searchKeywords })
+        body: JSON.stringify({ searchQuery: trimmedQuery })
       });
 
       if (!searchResponse.ok) {
