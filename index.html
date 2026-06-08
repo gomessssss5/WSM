@@ -83,6 +83,20 @@
     el.style.height = Math.min(el.scrollHeight, 200) + 'px';
   }
 
+  // Contador de caracteres do input
+  function updateCharCount(el) {
+    const counter = document.getElementById('charCounter');
+    const countText = document.getElementById('charCountText');
+    const len = el.value.length;
+    if (len > 0) {
+      counter.classList.add('visible');
+      countText.textContent = len + '/3000';
+      countText.classList.toggle('limit-warning', len > 2500);
+    } else {
+      counter.classList.remove('visible');
+    }
+  }
+
   // Manipula teclas no campo de input
   function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1799,6 +1813,25 @@ padding: 6px 10px;
     color: var(--text-muted);
   }
 
+  /* CONTADOR DE CARACTERES */
+  .char-counter {
+    display: none;
+    justify-content: flex-end;
+    padding: 4px 0 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .char-counter.visible {
+    display: flex;
+  }
+  .char-counter #charCountText {
+    transition: color 0.2s;
+  }
+  .char-counter #charCountText.limit-warning {
+    color: #dc2626;
+  }
+
   .input-actions {
     display: flex;
     align-items: center;
@@ -2880,12 +2913,17 @@ padding: 6px 10px;
 
               <textarea
                 class="input-field"
-                placeholder="Pergunte qualquer coisa ao WSM AI 1.0 Omni..."
+                placeholder="Pergunte qualquer coisa ao WSM AI..."
                 rows="1"
                 id="inputField"
-                oninput="autoResize(this)"
+                oninput="autoResize(this); updateCharCount(this)"
                 onkeydown="handleKey(event)"
+                maxlength="3000"
               ></textarea>
+              
+              <div class="char-counter" id="charCounter">
+                <span id="charCountText"></span>
+              </div>
               
               <div class="input-actions">
                 <div class="input-tools">
@@ -3314,7 +3352,7 @@ padding: 6px 10px;
 
     if (field) {
       field.value = '';
-      field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
+      field.placeholder = 'Pergunte qualquer coisa ao WSM AI...';
       autoResize(field);
       field.focus();
     }
@@ -3513,7 +3551,7 @@ padding: 6px 10px;
     if (toolsContainer) toolsContainer.classList.remove('has-active-mode');
     if (searchBtn) searchBtn.classList.remove('is-active', 'search-active');
     if (field) {
-        field.placeholder = 'Pergunte qualquer coisa ao WSM AI 1.0 Omni...';
+        field.placeholder = 'Pergunte qualquer coisa ao WSM AI...';
         field.focus();
     }
     console.log("DEBUG: Search mode UI reset.");
