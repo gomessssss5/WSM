@@ -3103,6 +3103,10 @@ padding: 6px 10px;
     if (saved) {
       try {
         sessions = JSON.parse(saved);
+        // Garante compatibilidade com sessões antigas que não tinham summaries
+        sessions.forEach(sess => {
+          if (!sess.summaries) sess.summaries = [];
+        });
         renderHistoryList();
       } catch(e) {
         console.warn("Erro ao carregar o histórico anterior.", e);
@@ -4254,6 +4258,75 @@ indicator.innerHTML = `
     }, 1000);
   }
 
+  // === COMPRESSÃO DE CONTEXTO (SILENCIOSA) ===
+  async function compressSessionIfNeeded(session) {
+    if (!session || !session.messages || session.messages.length < 15) return;
+
+    const KEEP_RECENT = 5;
+    const toCompress = session.messages.slice(0, -KEEP_RECENT);
+    const keepRecent = session.messages.slice(-KEEP_RECENT);
+
+    console.log(`[Compress] Iniciando resumo. ${toCompress.length} mensagens antigas, ${keepRecent.length} recentes.`);
+
+    let summaryPrompt = "Resuma a conversa abaixo de forma concisa, mantendo os pontos-chave, decisões, tópicos discutidos e contexto importante. O resumo deve ser em 2-3 parágrafos no máximo:\n\n";
+
+    if (session.summaries && session.summaries.length > 0) {
+      const lastSummary = session.summaries[session.summaries.length - 1].text;
+      summaryPrompt += "Resumo anterior da conversa:\n" + lastSummary + "\n\n---\n\nAgora, consolidando esse resumo anterior com as mensagens novas abaixo, gere UM ÚNICO resumo completo e atualizado de toda a conversa:\n\n";
+    }
+
+    toCompress.forEach(msg => {
+      const role = msg.role === 'user' ? 'Usuário' : 'Assistente';
+      const text = (msg.text || '').substring(0, 1500);
+      summaryPrompt += `${role}: ${text}\n\n`;
+    });
+
+    try {
+      const configData = await (await fetch('/api/config')).json();
+      const apiKey = configData.openRouterApiKey;
+      if (!apiKey) {
+        console.warn("[Compress] API key não encontrada, pulando compressão.");
+        return;
+      }
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'google/gemma-4-31b-it:free',
+          messages: [{ role: 'user', content: summaryPrompt }],
+          temperature: 0.1,
+          max_tokens: 800
+        })
+      });
+
+      if (!response.ok) {
+        console.warn('[Compress] Erro na API de sumarização:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      const summaryText = data.choices?.[0]?.message?.content?.trim();
+
+      if (!summaryText) {
+        console.warn('[Compress] Resumo vazio retornado pelo modelo.');
+        return;
+      }
+
+      if (!session.summaries) session.summaries = [];
+      session.summaries.push({ text: summaryText, timestamp: Date.now() });
+      session.messages = keepRecent;
+
+      saveSessions();
+      console.log(`[Compress] Resumo #${session.summaries.length} gerado com sucesso. ${toCompress.length} mensagens comprimidas em resumo.`);
+    } catch (e) {
+      console.error('[Compress] Erro durante sumarização:', e);
+    }
+  }
+
   // Chamada Real da API do OpenRouter
   async function callGroqAPI(userPrompt, attachments = [], signal) {
 
@@ -4300,6 +4373,7 @@ indicator.innerHTML = `
         id: currentSessionId,
         title: userPrompt ? userPrompt.substring(0, 30) + "..." : "Nova Conversa com Imagem",
         messages: [],
+        summaries: [],
         hasAttachment: false
       });
     }
@@ -4503,6 +4577,15 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       { role: "system", content: systemPrompt + `\n\nCONTEXTO ATUAL: Localização: ${locationText}. Data/Hora: ${dateTime}. IMPORTANTE: Sempre prefira links do OpenStreetMap (openstreetmap.org) para mapas, NUNCA use Google Maps.\n\nINSTRUÇÃO DE PESQUISA WEB: É SEMPRE MELHOR PESQUISAR NA WEB DO QUE RESPONDER COM INFORMAÇÕES DESCONHECIDAS, ANTIGAS OU INCERTAS. SEMPRE que o usuário pedir pesquisa, notícias, informações atuais, dados em tempo real, ou qualquer conteúdo que exija verificação (ex: 'pesquise sobre X', 'o que aconteceu com Y', 'notícias de Z', 'quem é W', 'preço de algo', 'resultado de jogo', etc.), você DEVE responder EXCLUSIVAMENTE e APENAS com o token no formato {web: "termo 1", "termo 2", "termo 3", ...} (sem nenhum outro texto, markdown ou explicação). Você PODE listar 1 ou VÁRIOS termos de pesquisa separados por vírgula — cada termo vira uma busca independente (com 5s de pausa entre cada). Use vários termos quando a pesquisa se beneficiar de cobrir ângulos diferentes. NUNCA invente respostas. Na dúvida, emita o token. O sistema executará a busca automaticamente.` },
     ];
 
+    // Inclui resumo comprimido da conversa anterior (se existir)
+    if (currentSession.summaries && currentSession.summaries.length > 0) {
+      const latestSummary = currentSession.summaries[currentSession.summaries.length - 1].text;
+      apiMessages.push({
+        role: "system",
+        content: "📝 Resumo da conversa anterior: " + latestSummary
+      });
+    }
+
     // Adiciona o histórico limpo e limitado
     if (currentSession.messages.length > 0) {
       const recentHistory = currentSession.messages.slice(-10);
@@ -4623,6 +4706,12 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       
       removeTypingIndicator(); // Ensure indicator is removed
       appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
+
+      // Salvar mensagens na sessão e comprimir se necessário
+      currentSession.messages.push({ role: 'user', text: userPrompt });
+      currentSession.messages.push({ role: 'bot', text: cleanAssistantResponse });
+      saveSessions();
+      compressSessionIfNeeded(currentSession);
 
     } catch (error) {
       removeTypingIndicator();
