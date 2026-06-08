@@ -2681,6 +2681,80 @@ padding: 6px 10px;
   }
 }
 </style>
+<style>
+  /* MODAL DE APRESENTAÇÃO */
+  .presentation-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .presentation-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+  .presentation-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 520px;
+    width: 90%;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .presentation-modal.active .presentation-card {
+    transform: scale(1);
+  }
+  .presentation-card-img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .presentation-card-body {
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .presentation-card-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #0a0a0a;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+  .presentation-card-close {
+    padding: 10px 32px;
+    border-radius: 999px;
+    border: none;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .presentation-card-close:hover {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+</style>
 </head>
 <body>
 <div class="grid-wrapper">
@@ -2692,6 +2766,17 @@ padding: 6px 10px;
   <div id="toastNotification" class="toast">
     <i id="toastIcon" class="ti ti-alert-triangle"></i>
     <span id="toastMessage">Erro</span>
+  </div>
+
+  <!-- MODAL DE APRESENTAÇÃO -->
+  <div class="presentation-modal" id="presentationModal">
+    <div class="presentation-card">
+      <img src="ads.png" alt="WSM AI" class="presentation-card-img">
+      <div class="presentation-card-body">
+        <h1 class="presentation-card-title">Apresentamos: WSM 1.5 Flash, Turbo e Pro.</h1>
+        <button class="presentation-card-close" onclick="closePresentation()">Fechar</button>
+      </div>
+    </div>
   </div>
 
   <!-- SIDEBAR (Barra Lateral) -->
@@ -2980,7 +3065,21 @@ padding: 6px 10px;
       });
     }
     preloadAndScaleCursor();
+
+    // Mostrar modal de apresentação (só uma vez)
+    if (!localStorage.getItem('WSM_PRESENTATION_SHOWN')) {
+      setTimeout(() => {
+        const modal = document.getElementById('presentationModal');
+        if (modal) modal.classList.add('active');
+      }, 500);
+    }
   });
+
+  function closePresentation() {
+    localStorage.setItem('WSM_PRESENTATION_SHOWN', '1');
+    const modal = document.getElementById('presentationModal');
+    if (modal) modal.classList.remove('active');
+  }
 
   function toggleEffortSelector(model) {
     const effort = document.getElementById('effortSelect');
