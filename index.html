@@ -2380,43 +2380,230 @@ padding: 6px 10px;
   }
 
   /* RESPONSIVIDADE */
+  /* ===== RESPONSIVO MOBILE ===== */
   @media (max-width: 768px) {
+    /* APP - layout unica coluna */
     .app {
       grid-template-columns: 1fr;
     }
 
+    /* SIDEBAR - drawer fixo à esquerda */
     .sidebar {
       position: fixed;
-      left: -260px;
+      left: -280px;
       top: 0;
       bottom: 0;
-      width: 260px;
-      transform: translateX(0);
-      transition: transform var(--transition);
+      width: 280px;
+      z-index: 9999;
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-right: 0.5px solid var(--border);
+      box-shadow: 8px 0 40px rgba(0,0,0,0.15);
+      transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     }
-
     .sidebar.active {
-      transform: translateX(260px);
+      left: 0;
+    }
+    /* Overlay escuro atrás da sidebar */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 9998;
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-overlay.active {
+      display: block;
     }
 
+    /* TOPBAR */
+    .topbar {
+      height: 50px;
+      padding: 0 14px;
+    }
     .menu-toggle-btn {
       display: flex;
+      width: 34px;
+      height: 34px;
+    }
+    .model-button {
+      font-size: 12.5px;
+      padding: 5px 10px;
+    }
+    .model-card-container {
+      position: fixed;
+      top: 56px;
+      left: 14px;
+      right: 14px;
+      min-width: auto;
+      z-index: 100;
     }
 
+    /* MAIN CONTENT */
+    .main-content {
+      height: calc(100vh - 50px);
+      margin-top: 50px;
+    }
+
+    /* CHAT PANEL */
+    .chat-panel {
+      padding: 12px 14px 16px;
+      max-width: 100%;
+    }
+    .chat-panel.centered .composer {
+      transform: translateY(-100px);
+    }
+
+    /* MENSAGENS */
+    .message {
+      max-width: 90%;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+    .message.bot {
+      margin-left: 0;
+      max-width: 92%;
+    }
+    .message.user {
+      max-width: 88%;
+    }
+    .bot-avatar {
+      display: none;
+    }
+    .bot-name-tag {
+      position: relative;
+      top: auto;
+      left: auto;
+      margin-bottom: 4px;
+      font-size: 10.5px;
+    }
+
+    /* COMPOSER / INPUT */
+    .composer-title {
+      margin-bottom: 20px;
+    }
+    .greeting-logo {
+      width: 110px;
+      height: 110px;
+      margin-top: 80px;
+      margin-bottom: 16px;
+    }
+    .greeting-title {
+      font-size: 28px;
+    }
+    .input-box {
+      padding: 12px 14px 10px;
+      border-radius: var(--radius-lg);
+    }
+    .input-field {
+      font-size: 15px;
+    }
+    .input-actions {
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .input-tools {
+      gap: 6px;
+    }
+    .tool-btn {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+    .tool-btn.icon-only-btn {
+      width: 34px;
+      height: 34px;
+    }
+
+    /* SEND BUTTON */
+    .send-btn {
+      width: 34px;
+      height: 34px;
+    }
+
+    /* TOAST */
+    .toast {
+      left: 14px;
+      right: 14px;
+      bottom: 80px;
+      min-width: auto;
+    }
+
+    /* SOURCES SIDEBAR */
+    .sources-sidebar {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* ARTIFACT PANEL - tela cheia no mobile */
     .main-content.artifact-open {
       flex-direction: column;
-      overflow: hidden;
     }
-    
     .main-content.artifact-open .chat-panel {
-      display: none; /* Oculta chat no mobile quando artifact ta aberto */
+      display: none;
     }
-
     .main-content.artifact-open .artifact-panel {
       width: 100%;
       max-width: 100%;
-      border-radius: var(--radius-md);
+      border-radius: 0;
       margin: 0;
+      height: 100%;
+    }
+
+    /* PRESENTATION MODAL */
+    .presentation-card {
+      max-width: 92%;
+      border-radius: 18px;
+    }
+    .presentation-card-img {
+      max-height: 280px;
+    }
+    .presentation-card-title {
+      font-size: 18px;
+    }
+
+    /* TYPING INDICATOR */
+    .typing-indicator {
+      margin-left: 0;
+      font-size: 13px;
+    }
+
+    /* ACTIONS DA MENSAGEM */
+    .message-group.bot .message-actions {
+      margin-left: 0;
+    }
+    .output-card + .message-actions {
+      margin-left: 0;
+    }
+
+    /* FULLSCREEN MODAL */
+    .fullscreen-modal img {
+      max-width: 95vw;
+      max-height: 85vh;
+    }
+
+    /* CHAR COUNTER */
+    .char-counter {
+      font-size: 11px;
+    }
+  }
+
+  /* EXTRA PEQUENO - celulares menores */
+  @media (max-width: 380px) {
+    .topbar {
+      padding: 0 10px;
+    }
+    .greeting-title {
+      font-size: 24px;
+    }
+    .message {
+      font-size: 13.5px;
+      padding: 10px 12px;
+    }
+    .input-tools {
+      flex-wrap: wrap;
     }
   }
 
@@ -2811,6 +2998,9 @@ padding: 6px 10px;
       </div>
     </div>
   </div>
+
+  <!-- OVERLAY DA SIDEBAR (MOBILE) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- SIDEBAR (Barra Lateral) -->
   <aside class="sidebar" id="sidebar">
@@ -3269,6 +3459,7 @@ padding: 6px 10px;
   function loadSession(id) {
     const sess = sessions.find(s => s.id === id);
     if (!sess) return;
+    closeSidebar();
     
     if (window._sendMsgTimeout) {
       clearTimeout(window._sendMsgTimeout);
@@ -3316,6 +3507,7 @@ padding: 6px 10px;
 
   function startNewChat() {
     currentSessionId = null;
+    closeSidebar();
     const messagesEl = document.getElementById('messages');
     const chatPanel = document.getElementById('chatPanel');
     const suggestions = document.getElementById('suggestions');
@@ -3362,6 +3554,7 @@ padding: 6px 10px;
     if (confirm('Tem certeza que deseja excluir todas as conversas do histórico? Essa ação não pode ser desfeita.')) {
       sessions = [];
       localStorage.removeItem('WSM_SESSIONS');
+      closeSidebar();
     if (window._sendMsgTimeout) {
       clearTimeout(window._sendMsgTimeout);
       window._sendMsgTimeout = null;
@@ -3560,9 +3753,18 @@ padding: 6px 10px;
   // Alterna a exibição da barra lateral no mobile
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
     if (sidebar) {
-      sidebar.classList.toggle('active');
+      const isActive = sidebar.classList.toggle('active');
+      if (overlay) overlay.classList.toggle('active', isActive);
     }
+  }
+
+  function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
   }
 
   // Variáveis para guardar o estado atual do Artifact
