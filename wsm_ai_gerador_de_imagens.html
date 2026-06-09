@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WSM AI - Gerador de Imagens</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+<style>
+  :root {
+    --bg: #f8f8f6;
+    --bg-card: rgba(255, 255, 255, 0.82);
+    --bg-input: rgba(255, 255, 255, 0.92);
+    --border: rgba(0, 0, 0, 0.08);
+    --border-focus: rgba(0, 0, 0, 0.18);
+    --text-primary: #0a0a0a;
+    --text-secondary: #6b6b6b;
+    --text-muted: #a0a0a0;
+    --accent: #0a0a0a;
+    --pill-bg: rgba(0, 0, 0, 0.05);
+    --pill-hover: rgba(0, 0, 0, 0.09);
+    --glass-blur: blur(24px) saturate(180%);
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-full: 999px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
+    --shadow-input: 0 4px 18px rgba(0, 0, 0, 0.02), 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+    --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --transition: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --bg-card: rgba(20, 20, 20, 0.85);
+      --bg-input: rgba(25, 25, 25, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.18);
+      --text-primary: #ffffff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666666;
+      --accent: #ffffff;
+      --pill-bg: rgba(255, 255, 255, 0.06);
+      --pill-hover: rgba(255, 255, 255, 0.12);
+      --shadow-input: 0 4px 18px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    transition: background-color var(--transition);
+  }
+
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    transition: grid-template-columns var(--transition);
+  }
+
+  .sidebar {
+    border-right: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 24px;
+    gap: 12px;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    z-index: 50;
+    transition: transform var(--transition), left var(--transition);
+    overflow: hidden;
+    max-height: 100vh;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px 8px;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+
+  .logo img {
+    transition: transform var(--transition);
+  }
+
+  .logo:hover img {
+    transform: scale(1.05) rotate(3deg);
+  }
+
+  .logo-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  .new-chat-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .new-chat-btn:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+    transform: translateY(-1px);
+  }
+
+  .new-chat-btn:active {
+    transform: translateY(0);
+  }
+
+  .sidebar-history {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    scrollbar-width: none;
+  }
+
+  .sidebar-history::-webkit-scrollbar { display: none; }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .history-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .history-item:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    transform: translateX(2px);
+  }
+
+  .history-item.active {
+    background: var(--pill-hover);
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    padding: 0;
+  }
+
+  .topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 0.5px solid var(--border);
+    z-index: 40;
+    background: var(--bg);
+    transition: background-color var(--transition);
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .menu-toggle-btn {
+    display: none;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .menu-toggle-btn:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+  }
+
+  /* MAIN CONTENT: Configurado para altura fixa do viewport para permitir chat fixo */
+  .main-content {
+    flex: 1;
+    overflow: hidden; /* Importante: impede que a página inteira role */
+    margin-top: 56px;
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* GERAÇÃO DE IMAGENS (TELA INICIAL): Rola individualmente */
+  .image-generator {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    overflow-y: auto;
+    height: 100%;
+    animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    scrollbar-width: none;
+  }
+  .image-generator::-webkit-scrollbar { display: none; }
+
+  /* CHAT VIEW: Ocupa toda a altura disponível, controla o layout interno */
+  #chatView {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-container {
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+    padding: 24px 24px 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Impede rolagem do container */
+  }
+
+  .generator-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .input-wrapper {
+    width: 100%;
+  }
+
+  .input-box {
+    background: var(--bg-input);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-input);
+    padding: 16px 18px 12px;
+    transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .input-box:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.06), 0 0 0 0.5px var(--border-focus);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .input-box:focus-within {
+      box-shadow: 0 12px 36px rgba(0,0,0,0.3), 0 0 0 0.5px var(--border-focus);
+    }
+  }
+
+  .input-field {
+    width: 100%;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 15.5px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1.6;
+    resize: none;
+    min-height: 28px;
+    max-height: 140px;
+    letter-spacing: -0.01em;
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+
+  .input-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .input-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .tool-btn:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+  }
+
+  .send-spinner-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .send-spinner {
+    position: absolute;
+    background-image: linear-gradient(135deg, rgb(186, 66, 255) 30%, rgb(0, 225, 255));
+    width: 44px;
+    height: 44px;
+    animation: sendSpin 2s linear infinite;
+    text-align: center;
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0;
+    transition: opacity var(--transition);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .send-spinner-wrapper.loading .send-spinner {
+    opacity: 1;
+  }
+
+  .send-spinner1 {
+    background-color: var(--bg);
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    border-radius: 50%;
+    margin: 2px;
+  }
+
+  @keyframes sendSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--text-primary);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-btn);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .send-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+
+  .send-btn:active {
+    transform: scale(0.95);
+  }
+
+  .send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .send-btn i { font-size: 16px; }
+
+  .gallery-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+  }
+
+  .gallery-item {
+    aspect-ratio: 1;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition);
+    border: 0.5px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px;
+    background: var(--bg-card);
+    position: relative;
+  }
+
+  .gallery-item:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform var(--transition);
+  }
+
+  .gallery-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .gallery-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: center;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--border);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    position: relative;
+    z-index: 1;
+    transition: transform var(--transition);
+  }
+
+  .gallery-item:hover .gallery-label {
+    transform: translateY(-2px);
+  }
+
+  /* CHAT AREA: É a única parte do chat que pode rolar */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    scrollbar-width: none;
+    scroll-behavior: smooth;
+  }
+
+  .chat-area::-webkit-scrollbar { display: none; }
+
+  /* CHAT INPUT CONTAINER: Fica sempre estático no rodapé */
+  .chat-input-container {
+    padding-top: 12px;
+    padding-bottom: 8px;
+    flex-shrink: 0;
+  }
+
+  .message {
+    display: flex;
+    gap: 16px;
+    animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .message.user {
+    justify-content: flex-end;
+  }
+
+  .message-bubble {
+    max-width: 80%;
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    word-wrap: break-word;
+    font-size: 15px;
+    line-height: 1.6;
+    box-shadow: var(--shadow-card);
+    transition: transform var(--transition);
+  }
+
+  .message.user .message-bubble {
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 20px 20px 4px 20px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+  }
+
+  .message.assistant .message-bubble {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 0.5px solid var(--border);
+    border-radius: 20px 20px 20px 4px;
+    font-family: 'Lora', serif;
+  }
+
+  .message-image {
+    max-width: 100%;
+    width: 380px;
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: zoom-in;
+  }
+
+  .message-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .message-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .loading-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+
+  .loading-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 0.8s cubic-bezier(0.6, 0.2, 0.1, 1) infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 24px;
+    background: var(--bg-card);
+    border: 0.5px dashed var(--border);
+    border-radius: var(--radius-xl);
+  }
+
+  .empty-state-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+  }
+
+  /* MEDIA QUERIES */
+  @media (max-width: 768px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      position: absolute;
+      left: -260px;
+      top: 0;
+      height: 100%;
+      z-index: 100;
+      box-shadow: 20px 0 40px rgba(0,0,0,0.1);
+    }
+
+    .app.sidebar-open .sidebar {
+      left: 0;
+    }
+
+    .menu-toggle-btn {
+      display: flex;
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .message-bubble {
+      max-width: 90%;
+    }
+
+    .chat-container {
+      padding: 16px 12px 12px;
+    }
+    
+    .message-image {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <img src="logo.png" alt="WSM AI Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" style="width: 38px; height: 38px; border-radius: 10px; object-fit: cover;">
+      <div class="logo-name">WSM AI</div>
+    </div>
+
+    <button class="new-chat-btn" onclick="startNewChat()">
+      <i class="ti ti-edit"></i>
+      Nova geração
+    </button>
+
+    <div class="sidebar-history" id="sidebarHistory">
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle-btn" id="menuToggle" onclick="toggleSidebar()">
+          <i class="ti ti-menu-2"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <!-- GERADOR DE IMAGENS (TELA INICIAL) -->
+      <div id="generatorView" class="image-generator">
+        <div class="generator-section">
+          <div class="section-title">Imagens</div>
+          <div class="input-wrapper">
+            <div class="input-box">
+              <textarea
+                class="input-field"
+                placeholder="Descreva uma nova imagem..."
+                id="imagePrompt"
+                rows="1"
+                oninput="autoResize(this)"
+                onkeydown="handleKey(event)"
+                maxlength="3000"
+              ></textarea>
+              <div class="input-actions">
+                <div class="input-tools"></div>
+                <div class="send-spinner-wrapper" id="sendSpinnerWrapper">
+                  <div class="send-spinner"><div class="send-spinner1"></div></div>
+                  <button class="send-btn" id="generateBtn" onclick="generateImage()" title="Enviar">
+                    <i class="ti ti-arrow-up"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GALERIA DE EXEMPLOS (IMAGENS PÚBLICAS REAIS) -->
+        <div class="gallery-section">
+          <div class="section-title">Idéias para criar</div>
+          <div class="gallery-grid" id="exampleGallery">
+            <!-- Preenchido por JS com imagens reais estáticas -->
+          </div>
+        </div>
+
+        <!-- MINHAS IMAGENS -->
+        <div class="gallery-section">
+          <div class="section-title">Minhas criações</div>
+          <div class="gallery-grid" id="myImagesGallery">
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <div class="empty-state-title">Nenhuma criação recente</div>
+              <div>Use o campo acima para criar sua primeira arte mágica.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT VIEW (COM CHAT AREA ROLÁVEL E CAMPO DE DIGITAÇÃO FIXO) -->
+      <div id="chatView" style="display: none; flex: 1; flex-direction: column;">
+        <div class="chat-container">
+          <!-- Somente esta div tem rolagem -->
+          <div class="chat-area" id="chatArea"></div>
+          
+          <!-- CAMPO DE CHAT INFERIOR - SEMPRE FIXO EMBAIXO -->
+          <div class="chat-input-container">
+            <div class="input-wrapper">
+              <div class="input-box">
+                <textarea
+                  class="input-field"
+                  placeholder="Peça alterações na imagem ou digite algo..."
+                  id="chatInput"
+                  rows="1"
+                  oninput="autoResize(this)"
+                  onkeydown="handleChatKey(event)"
+                  maxlength="3000"
+                ></textarea>
+                <div class="input-actions">
+                  <div class="input-tools"></div>
+                  <div class="send-spinner-wrapper" id="chatSendSpinnerWrapper">
+                    <div class="send-spinner"><div class="send-spinner1"></div></div>
+                    <button class="send-btn" id="chatSendBtn" onclick="sendChatMessage()" title="Enviar">
+                      <i class="ti ti-arrow-up"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  }
+
+  // ============= ESTADO GLOBAL =============
+  let generations = [];
+  let currentGenerationId = null;
+  let isSending = false;
+  let isCooldown = false;
+  let cooldownSeconds = 0;
+  let cooldownTimer = null;
+
+  // ============= IMAGENS DE EXEMPLO (LOCAIS) =============
+  const exampleImages = [
+    { label: 'Carro Esportivo', url: 'ex1.png' },
+    { label: 'Retrato Feminino', url: 'ex2.png' },
+    { label: 'Paisagem Montana', url: 'ex3.png' },
+    { label: 'Gato Siberiano', url: 'ex4.png' },
+  ];
+
+  // ============= INICIALIZAÇÃO =============
+  document.addEventListener('DOMContentLoaded', () => {
+    renderExampleGallery();
+    loadGenerations();
+  });
+
+  function renderExampleGallery() {
+    const gallery = document.getElementById('exampleGallery');
+    gallery.innerHTML = exampleImages.map((img, idx) => `
+      <div class="gallery-item animate-fade" style="animation-delay: ${idx * 0.05}s" onclick="useExample(${idx})">
+        <img src="${img.url}" alt="${img.label}" loading="lazy">
+        <div class="gallery-label">${img.label}</div>
+      </div>
+    `).join('');
+  }
+
+  function useExample(index) {
+    const example = exampleImages[index];
+    const imageField = document.getElementById('imagePrompt');
+    imageField.value = example.label;
+    autoResize(imageField);
+    imageField.focus();
+  }
+
+  function handleKey(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      generateImage();
+    }
+  }
+
+  function handleChatKey(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendChatMessage();
+    }
+  }
+
+  // Desloca o histórico de mensagens suavemente para o rodapé
+  function scrollToBottom() {
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea) {
+      setTimeout(() => {
+        chatArea.scrollTo({
+          top: chatArea.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 50); // Delay sutil para garantir renderização correta
+    }
+  }
+
+  async function generateImage() {
+    const prompt = document.getElementById('imagePrompt').value.trim();
+    if (!prompt || isSending || isCooldown) return;
+
+    isSending = true;
+    const btn = document.getElementById('generateBtn');
+    const spinner = document.getElementById('sendSpinnerWrapper');
+    btn.disabled = true;
+    spinner.classList.add('loading');
+
+    // Criar nova geração
+    const generation = {
+      id: Date.now(),
+      prompt: prompt,
+      timestamp: new Date(),
+      messages: []
+    };
+
+    generations.unshift(generation);
+    currentGenerationId = generation.id;
+    document.getElementById('imagePrompt').value = '';
+
+    // Renderizar e alternar para a aba de chat
+    showChatView();
+    addMessage('user', prompt);
+
+    addMessage('assistant', `
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <span>Gerando sua imagem via Pollinations...</span>
+      </div>
+    `);
+
+    try {
+      const encodedPrompt = encodeURIComponent(prompt);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024`;
+
+      // Aguarda um tempo inicial para a geração começar
+      await new Promise(r => setTimeout(r, 3000));
+
+      // Remover bubble de loading
+      const lastMsg = document.querySelectorAll('.message.assistant');
+      if (lastMsg.length > 0) {
+        lastMsg[lastMsg.length - 1].remove();
+      }
+
+      generation.messages.push({ role: 'user', content: prompt });
+      generation.messages.push({ role: 'assistant', content: `Aqui está a sua imagem gerada para: "${prompt}". O que achou?` });
+      generation.messages.push({ role: 'image', url: imageUrl });
+
+      addMessage('assistant', `Prontinho! Sua imagem foi gerada para: "${prompt}". O que achou?`);
+      addImage(imageUrl);
+
+      updateMyImages();
+      saveGenerations();
+
+      isSending = false;
+      btn.disabled = false;
+      spinner.classList.remove('loading');
+
+      // Iniciar cooldown de 15s
+      startCooldown();
+    } catch (err) {
+      console.error('Erro ao gerar imagem:', err);
+      const lastMsg = document.querySelectorAll('.message.assistant');
+      if (lastMsg.length > 0) {
+        lastMsg[lastMsg.length - 1].remove();
+      }
+      addMessage('assistant', 'Erro ao gerar a imagem. Verifique sua conexão e tente novamente.');
+      isSending = false;
+      btn.disabled = false;
+      spinner.classList.remove('loading');
+    }
+  }
+
+  function startCooldown() {
+    isCooldown = true;
+    cooldownSeconds = 15;
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="ti ti-clock"></i>`;
+    updateCooldownUI();
+
+    cooldownTimer = setInterval(() => {
+      cooldownSeconds--;
+      updateCooldownUI();
+      if (cooldownSeconds <= 0) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+        isCooldown = false;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="ti ti-arrow-up"></i>`;
+      }
+    }, 1000);
+  }
+
+  function updateCooldownUI() {
+    const spinner = document.getElementById('sendSpinnerWrapper');
+    // Atualiza o título do botão
+    const btn = document.getElementById('generateBtn');
+    if (isCooldown) {
+      btn.title = `Aguarde ${cooldownSeconds}s`;
+      btn.style.opacity = '0.5';
+    } else {
+      btn.title = 'Enviar';
+      btn.style.opacity = '1';
+    }
+  }
+
+  function showChatView() {
+    document.getElementById('generatorView').style.display = 'none';
+    document.getElementById('chatView').style.display = 'flex';
+    document.getElementById('chatInput').focus();
+    updateSidebar();
+    scrollToBottom();
+  }
+
+  function showGeneratorView() {
+    document.getElementById('chatView').style.display = 'none';
+    document.getElementById('generatorView').style.display = 'flex';
+  }
+
+  function addMessage(role, content) {
+    const chatArea = document.getElementById('chatArea');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    messageDiv.innerHTML = `<div class="message-bubble">${content}</div>`;
+    chatArea.appendChild(messageDiv);
+    scrollToBottom();
+  }
+
+  function addImage(url) {
+    const chatArea = document.getElementById('chatArea');
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'message assistant';
+    imgDiv.innerHTML = `
+      <div class="message-image">
+        <img src="${url}" alt="Generated Image" onclick="window.open('${url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
+      </div>
+    `;
+    chatArea.appendChild(imgDiv);
+    scrollToBottom();
+  }
+
+  async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (!message || isSending || isCooldown) return;
+
+    isSending = true;
+    input.value = '';
+    autoResize(input);
+
+    const btn = document.getElementById('chatSendBtn');
+    const spinner = document.getElementById('chatSendSpinnerWrapper');
+    btn.disabled = true;
+    spinner.classList.add('loading');
+
+    addMessage('user', message);
+
+    addMessage('assistant', `
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <span>Gerando nova versão via Pollinations...</span>
+      </div>
+    `);
+
+    try {
+      // Busca o prompt original da geração atual
+      const gen = generations.find(g => g.id === currentGenerationId);
+      const originalPrompt = gen ? gen.prompt : '';
+      const fullPrompt = `${originalPrompt}, ${message}`;
+
+      const encodedPrompt = encodeURIComponent(fullPrompt);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024`;
+
+      await new Promise(r => setTimeout(r, 3000));
+
+      const lastMsg = document.querySelectorAll('.message.assistant');
+      if (lastMsg.length > 0) {
+        lastMsg[lastMsg.length - 1].remove();
+      }
+
+      addMessage('assistant', `Aqui está a versão modificada com base em: "${message}".`);
+      addImage(imageUrl);
+
+      if (gen) {
+        gen.messages.push({ role: 'user', content: message });
+        gen.messages.push({ role: 'assistant', content: `Versão modificada: "${message}"` });
+        gen.messages.push({ role: 'image', url: imageUrl });
+      }
+
+      updateMyImages();
+      saveGenerations();
+
+      isSending = false;
+      btn.disabled = false;
+      spinner.classList.remove('loading');
+
+      // Iniciar cooldown de 15s
+      startCooldown();
+    } catch (err) {
+      console.error('Erro ao gerar imagem:', err);
+      const lastMsg = document.querySelectorAll('.message.assistant');
+      if (lastMsg.length > 0) {
+        lastMsg[lastMsg.length - 1].remove();
+      }
+      addMessage('assistant', 'Erro ao gerar a imagem. Tente novamente.');
+      isSending = false;
+      btn.disabled = false;
+      spinner.classList.remove('loading');
+    }
+  }
+
+  function updateMyImages() {
+    const gallery = document.getElementById('myImagesGallery');
+    let imagesHtml = '';
+
+    // Coleta todas as imagens geradas ao longo das sessões
+    const allImages = [];
+    generations.forEach(gen => {
+      gen.messages.forEach(msg => {
+        if (msg.role === 'image') {
+          allImages.push(msg.url);
+        }
+      });
+    });
+
+    if (allImages.length > 0) {
+      imagesHtml = allImages.map(url => `
+        <div class="gallery-item">
+          <img src="${url}" alt="Criação antiga" onclick="window.open('${url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:12px;text-align:center;font-size:12px;color:var(--text-secondary)\\'>Indisponível</div>'">
+        </div>
+      `).join('');
+    } else {
+      imagesHtml = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-title">Nenhuma criação recente</div><div>Use o campo acima para criar sua primeira arte mágica.</div></div>';
+    }
+
+    gallery.innerHTML = imagesHtml;
+  }
+
+  function startNewChat() {
+    showGeneratorView();
+    currentGenerationId = null;
+    document.getElementById('imagePrompt').value = '';
+    autoResize(document.getElementById('imagePrompt'));
+    document.getElementById('imagePrompt').focus();
+    updateSidebar();
+    updateMyImages();
+  }
+
+  function updateSidebar() {
+    const historyList = document.getElementById('historyList');
+    if (generations.length === 0) {
+      historyList.innerHTML = `<div style="padding: 12px; font-size:12px; color:var(--text-muted); text-align:center;">Nenhum histórico</div>`;
+      return;
+    }
+
+    historyList.innerHTML = generations.map(gen => `
+      <div class="history-item ${gen.id === currentGenerationId ? 'active' : ''}" onclick="loadGeneration(${gen.id})">
+        <i class="ti ti-photo" style="font-size: 16px;"></i>
+        <span>${gen.prompt}</span>
+      </div>
+    `).join('');
+  }
+
+  function loadGeneration(id) {
+    const gen = generations.find(g => g.id === id);
+    if (!gen) return;
+
+    currentGenerationId = id;
+    showChatView();
+    updateSidebar();
+
+    const chatArea = document.getElementById('chatArea');
+    chatArea.innerHTML = '';
+
+    gen.messages.forEach(msg => {
+      if (msg.role === 'image') {
+        const imgDiv = document.createElement('div');
+        imgDiv.className = 'message assistant';
+        imgDiv.innerHTML = `
+          <div class="message-image">
+            <img src="${msg.url}" alt="Generated" onclick="window.open('${msg.url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
+          </div>
+        `;
+        chatArea.appendChild(imgDiv);
+      } else {
+        // Usa método base que já lida com inserção de bolha
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.role}`;
+        messageDiv.innerHTML = `<div class="message-bubble">${msg.content}</div>`;
+        chatArea.appendChild(messageDiv);
+      }
+    });
+
+    scrollToBottom();
+  }
+
+  function toggleSidebar() {
+    document.getElementById('app').classList.toggle('sidebar-open');
+  }
+
+  function saveGenerations() {
+    localStorage.setItem('wsm-generations', JSON.stringify(generations));
+  }
+
+  function loadGenerations() {
+    const saved = localStorage.getItem('wsm-generations');
+    if (saved) {
+      try {
+        generations = JSON.parse(saved);
+        updateSidebar();
+        updateMyImages();
+      } catch (e) {
+        console.error('Erro ao carregar gerações:', e);
+      }
+    }
+  }
+</script>
+</body>
+</html>
