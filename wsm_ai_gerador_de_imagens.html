@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://js.puter.com/v2/"></script>
 
 <style>
   :root {
@@ -927,18 +928,15 @@
     addMessage('assistant', `
       <div class="loading-container">
         <div class="loading-spinner"></div>
-        <span>Gerando sua imagem via Pollinations...</span>
+        <span>Gerando sua imagem via IA...</span>
       </div>
     `);
 
     try {
-      const encodedPrompt = encodeURIComponent(prompt);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024`;
+      const imgEl = await puter.ai.txt2img(prompt);
 
-      // Aguarda um tempo inicial para a geração começar
-      await new Promise(r => setTimeout(r, 3000));
+      const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
 
-      // Remover bubble de loading
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
         lastMsg[lastMsg.length - 1].remove();
@@ -958,7 +956,6 @@
       btn.disabled = false;
       spinner.classList.remove('loading');
 
-      // Iniciar cooldown de 15s
       startCooldown();
     } catch (err) {
       console.error('Erro ao gerar imagem:', err);
@@ -1061,20 +1058,17 @@
     addMessage('assistant', `
       <div class="loading-container">
         <div class="loading-spinner"></div>
-        <span>Gerando nova versão via Pollinations...</span>
+        <span>Gerando nova versão...</span>
       </div>
     `);
 
     try {
-      // Busca o prompt original da geração atual
       const gen = generations.find(g => g.id === currentGenerationId);
       const originalPrompt = gen ? gen.prompt : '';
       const fullPrompt = `${originalPrompt}, ${message}`;
 
-      const encodedPrompt = encodeURIComponent(fullPrompt);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024`;
-
-      await new Promise(r => setTimeout(r, 3000));
+      const imgEl = await puter.ai.txt2img(fullPrompt);
+      const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
 
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
