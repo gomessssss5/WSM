@@ -5231,6 +5231,16 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       }
     }
   }
+  // Rotating greeting images
+  const greetingImg = document.querySelector('.greeting-logo');
+  const greetingImages = ['mot1.png','mot2.png','mot3.png'];
+  let greetIdx = 0;
+  if (greetingImg) {
+    setInterval(() => {
+      greetIdx = (greetIdx + 1) % greetingImages.length;
+      greetingImg.src = greetingImages[greetIdx];
+    }, 500);
+  }
 </script>
 
 <!-- Deep Research (acionado pelo botão "Pesquisar" e pelo token {web: ...}) -->
