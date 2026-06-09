@@ -933,7 +933,7 @@
     `);
 
     try {
-      const imgEl = await puter.ai.txt2img(prompt);
+      const imgEl = await puter.ai.txt2img(prompt, { model: "black-forest-labs/flux-schnell" });
 
       const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
 
@@ -1067,7 +1067,7 @@
       const originalPrompt = gen ? gen.prompt : '';
       const fullPrompt = `${originalPrompt}, ${message}`;
 
-      const imgEl = await puter.ai.txt2img(fullPrompt);
+      const imgEl = await puter.ai.txt2img(fullPrompt, { model: "black-forest-labs/flux-schnell" });
       const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
 
       const lastMsg = document.querySelectorAll('.message.assistant');
