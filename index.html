@@ -2999,6 +2999,27 @@ padding: 6px 10px;
     </div>
   </div>
 
+  <!-- MODAL DE APRESENTAÇÃO 2 -->
+  <div class="presentation-modal" id="presentationModal2">
+    <div class="presentation-card">
+      <img src="ads2.png" alt="WSM AI" class="presentation-card-img">
+      <div class="presentation-card-body">
+        <h1 class="presentation-card-title">WSM 1.5 Flash: Rápido em qualquer tarefa.</h1>
+        <button class="presentation-card-close" onclick="closePresentation2()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE APRESENTAÇÃO 3 -->
+  <div class="presentation-modal" id="presentationModal3">
+    <div class="presentation-card">
+      <img src="ads3.png" alt="WSM AI" class="presentation-card-img">
+      <div class="presentation-card-body">
+        <h1 class="presentation-card-title">WSM 1.5 é 100% gratuito e <strong>ILIMITADO</strong>!</h1>
+        <button class="presentation-card-close" onclick="closePresentation3()">Fechar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SIDEBAR (Barra Lateral) -->
   <aside class="sidebar" id="sidebar">
@@ -3294,10 +3315,21 @@ padding: 6px 10px;
     }
     preloadAndScaleCursor();
 
-    // Mostrar modal de apresentação (só uma vez)
-    if (!localStorage.getItem('WSM_PRESENTATION_SHOWN')) {
+    // Mostrar modal de apresentação (sequencial: 1ª, 2ª e 3ª visita)
+    const shown = localStorage.getItem('WSM_PRESENTATION_SHOWN');
+    if (!shown) {
       setTimeout(() => {
         const modal = document.getElementById('presentationModal');
+        if (modal) modal.classList.add('active');
+      }, 500);
+    } else if (shown === '1') {
+      setTimeout(() => {
+        const modal = document.getElementById('presentationModal2');
+        if (modal) modal.classList.add('active');
+      }, 500);
+    } else if (shown === '2') {
+      setTimeout(() => {
+        const modal = document.getElementById('presentationModal3');
         if (modal) modal.classList.add('active');
       }, 500);
     }
@@ -3306,6 +3338,18 @@ padding: 6px 10px;
   function closePresentation() {
     localStorage.setItem('WSM_PRESENTATION_SHOWN', '1');
     const modal = document.getElementById('presentationModal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function closePresentation2() {
+    localStorage.setItem('WSM_PRESENTATION_SHOWN', '2');
+    const modal = document.getElementById('presentationModal2');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function closePresentation3() {
+    localStorage.setItem('WSM_PRESENTATION_SHOWN', '3');
+    const modal = document.getElementById('presentationModal3');
     if (modal) modal.classList.remove('active');
   }
 
