@@ -995,13 +995,22 @@
 
       ctx.drawImage(img, 0, 0);
 
-      const wmSize = Math.min(img.width, img.height) * 0.18;
-      const margin = wmSize * 0.25;
-      const x = img.width - wmSize - margin;
-      const y = img.height - wmSize - margin;
+      const baseWm = Math.min(img.width, img.height) * 0.14;
+      const wmAspect = wm.naturalWidth / wm.naturalHeight;
+      let wmW, wmH;
+      if (wmAspect >= 1) {
+        wmW = baseWm;
+        wmH = baseWm / wmAspect;
+      } else {
+        wmH = baseWm;
+        wmW = baseWm * wmAspect;
+      }
+      const margin = 8;
+      const x = img.width - wmW - margin;
+      const y = img.height - wmH - margin;
 
-      ctx.globalAlpha = 0.35;
-      ctx.drawImage(wm, x, y, wmSize, wmSize);
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(wm, x, y, wmW, wmH);
       ctx.globalAlpha = 1;
 
       return canvas.toDataURL('image/png');
