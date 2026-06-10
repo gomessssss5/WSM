@@ -14,6 +14,7 @@
 <!-- Fonte Lora adicionada para as mensagens e Inter mantida para a UI -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 <!-- Markdown-it para renderização completa de Markdown -->
 <script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 <!-- Highlight.js para colorir o código na prévia lateral -->
@@ -3032,6 +3033,11 @@ padding: 6px 10px;
       <i class="ti ti-edit" aria-hidden="true"></i>
       Nova conversa
     </button>
+
+    <button class="new-chat-btn" onclick="window.location.href='imagem.html'">
+      <i class="ti ti-photo" aria-hidden="true"></i>
+      Imagens
+    </button>
     
     <div style="padding: 0 4px; margin-bottom: 8px;">
         <input type="text" id="historySearch" placeholder="Buscar conversas..." style="width: 100%; padding: 8px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--bg-card); color: var(--text-primary); outline: none;">
@@ -3090,6 +3096,15 @@ padding: 6px 10px;
               </div>
             </div>
       </div>
+        <div style="position:absolute;left:50%;transform:translateX(-50%);">
+          <a href="imagem.html" class="no-underline">
+            <div role="alert" class="max-w-[340px] py-1.5 pl-2 pr-2.5 bg-indigo-800 rounded-full items-center text-indigo-100 leading-none flex">
+              <span class="rounded-full bg-indigo-500 uppercase px-1.5 py-0.5 text-[11px] font-bold mr-2 shrink-0">Novo</span>
+              <span class="font-medium text-[13px] mr-1.5 text-left truncate">Novo modelo de geração de imagens</span>
+              <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="fill-current opacity-75 h-3.5 w-3.5 shrink-0"><path d="M12.95 10.707l.707-.707L8 4.343 6.586 5.757 10.828 10l-4.242 4.243L8 15.657l4.95-4.95z"></path></svg>
+            </div>
+          </a>
+        </div>
         <div class="topbar-right">
           <!-- Espaço reservado para ações da topbar direita -->
         </div>
