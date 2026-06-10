@@ -709,6 +709,113 @@
       width: 100%;
     }
   }
+
+  /* DOWNLOAD BUTTON ON IMAGE */
+  .img-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+  }
+  .message-image:hover .img-actions,
+  .gallery-item:hover .img-actions {
+    opacity: 1;
+  }
+  .img-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s, transform 0.2s;
+    font-size: 15px;
+  }
+  .img-action-btn:hover {
+    background: rgba(0,0,0,0.8);
+    transform: scale(1.1);
+  }
+
+  /* FULLSCREEN VIEWER */
+  .image-viewer {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    animation: fadeIn 0.25s ease;
+  }
+  .image-viewer.active {
+    display: flex;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .image-viewer img {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    object-fit: contain;
+    cursor: default;
+  }
+  .image-viewer .viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s;
+  }
+  .image-viewer .viewer-close:hover {
+    background: rgba(255,255,255,0.3);
+  }
+  .image-viewer .viewer-download {
+    position: absolute;
+    bottom: 24px;
+    padding: 10px 24px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+  .image-viewer .viewer-download:hover {
+    background: rgba(255,255,255,0.3);
+  }
 </style>
 </head>
 <body>
@@ -837,10 +944,106 @@
   </main>
 </div>
 
+<!-- FULLSCREEN VIEWER -->
+<div class="image-viewer" id="imageViewer" onclick="closeViewer(event)">
+  <button class="viewer-close" onclick="closeViewer()"><i class="ti ti-x"></i></button>
+  <img id="viewerImg" src="" alt="Visualização">
+  <button class="viewer-download" onclick="downloadViewerImg()">
+    <i class="ti ti-download"></i> Baixar
+  </button>
+</div>
+
 <script>
   function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  }
+
+  // ============= WATERMARK =============
+  let watermarkPromise = null;
+  function getWatermarkImg() {
+    if (!watermarkPromise) {
+      watermarkPromise = new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => { watermarkPromise = null; resolve(null); };
+        img.src = 'logo.png';
+      });
+    }
+    return watermarkPromise;
+  }
+
+  async function applyWatermark(src) {
+    if (!src) return src;
+    try {
+      const wm = await getWatermarkImg();
+      if (!wm) return src;
+
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.crossOrigin = 'anonymous';
+        i.onload = () => resolve(i);
+        i.onerror = () => reject();
+        i.src = src;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+
+      ctx.drawImage(img, 0, 0);
+
+      const wmSize = Math.min(img.width, img.height) * 0.18;
+      const margin = wmSize * 0.25;
+      const x = img.width - wmSize - margin;
+      const y = img.height - wmSize - margin;
+
+      ctx.globalAlpha = 0.35;
+      ctx.drawImage(wm, x, y, wmSize, wmSize);
+      ctx.globalAlpha = 1;
+
+      return canvas.toDataURL('image/png');
+    } catch (e) {
+      return src;
+    }
+  }
+
+  // ============= VIEWER =============
+  let viewerUrl = '';
+
+  function openViewer(url) {
+    viewerUrl = url;
+    const viewer = document.getElementById('imageViewer');
+    const img = document.getElementById('viewerImg');
+    img.src = url;
+    viewer.classList.add('active');
+  }
+
+  function closeViewer(ev) {
+    if (ev && ev.target !== ev.currentTarget) return;
+    document.getElementById('imageViewer').classList.remove('active');
+    viewerUrl = '';
+  }
+
+  function downloadViewerImg() {
+    if (!viewerUrl) return;
+    const a = document.createElement('a');
+    a.href = viewerUrl;
+    a.download = 'wsm-ai-image-' + Date.now() + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  function downloadImg(url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wsm-ai-image-' + Date.now() + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   // ============= ESTADO GLOBAL =============
@@ -865,6 +1068,9 @@
     renderExampleGallery();
     loadGenerations();
     warmPuter();
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeViewer();
+    });
   });
 
   async function warmPuter() {
@@ -962,7 +1168,8 @@
     try {
       const imgEl = await puter.ai.txt2img(prompt, { model: "black-forest-labs/flux-schnell" });
 
-      const imageUrl = imgEl.src;
+      let imageUrl = imgEl.src;
+      imageUrl = await applyWatermark(imageUrl);
 
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
@@ -1057,9 +1264,13 @@
     const chatArea = document.getElementById('chatArea');
     const imgDiv = document.createElement('div');
     imgDiv.className = 'message assistant';
+    const safeUrl = url.replace(/'/g, "\\'");
     imgDiv.innerHTML = `
-      <div class="message-image">
-        <img src="${url}" alt="Generated Image" onclick="window.open('${url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
+      <div class="message-image" style="position:relative;">
+        <div class="img-actions">
+          <button class="img-action-btn" onclick="event.stopPropagation(); downloadImg('${safeUrl}')" title="Baixar"><i class="ti ti-download"></i></button>
+        </div>
+        <img src="${url}" alt="Generated Image" onclick="openViewer('${safeUrl}')" style="cursor:zoom-in;" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
       </div>
       <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;">Não é possível fazer edições de imagens por enquanto.</div>
     `;
@@ -1112,7 +1323,8 @@
 
     try {
       const imgEl = await puter.ai.txt2img(message, { model: "black-forest-labs/flux-schnell" });
-      const imageUrl = imgEl.src;
+      let imageUrl = imgEl.src;
+      imageUrl = await applyWatermark(imageUrl);
 
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
@@ -1164,11 +1376,16 @@
     });
 
     if (allImages.length > 0) {
-      imagesHtml = allImages.map(url => `
-        <div class="gallery-item">
-          <img src="${url}" alt="Criação antiga" onclick="window.open('${url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:12px;text-align:center;font-size:12px;color:var(--text-secondary)\\'>Indisponível</div>'">
-        </div>
-      `).join('');
+      imagesHtml = allImages.map(url => {
+        const safeUrl = url.replace(/'/g, "\\'");
+        return `
+        <div class="gallery-item" style="position:relative;">
+          <div class="img-actions">
+            <button class="img-action-btn" onclick="event.stopPropagation(); downloadImg('${safeUrl}')" title="Baixar"><i class="ti ti-download"></i></button>
+          </div>
+          <img src="${url}" alt="Criação antiga" onclick="openViewer('${safeUrl}')" style="cursor:zoom-in;" onerror="this.parentElement.innerHTML='<div style=\\'padding:12px;text-align:center;font-size:12px;color:var(--text-secondary)\\'>Indisponível</div>'">
+        </div>`;
+      }).join('');
     } else {
       imagesHtml = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state-title">Nenhuma criação recente</div><div>Use o campo acima para criar sua primeira arte mágica.</div></div>';
     }
@@ -1216,9 +1433,13 @@
       if (msg.role === 'image') {
         const imgDiv = document.createElement('div');
         imgDiv.className = 'message assistant';
+        const safeUrl = msg.url.replace(/'/g, "\\'");
         imgDiv.innerHTML = `
-          <div class="message-image">
-            <img src="${msg.url}" alt="Generated" onclick="window.open('${msg.url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
+          <div class="message-image" style="position:relative;">
+            <div class="img-actions">
+              <button class="img-action-btn" onclick="event.stopPropagation(); downloadImg('${safeUrl}')" title="Baixar"><i class="ti ti-download"></i></button>
+            </div>
+            <img src="${msg.url}" alt="Generated" onclick="openViewer('${safeUrl}')" style="cursor:zoom-in;" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
           </div>
           <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;">Não é possível fazer edições de imagens por enquanto.</div>
         `;
