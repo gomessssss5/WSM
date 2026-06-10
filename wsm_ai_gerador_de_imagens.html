@@ -935,7 +935,7 @@
     try {
       const imgEl = await puter.ai.txt2img(prompt, { model: "black-forest-labs/flux-schnell" });
 
-      const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
+      const imageUrl = imgEl.src;
 
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
@@ -1068,7 +1068,7 @@
       const fullPrompt = `${originalPrompt}, ${message}`;
 
       const imgEl = await puter.ai.txt2img(fullPrompt, { model: "black-forest-labs/flux-schnell" });
-      const imageUrl = imgEl.src || imgEl.toDataURL ? imgEl.toDataURL('image/png') : '';
+      const imageUrl = imgEl.src;
 
       const lastMsg = document.querySelectorAll('.message.assistant');
       if (lastMsg.length > 0) {
