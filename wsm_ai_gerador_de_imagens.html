@@ -777,7 +777,7 @@
 
         <!-- GALERIA DE EXEMPLOS (IMAGENS PÚBLICAS REAIS) -->
         <div class="gallery-section">
-          <div class="section-title">Idéias para criar</div>
+          <div class="section-title">Ideias para criar</div>
           <div class="gallery-grid" id="exampleGallery">
             <!-- Preenchido por JS com imagens reais estáticas -->
           </div>
@@ -807,7 +807,7 @@
               <div class="input-box">
                 <textarea
                   class="input-field"
-                  placeholder="Peça alterações na imagem ou digite algo..."
+                  placeholder="Digite para gerar uma nova imagem..."
                   id="chatInput"
                   rows="1"
                   oninput="autoResize(this)"
@@ -815,7 +815,12 @@
                   maxlength="3000"
                 ></textarea>
                 <div class="input-actions">
-                  <div class="input-tools"></div>
+                <div class="input-tools">
+                  <span style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px;">
+                    <i class="ti ti-arrow-up" style="font-size:14px;"></i>
+                    Criar imagem
+                  </span>
+                </div>
                   <div class="send-spinner-wrapper" id="chatSendSpinnerWrapper">
                     <div class="send-spinner"><div class="send-spinner1"></div></div>
                     <button class="send-btn" id="chatSendBtn" onclick="sendChatMessage()" title="Enviar">
@@ -1056,6 +1061,7 @@
       <div class="message-image">
         <img src="${url}" alt="Generated Image" onclick="window.open('${url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
       </div>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;">Não é possível fazer edições de imagens por enquanto.</div>
     `;
     chatArea.appendChild(imgDiv);
     scrollToBottom();
@@ -1075,21 +1081,37 @@
     btn.disabled = true;
     spinner.classList.add('loading');
 
+    // Já existe uma imagem gerada → abrir nova geração limpa com o prompt
+    const gen = generations.find(g => g.id === currentGenerationId);
+    const hasImage = gen && gen.messages.some(m => m.role === 'image');
+
+    if (hasImage) {
+      // Volta pro generator view e já preenche o prompt + inicia geração
+      showGeneratorView();
+      const promptField = document.getElementById('imagePrompt');
+      promptField.value = message;
+      autoResize(promptField);
+
+      isSending = false;
+      btn.disabled = false;
+      spinner.classList.remove('loading');
+
+      generateImage();
+      return;
+    }
+
+    // Caso não tenha imagem (fallback) — gera normalmente
     addMessage('user', message);
 
     addMessage('assistant', `
       <div class="loading-container">
         <div class="loading-spinner"></div>
-        <span>Gerando nova versão...</span>
+        <span>Gerando sua imagem via IA...</span>
       </div>
     `);
 
     try {
-      const gen = generations.find(g => g.id === currentGenerationId);
-      const originalPrompt = gen ? gen.prompt : '';
-      const fullPrompt = `${originalPrompt}, ${message}`;
-
-      const imgEl = await puter.ai.txt2img(fullPrompt, { model: "black-forest-labs/flux-schnell" });
+      const imgEl = await puter.ai.txt2img(message, { model: "black-forest-labs/flux-schnell" });
       const imageUrl = imgEl.src;
 
       const lastMsg = document.querySelectorAll('.message.assistant');
@@ -1097,12 +1119,12 @@
         lastMsg[lastMsg.length - 1].remove();
       }
 
-      addMessage('assistant', `Aqui está a versão modificada com base em: "${message}".`);
+      addMessage('assistant', `Prontinho! Sua imagem foi gerada para: "${message}".`);
       addImage(imageUrl);
 
       if (gen) {
         gen.messages.push({ role: 'user', content: message });
-        gen.messages.push({ role: 'assistant', content: `Versão modificada: "${message}"` });
+        gen.messages.push({ role: 'assistant', content: `Imagem gerada para: "${message}"` });
         gen.messages.push({ role: 'image', url: imageUrl });
       }
 
@@ -1113,7 +1135,6 @@
       btn.disabled = false;
       spinner.classList.remove('loading');
 
-      // Iniciar cooldown de 15s
       startCooldown();
     } catch (err) {
       console.error('Erro ao gerar imagem:', err);
@@ -1199,6 +1220,7 @@
           <div class="message-image">
             <img src="${msg.url}" alt="Generated" onclick="window.open('${msg.url}', '_blank')" onerror="this.parentElement.innerHTML='<div style=\\'padding:20px;text-align:center;color:var(--text-secondary)\\'>Imagem indisponível no momento</div>'">
           </div>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:4px;">Não é possível fazer edições de imagens por enquanto.</div>
         `;
         chatArea.appendChild(imgDiv);
       } else {
