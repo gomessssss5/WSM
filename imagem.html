@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WSM AI - Gerador de Imagens</title>
+<title>WSM Imagem</title>
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -298,11 +298,20 @@
   }
 
   .section-title {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .section-title i {
+    font-size: 18px;
     color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
   }
 
   .input-wrapper {
@@ -824,7 +833,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="logo">
       <img src="logo.png" alt="WSM AI Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTQgMTQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTcgMS41QzcgMS41IDkuNSA0IDkuNSA3QzkuNSAxMCA3IDEyLjUgNyAxMi41QzcgMTIuNSA0LjUgMTAgNC41IDdDNC41IDQgNyAxLjUgNyAxLjVaIiBmaWxsPSIjMGFwYTBhIi8+PC9zdmc+'" style="width: 38px; height: 38px; border-radius: 10px; object-fit: cover;">
-      <div class="logo-name">WSM AI</div>
+      <div class="logo-name">WSM Imagem</div>
     </div>
 
     <button class="new-chat-btn" onclick="startNewChat()">
@@ -851,7 +860,7 @@
       <!-- GERADOR DE IMAGENS (TELA INICIAL) -->
       <div id="generatorView" class="image-generator">
         <div class="generator-section">
-          <div class="section-title">Criar imagem</div>
+          <div class="section-title"><i class="ti ti-wand"></i> Imagem</div>
           <div class="input-wrapper">
             <div class="input-box">
               <textarea
