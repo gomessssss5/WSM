@@ -1457,6 +1457,62 @@ padding: 6px 10px;
     }
   }
 
+  /* DROPDOWN DE SUGESTÕES */
+  .suggestions-wrap {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+
+  #suggestions {
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    animation: fadeUp 0.25s ease;
+    scrollbar-width: thin;
+    background: var(--bg-card);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    padding: 6px;
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  #suggestions.visible {
+    display: flex;
+  }
+
+  .suggestion-item {
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .suggestion-item:hover {
+    background: var(--pill-bg);
+    color: var(--text-primary);
+  }
+
+  .suggestion-item i {
+    font-size: 16px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
   /* PRÉ-VISUALIZAÇÃO DE IMAGENS ANEXADAS */
   .attachment-preview-container {
     display: none;
@@ -3131,7 +3187,12 @@ padding: 6px 10px;
 
           <div class="input-wrapper">
             <div class="input-box">
-              
+
+              <!-- DROPDOWN DE SUGESTÕES (AUTOCOMPLETE) -->
+              <div class="suggestions-wrap">
+                <div class="suggestions" id="suggestions"></div>
+              </div>
+
               <!-- LISTA DE PRÉ-VISUALIZAÇÃO DE IMAGENS ANEXADAS -->
               <div class="attachment-preview-container" id="attachmentPreview"></div>
 
@@ -3168,9 +3229,6 @@ padding: 6px 10px;
               </div>
             </div>
           </div>
-
-          <!-- Slot de sugestões iniciais (reservado para uso futuro) -->
-          <div class="suggestions" id="suggestions" style="display: none;"></div>
 
         </div>
       </div>
@@ -3249,6 +3307,8 @@ padding: 6px 10px;
   // Variáveis globais para Gerenciamento de Sessão (Histórico)
   let sessions = [];
   let currentSessionId = null;
+  let sugestoes = [];
+  let sugestoesLoaded = false;
 
   function applyCustomCursor(cursorUrl) {
     let styleEl = document.getElementById('customCursorStyle');
@@ -3541,7 +3601,7 @@ padding: 6px 10px;
     chatPanel.classList.remove('centered');
     chatPanel.classList.add('active-chat');
     document.body.classList.add('active-chat-state');
-    if (suggestions) suggestions.classList.add('hidden');
+    if (suggestions) suggestions.classList.remove('visible');
     if (composerTitle) composerTitle.classList.add('hidden');
 
     // Fechar painel de código se estiver aberto
@@ -5143,7 +5203,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
     const isFirstMessage = !chatPanel.classList.contains('active-chat');
 
     if (isFirstMessage) {
-      if (suggestions) suggestions.classList.add('hidden');
+      if (suggestions) suggestions.classList.remove('visible');
       if (composerTitle) composerTitle.classList.add('hidden');
       chatPanel.classList.remove('centered');
       chatPanel.classList.add('active-chat');
@@ -5290,6 +5350,89 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
       }
     }
   }
+  // SUGESTÕES (AUTOCOMPLETE)
+  const FALLBACK_SUGESTOES = [
+    "como fazer um currículo pelo celular",
+    "como fazer um bolo de cenoura fofinho",
+    "como ganhar dinheiro na internet",
+    "como calcular a rescisão de trabalho",
+    "como tirar mancha de caneta da roupa",
+    "como fazer uma redação nota 1000",
+    "como centralizar uma div no css",
+    "como investir no tesouro direto",
+    "como saber se meu whatsapp foi clonado",
+    "como apagar a conta do instagram",
+    "o que é inteligência artificial",
+    "o que é chatgpt",
+    "o que é marketing digital",
+    "o que significa tbt"
+  ];
+  sugestoes = FALLBACK_SUGESTOES;
+  sugestoesLoaded = true;
+
+  async function loadSuggestions() {
+    try {
+      const res = await fetch('sugestoes.json?_=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (data.sugestoes && data.sugestoes.length > 0) {
+        sugestoes = data.sugestoes;
+      }
+    } catch (e) {
+      // Fallback já está sendo usado (file:// ou erro)
+    }
+  }
+
+  function isChatActive() {
+    const p = document.getElementById('chatPanel');
+    return p && p.classList.contains('active-chat');
+  }
+
+  function filterAndShowSuggestions(query) {
+    const el = document.getElementById('suggestions');
+    if (!el || isChatActive() || !sugestoesLoaded || sugestoes.length === 0) {
+      if (el) el.classList.remove('visible');
+      return;
+    }
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      el.classList.remove('visible');
+      return;
+    }
+    const filtered = sugestoes.filter(s => s.toLowerCase().includes(q));
+    if (filtered.length === 0) {
+      el.classList.remove('visible');
+      return;
+    }
+    el.innerHTML = filtered
+      .slice(0, 8)
+      .map(s => `<div class="suggestion-item" role="button" tabindex="0" onclick="suggestionClick(this)" onkeydown="if(event.key==='Enter')suggestionClick(this)"><i class="ti ti-search"></i>${escHtml(s)}</div>`)
+      .join('');
+    el.classList.add('visible');
+  }
+
+  function suggestionClick(el) {
+    const field = document.getElementById('inputField');
+    if (!field) return;
+    field.value = el.textContent;
+    autoResize(field);
+    updateCharCount(field);
+    document.getElementById('suggestions').classList.remove('visible');
+    sendMessage();
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  loadSuggestions();
+  const inp = document.getElementById('inputField');
+  if (inp) {
+    inp.addEventListener('input', function() { filterAndShowSuggestions(this.value); });
+    inp.addEventListener('blur', function() { setTimeout(() => document.getElementById('suggestions')?.classList.remove('visible'), 200); });
+    inp.addEventListener('focus', function() { filterAndShowSuggestions(this.value); });
+  }
+
   // Rotating greeting images
   const greetingImg = document.querySelector('.greeting-logo');
   const greetingImages = ['mot1.png','mot2.png','mot3.png'];
