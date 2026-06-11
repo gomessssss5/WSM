@@ -5367,20 +5367,17 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
     "o que é marketing digital",
     "o que significa tbt"
   ];
-  sugestoes = FALLBACK_SUGESTOES;
-  sugestoesLoaded = true;
 
   async function loadSuggestions() {
     try {
       const res = await fetch('sugestoes.json?_=' + Date.now());
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      if (data.sugestoes && data.sugestoes.length > 0) {
-        sugestoes = data.sugestoes;
-      }
+      sugestoes = data.sugestoes || [];
     } catch (e) {
-      // Fallback já está sendo usado (file:// ou erro)
+      sugestoes = FALLBACK_SUGESTOES;
     }
+    sugestoesLoaded = true;
   }
 
   function isChatActive() {
