@@ -4796,6 +4796,7 @@ indicator.innerHTML = `
     const isTurbo = currentModel === 'WSM 1.5 Turbo';
     const isPro = currentModel === 'WSM 1.5 Pro';
     const isFlash = currentModel === 'WSM 1.5 Flash';
+    const isBio = currentModel === 'WSM 1.5 Bio';
     const GEMMA_ATTACH = 'google/gemma-4-26b-a4b-it:free';
 
     // Lock do modelo quando já houve anexo no chat (apenas Turbo/Pro).
@@ -5025,6 +5026,12 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
     let systemPrompt;
     if (isPro) systemPrompt = proPrompt;
     else if (isTurbo) systemPrompt = turboPrompt;
+    else if (isBio) systemPrompt = `Você é o Professor Bio, um assistente especializado em biologia, rápido, amigável e direto. Responda em texto puro e humanizado, usando emojis quando apropriado. 
+    REGRAS:
+    - Se precisar de pesquisa, responda APENAS com {web: "termo de pesquisa"}.
+    - Se precisar de imagem de uma espécie, responda com {img: "Nome da Espécie"} no final do parágrafo.
+    - Não faça listas automáticas, prefira parágrafos.
+    - Seja um amigo inteligente.`;
     else systemPrompt = flashPrompt;
 
     // Obter contexto dinâmico
@@ -5164,7 +5171,21 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
 
       const reasoning = message.reasoning || message.thinking || null;
       console.log("DEBUG REASONING:", reasoning); // Debugging
-      const cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      
+      let cleanAssistantResponse = assistantResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      
+      // Parser para WSM 1.5 Bio
+      if (window.currentChatModel === 'WSM 1.5 Bio') {
+          const bioResult = await processBioResponse(cleanAssistantResponse);
+          if (bioResult.type === 'web') {
+              // Dispara busca (adaptar o formato de queries)
+              const q = bioResult.query;
+              appendMessage(`🔎 Pesquisando na web: **${q}**`, 'bot');
+              executeWebSearchSequence([q], attachments);
+              return;
+          }
+          cleanAssistantResponse = bioResult.content;
+      }
       
       removeTypingIndicator(); // Ensure indicator is removed
       appendMessage(cleanAssistantResponse, 'bot', [], false, null, null, null, false, reasoning);
