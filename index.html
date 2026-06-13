@@ -5455,6 +5455,36 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
     inp.addEventListener('focus', function() { filterAndShowSuggestions(this.value); });
   }
 
+  // --- PARSER PROFESSOR BIO ---
+  async function fetchInaturalistImage(species) {
+    try {
+      const res = await fetch(`https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(species)}&per_page=1`);
+      const data = await res.json();
+      if (data.results && data.results.length > 0 && data.results[0].default_photo) {
+          return data.results[0].default_photo.medium_url;
+      }
+    } catch(e) { console.error('Erro iNaturalist:', e); }
+    return null;
+  }
+
+  async function processBioResponse(text) {
+    const webMatch = text.match(/\{web:\s*"(.*?)"\}/);
+    if (webMatch) return { type: 'web', query: webMatch[1] };
+
+    let processedText = text;
+    const imgMatches = [...text.matchAll(/\{img:\s*"(.*?)"\}/g)];
+    for (const match of imgMatches) {
+        const species = match[1];
+        const imgUrl = await fetchInaturalistImage(species);
+        if (imgUrl) {
+            processedText = processedText.replace(match[0], `<br><img src="${imgUrl}" alt="${species}" style="max-width:100%; border-radius:12px; margin: 10px 0;"><br>`);
+        } else {
+            processedText = processedText.replace(match[0], `[Imagem de ${species} não encontrada]`);
+        }
+    }
+    return { type: 'text', content: processedText };
+  }
+
   // Rotating greeting images
   const greetingImg = document.querySelector('.greeting-logo');
   const greetingImages = ['mot1.png','mot2.png','mot3.png'];
