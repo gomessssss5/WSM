@@ -5160,6 +5160,7 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
         }
         console.log("Auto web search triggered:", queries);
         removeTypingIndicator();
+        setSendButtonLoading(false);
         if (queries.length === 1) {
           appendMessage(`🔎 Pesquisando na web: **${queries[0]}**`, 'bot');
         } else {
@@ -5251,11 +5252,12 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
           return;
         }
 
+        setSendButtonLoading(true);
+        showTypingIndicator();
+        
         if (searchMode) {
           executeDeepResearch(text, currentAttachments);
         } else {
-          setSendButtonLoading(true);
-          showTypingIndicator();
           const abortController = new AbortController();
           window._abortController = abortController;
           callGroqAPI(text, currentAttachments, abortController.signal);
