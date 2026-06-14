@@ -3313,6 +3313,7 @@ padding: 6px 10px;
   let currentSessionId = null;
   let sugestoes = [];
   let sugestoesLoaded = false;
+  window.isResearching = false; // Trava de segurança para loops
 
   function applyCustomCursor(cursorUrl) {
     let styleEl = document.getElementById('customCursorStyle');
@@ -3858,7 +3859,7 @@ padding: 6px 10px;
 
   // Força a desativação do modo pesquisa
   function deactivateSearchMode() {
-    console.log("DEBUG: Deactivating search mode. Previous state:", searchMode);
+    window.isResearching = false; // Libera nova pesquisa
     searchMode = false;
     const searchBtn = document.getElementById('searchBtn');
     const toolsContainer = document.querySelector('.input-tools');
@@ -5470,8 +5471,13 @@ Preciso, rigoroso, verificável, profundo. Nunca inventa. Cita fontes. Admite li
   }
 
   async function processBioResponse(text) {
+    if (window.isResearching) return { type: 'text', content: text };
+
     const webMatch = text.match(/\{web:\s*"(.*?)"\}/);
-    if (webMatch) return { type: 'web', query: webMatch[1] };
+    if (webMatch && text.trim() === webMatch[0].trim()) {
+        window.isResearching = true;
+        return { type: 'web', query: webMatch[1] };
+    }
 
     let processedText = text;
     const imgMatches = [...text.matchAll(/\{img:\s*"(.*?)"\}/g)];
