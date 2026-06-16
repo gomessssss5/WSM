@@ -4335,14 +4335,9 @@ codeBlocks.forEach((codeNode) => {
                   preNode.remove();
               } else {
                   // Se for um código pequeno, apenas colorir inline
-                  hljs.highlightElement(codeNode);
-    } else if (shown === '3') {
-      setTimeout(() => {
-        const modal = document.getElementById('presentationModal4');
-        if (modal) modal.classList.add('active');
-      }, 500);
-    }
-  });
+                   hljs.highlightElement(codeNode);
+              }
+        }
 
         const group = document.createElement('div');
         group.className = 'message-group bot';
