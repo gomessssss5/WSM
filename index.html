@@ -3078,6 +3078,16 @@ padding: 6px 10px;
     </div>
   </div>
 
+  <!-- MODAL DE APRESENTAÇÃO 4 -->
+  <div class="presentation-modal" id="presentationModal4">
+    <div class="presentation-card">
+      <img src="ads4.png" alt="WSM AI" class="presentation-card-img">
+      <div class="presentation-card-body" style="text-align:center;">
+        <button class="presentation-card-close" onclick="closePresentation4()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SIDEBAR (Barra Lateral) -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
@@ -3390,7 +3400,7 @@ padding: 6px 10px;
     }
     preloadAndScaleCursor();
 
-    // Mostrar modal de apresentação (sequencial: 1ª, 2ª e 3ª visita)
+    // Mostrar modal de apresentação (sequencial: 1ª, 2ª, 3ª e 4ª visita)
     const shown = localStorage.getItem('WSM_PRESENTATION_SHOWN');
     if (!shown) {
       setTimeout(() => {
@@ -3405,6 +3415,11 @@ padding: 6px 10px;
     } else if (shown === '2') {
       setTimeout(() => {
         const modal = document.getElementById('presentationModal3');
+        if (modal) modal.classList.add('active');
+      }, 500);
+    } else if (shown === '3') {
+      setTimeout(() => {
+        const modal = document.getElementById('presentationModal4');
         if (modal) modal.classList.add('active');
       }, 500);
     }
@@ -3425,6 +3440,12 @@ padding: 6px 10px;
   function closePresentation3() {
     localStorage.setItem('WSM_PRESENTATION_SHOWN', '3');
     const modal = document.getElementById('presentationModal3');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function closePresentation4() {
+    localStorage.setItem('WSM_PRESENTATION_SHOWN', '4');
+    const modal = document.getElementById('presentationModal4');
     if (modal) modal.classList.remove('active');
   }
 
@@ -4315,8 +4336,13 @@ codeBlocks.forEach((codeNode) => {
               } else {
                   // Se for um código pequeno, apenas colorir inline
                   hljs.highlightElement(codeNode);
-              }
-          });
+    } else if (shown === '3') {
+      setTimeout(() => {
+        const modal = document.getElementById('presentationModal4');
+        if (modal) modal.classList.add('active');
+      }, 500);
+    }
+  });
 
         const group = document.createElement('div');
         group.className = 'message-group bot';
