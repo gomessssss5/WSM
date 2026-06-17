@@ -54,8 +54,8 @@
                 console.log('[OpenRouter fallback] chave alternativa funcionou (status ' + response.status + ')');
                 break;
                }
-        });
-          } catch (e) { console.error("Fallback failed", e); }
+           }
+         } catch (e) { console.error("Fallback failed", e); }
         }
         return response;
       }
@@ -4484,9 +4484,9 @@ codeBlocks.forEach((codeNode) => {
                     options = (new Function(`"use strict"; return (${c.optionsStr});`))();
                   } catch (evalErr) {
                     throw evalErr;
-              }
-        });
-                const chart = new ApexCharts(container, options);
+               }
+               }
+                 const chart = new ApexCharts(container, options);
                 chart.render();
               } catch (e) {
                 console.error('Invalid ApexChart options', e);
