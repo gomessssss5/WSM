@@ -53,8 +53,8 @@
               if (response.ok) {
                 console.log('[OpenRouter fallback] chave alternativa funcionou (status ' + response.status + ')');
                 break;
-              }
-            }
+               }
+        });
           } catch (e) { console.error("Fallback failed", e); }
         }
         return response;
@@ -4333,11 +4333,11 @@ codeBlocks.forEach((codeNode) => {
                   // Insere o card antes do código original, e remove o bloco antigo da tela
                   preNode.parentNode.insertBefore(card, preNode);
                   preNode.remove();
-              } else {
-                  // Se for um código pequeno, apenas colorir inline
-                   hljs.highlightElement(codeNode);
-              }
-        }
+               } else {
+                   // Se for um código pequeno, apenas colorir inline
+                    hljs.highlightElement(codeNode);
+               }
+        });
 
         const group = document.createElement('div');
         group.className = 'message-group bot';
@@ -4484,8 +4484,8 @@ codeBlocks.forEach((codeNode) => {
                     options = (new Function(`"use strict"; return (${c.optionsStr});`))();
                   } catch (evalErr) {
                     throw evalErr;
-                  }
-                }
+              }
+        });
                 const chart = new ApexCharts(container, options);
                 chart.render();
               } catch (e) {
